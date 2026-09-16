@@ -8,3 +8,4 @@ root.render(
     <DestraveApp />
   </React.StrictMode>
 );
+export default DestraveApp;
