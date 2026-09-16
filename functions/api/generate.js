@@ -8,11 +8,12 @@ const jsonResponse = (body, status = 200) =>
   });
 
 export async function onRequestPost(context) {
-  const apiKey = context.env.GEMINI_API_KEY;
+  const apiKey =
+    context.env.DESTRAVE_GEMINI_KEY || context.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return jsonResponse(
-      { error: 'A chave GEMINI_API_KEY não foi configurada no Cloudflare.' },
+      { error: 'A chave da API do Gemini não foi configurada no Cloudflare.' },
       500
     );
   }
