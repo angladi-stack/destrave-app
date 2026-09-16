@@ -18,45 +18,28 @@ export const DestraveApp = () => {
 
   const handleGenerate = async () => {
     setLoading(true);
-    const apiKey = process.env.REACT_APP_GEMINI_API_KEY;
-
-    if (!apiKey) {
-      alert('Chave da API não encontrada nas variáveis de ambiente!');
-      setLoading(false);
-      return;
-    }
-
-    const systemPrompt = `Você é o CÉREBRO ESTRATÉGICO do aplicativo DESTRAVE BY ANGLADI.
-Posicionamento: "O Destrave não ensina você a fazer conteúdo. Ele destrava o próximo conteúdo que você precisa publicar."
-Regra: FALE. NÃO RECITE. Soe como conversa natural.
-Retorne um JSON com esta estrutura exata:
-{
-  "title": "Título do Conteúdo",
-  "fromPerception": "Crença antiga do cliente",
-  "toPerception": "Nova perception",
-  "howToRecord": "Como gravar no celular",
-  "whatToSay": "Roteiro exato para falar no teleprompter",
-  "screenText": "Texto curto para colar na tela"
-}`;
-
-    const userPrompt = `Negócio: ${profile.businessName}. Produtos: ${profile.products}. Objeções: ${profile.knownObjections}. Modo: ${mode}. Formato: ${format}. Objetivo: ${objective}.`;
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      const response = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }]
+          profile,
+          mode,
+          format,
+          objective
         })
       });
 
       const data = await response.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const cleanJson = JSON.parse(rawText.replace(/```json/g, '').replace(/```/g, '').trim());
-      setResult(cleanJson);
+      if (!response.ok) {
+        throw new Error(data.error || 'Não foi possível gerar o conteúdo.');
+      }
+
+      setResult(data.result);
       setActiveTab('conteudo');
     } catch (e) {
-      alert('Erro ao gerar com a IA. Verifique se sua chave da API está correta.');
+      alert(`Erro ao gerar com a IA: ${e.message}`);
     } finally {
       setLoading(false);
     }
