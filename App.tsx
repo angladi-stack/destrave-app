@@ -1,11 +1,11 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, StatusBar as RNStatusBar } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ScreenName, ToastMessage } from './types';
 import { Toast } from './components/Toast';
-import { QuickScreenNav } from './components/QuickScreenNav';
+import { clearSession, loadSession, saveSession } from './services/storage';
 
 // Screens
 import { LoginScreen } from './screens/LoginScreen';
@@ -25,6 +25,15 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<ScreenName>('login');
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [storyIndex, setStoryIndex] = useState<number>(0);
+  const [sessionReady, setSessionReady] = useState(false);
+
+  useEffect(() => {
+    loadSession()
+      .then((session) => {
+        if (session?.active) setCurrentScreen('home');
+      })
+      .finally(() => setSessionReady(true));
+  }, []);
 
   const showToast = useCallback((text: string) => {
     setToast({
@@ -37,8 +46,12 @@ export default function App() {
     setToast(null);
   }, []);
 
-  if (!fontsLoaded) {
-    return null;
+  if (!fontsLoaded || !sessionReady) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator color="#d4af37" />
+      </View>
+    );
   }
 
   const renderScreen = () => {
@@ -46,7 +59,10 @@ export default function App() {
       case 'login':
         return (
           <LoginScreen
-            onLoginSuccess={() => setCurrentScreen('home')}
+            onLoginSuccess={() => {
+              void saveSession('usuario@destrave.app');
+              setCurrentScreen('home');
+            }}
             onNavigate={setCurrentScreen}
             onShowToast={showToast}
           />
@@ -94,7 +110,10 @@ export default function App() {
       case 'profile':
         return (
           <ProfileScreen
-            onLogout={() => setCurrentScreen('login')}
+            onLogout={() => {
+              void clearSession();
+              setCurrentScreen('login');
+            }}
             onNavigate={setCurrentScreen}
             onShowToast={showToast}
           />
@@ -109,7 +128,10 @@ export default function App() {
       default:
         return (
           <LoginScreen
-            onLoginSuccess={() => setCurrentScreen('home')}
+            onLoginSuccess={() => {
+              void saveSession('usuario@destrave.app');
+              setCurrentScreen('home');
+            }}
             onNavigate={setCurrentScreen}
             onShowToast={showToast}
           />
@@ -122,12 +144,6 @@ export default function App() {
       <StatusBar style="light" />
       {renderScreen()}
 
-      {/* Persistent floating screen switcher for evaluating all 5 requested screens */}
-      <QuickScreenNav
-        currentScreen={currentScreen}
-        onSelectScreen={(screen) => setCurrentScreen(screen)}
-      />
-
       {/* Global Toast */}
       <Toast toast={toast} onHide={hideToast} />
     </View>
@@ -137,6 +153,12 @@ export default function App() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: '#120f0d',
+  },
+  loading: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#120f0d',
   },
 });
