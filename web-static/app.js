@@ -88,7 +88,7 @@ function addHome(root){
 
 function addDaily(root){
   const panel=document.createElement('div'); panel.className='data-panel generator-panel';
-  panel.innerHTML='<h2>Crie seu conteúdo do dia</h2><p>Preencha o que deseja divulgar. O Destrave entrega um roteiro pronto.</p>';
+  panel.innerHTML='<p class="generator-intro">Me diga só o que você quer movimentar hoje.</p>';
   const goal=document.createElement('select'); goal.innerHTML='<option>Vender</option><option>Atrair pessoas</option><option>Passar confiança</option><option>Ensinar</option><option>Criar conexão</option>';
   const topic=document.createElement('textarea'); topic.placeholder='O que você quer divulgar hoje?';
   const format=document.createElement('select'); format.innerHTML='<option>Reels aparecendo e falando</option><option>Reels sem aparecer</option><option>Stories</option><option>Carrossel</option>';
