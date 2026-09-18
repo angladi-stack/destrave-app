@@ -119,7 +119,7 @@ function choiceField(label,key,options){
   const wrap=document.createElement('div');wrap.className='choice-field';
   const title=document.createElement('span');title.className='choice-title';title.textContent=label;wrap.appendChild(title);
   const group=document.createElement('div');group.className='choice-group';
-  options.forEach(option=>{const b=document.createElement('button');b.type='button';b.className='choice'+(business[key]===option?' selected':'');b.textContent=option;b.onclick=()=>{business[key]=option;group.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};group.appendChild(b)});
+  options.forEach(option=>{const b=document.createElement('button');b.type='button';b.className='choice'+(business[key]===option?' selected':'');b.textContent=option;b.setAttribute('aria-pressed',business[key]===option?'true':'false');const select=()=>{business[key]=option;group.querySelectorAll('.choice').forEach(x=>{x.classList.remove('selected');x.setAttribute('aria-pressed','false')});b.classList.add('selected');b.setAttribute('aria-pressed','true');writeJSON('destrave-business',business)};b.addEventListener('click',select);b.addEventListener('touchend',e=>{e.preventDefault();select()},{passive:false});group.appendChild(b)});
   wrap.appendChild(group);return wrap;
 }
 
