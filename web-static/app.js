@@ -58,9 +58,9 @@ function primary(text,onClick){const b=document.createElement('button');b.classN
 
 function addSidebar(root){
   const items=[
-    ['1.5%','7%','home','Destrave'],['18%','7%','home','Início'],
-    ['31%','7%','contents','Conteúdo'],['43%','8%','work','Meu trabalho'],
-    ['56%','7%','profile','Perfil'],['68%','8%','alpha','Alpha']
+    ['1.5%','7%','home','Destrave'],['10%','8%','home','Início'],
+    ['20%','8%','contents','Conteúdo'],['30%','8%','work','Meu trabalho'],
+    ['40%','8%','profile','Perfil'],['50%','9%','alpha','Alpha']
   ];
   items.forEach(([top,height,target,label])=>root.appendChild(button(top,'0%','15%',height,()=>navigate(target),label)));
 }
@@ -76,12 +76,6 @@ function addLogin(root){
 }
 
 function addHome(root){
-  const greeting=document.createElement('div');greeting.className='home-greeting';greeting.textContent=business.name?`Oi, ${business.name} ✦`:'Olá ✦';root.appendChild(greeting);
-  const recent=document.createElement('div');recent.className='home-recent';
-  recent.innerHTML='<h3>Últimos conteúdos</h3>';
-  if(!contents.length){recent.innerHTML+='<div class="home-empty"><strong>Nenhum conteúdo criado ainda.</strong><span>Quando você destravar seu primeiro conteúdo, ele aparece aqui.</span></div>'}
-  else contents.slice(0,2).forEach(item=>{const card=document.createElement('button');card.type='button';card.className='home-real-card';card.innerHTML=`<strong>${item.title}</strong><span>${item.format} • ${item.created}</span><small>Pronto para usar</small>`;card.onclick=()=>showResult(item);recent.appendChild(card)});
-  root.appendChild(recent);
   root.appendChild(button('1.6%','84%','12%','4.4%',()=>navigate('profile'),'Perfil'));
   root.appendChild(button('34%','19%','78.5%','4%',()=>navigate('daily'),'Criar meu conteúdo do dia'));
   root.appendChild(button('43.2%','17%','39%','7.5%',()=>showToast('Conteúdo feito para você ✨'),'Feito para você'));
@@ -91,7 +85,6 @@ function addHome(root){
   root.appendChild(button('68%','17%','80%','12%',()=>showToast('Você só precisa executar o próximo movimento.'),'Impulso do dia'));
   root.appendChild(button('82.5%','17%','80%','9%',()=>navigate('alpha'),'Comunidade Alpha'));
 }
-
 function addDaily(root){
   const state={goal:'Vender',topic:'',format:'Reels aparecendo e falando'};
   const selected=document.createElement('div');selected.className='daily-live-fields';
