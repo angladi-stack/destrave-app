@@ -77,7 +77,7 @@ Assunto/pedido: ${requestToday || business.objective}
 
 HISTÓRICO RECENTE PARA NÃO REPETIR:
 ${JSON.stringify(recent)}`;
-        const gr = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",{
+        const gr = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{
           method:"POST",
           headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
           body:JSON.stringify({contents:[{parts:[{text:motherPrompt}]}],generationConfig:{temperature:0.9,maxOutputTokens:6000}})
@@ -86,7 +86,7 @@ ${JSON.stringify(recent)}`;
         if (!gr.ok) return json({ok:false,error:"Falha no Gemini",details:gd?.error?.message || "Erro da API"},{status:502});
         const textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
         if (!textOut) return json({ok:false,error:"A IA não retornou conteúdo."},{status:502});
-        return json({ok:true,text:textOut,format:"Stories + Reels + Carrossel",model:"gemini-2.5-flash"});
+        return json({ok:true,text:textOut,format:"Stories + Reels + Carrossel",model:"gemini-3.6-flash"});
       } catch(error) {
         return json({ok:false,error:"Falha ao gerar conteúdo",message:error.message},{status:500});
       }
