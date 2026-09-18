@@ -6,6 +6,7 @@ const screens = {
 const app = document.getElementById('app');
 const toast = document.getElementById('toast');
 let current = localStorage.getItem('destrave-session') ? 'home' : 'login';
+const isConfigured=()=>Boolean(business.name&&business.activity&&business.objective);
 const readJSON=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))||fallback}catch{return fallback}};
 const writeJSON=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
 let business=readJSON('destrave-business',{});
@@ -44,7 +45,7 @@ function button(top,left,width,height,onClick,label=''){
   b.addEventListener('click',onClick); return b;
 }
 
-function navigate(name){ current=name; window.scrollTo(0,0); render(); }
+function navigate(name){ if(name!=='work'&&name!=='login'&&localStorage.getItem('destrave-session')&&!isConfigured()) name='work'; current=name; window.scrollTo(0,0); render(); }
 
 function field(label,key,placeholder='Nenhum dado cadastrado'){
   const wrap=document.createElement('label'); wrap.className='form-field';
@@ -70,7 +71,7 @@ function addLogin(root){
   const pass=document.createElement('input'); pass.className='login-field'; pass.type='password'; pass.autocomplete='current-password'; pass.placeholder='Senha';
   Object.assign(pass.style,{top:'56.1%',left:'23%',width:'65%',height:'5.8%'});
   root.append(email,pass);
-  root.appendChild(button('68.4%','9.5%','81%','5.9%',()=>{localStorage.setItem('destrave-session','1');syncFromCloud().finally(()=>navigate('home'))},'Entrar'));
+  root.appendChild(button('68.4%','9.5%','81%','5.9%',()=>{localStorage.setItem('destrave-session','1');syncFromCloud().finally(()=>navigate(isConfigured()?'home':'work'))},'Entrar'));
   root.appendChild(button('80.3%','9.5%','81%','5.9%',()=>showToast('Em breve: conheça o Destrave ✨'),'Conhecer o Destrave'));
 }
 
@@ -92,7 +93,8 @@ function addDaily(root){
   const topic=document.createElement('textarea'); topic.placeholder='O que você quer divulgar hoje?';
   const format=document.createElement('select'); format.innerHTML='<option>Reels aparecendo e falando</option><option>Reels sem aparecer</option><option>Stories</option><option>Carrossel</option>';
   panel.append(goal,topic,format,primary('✦ CRIAR MEU CONTEÚDO',()=>{
-    const subject=topic.value.trim()||business.service||business.business||'seu trabalho';
+    if(!isConfigured()){showToast('Primeiro preciso conhecer você.');navigate('work');return}
+    const subject=topic.value.trim()||business.objective||business.activity||'seu trabalho';
     const name=business.name||'você';
     const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:'Stories + Reels + Carrossel',requestedFormat:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:`PLANO COMPLETO DO DIA — ${subject}\n\nSTORIES\n1. Abra com uma situação ou pergunta que faça a pessoa se reconhecer.\n2. Mostre o problema que ${subject} resolve.\n3. Apresente o benefício de forma simples.\n4. Conduza para a ação.\n\nREELS\nGANCHO: Se as pessoas ainda não entenderam o valor de ${subject}, preste atenção.\n\nROTEIRO: ${name}, mostre o problema que isso resolve, explique como funciona e apresente o resultado que a pessoa pode alcançar. Use um exemplo real do seu dia a dia.\n\nCTA: Quer saber como ${subject} pode ajudar você? Me chama para conversar.\n\nCARROSSEL\nSlide 1: uma chamada forte sobre ${subject}.\nSlide 2: o problema que a pessoa vive.\nSlide 3: o que ela precisa entender.\nSlide 4: como ${subject} ajuda.\nSlide 5: benefício ou transformação.\nSlide 6: CTA para o próximo passo.\n\nCONEXÃO DO DIA\nOs Stories preparam o assunto, o Reels desenvolve a mensagem e o Carrossel reforça e salva a ideia. Mesmo quando você escolher apenas um formato na entrada, o Destrave entrega o movimento completo do dia.`};
     contents.unshift(generated);syncToCloud();showResult(generated);
@@ -108,10 +110,27 @@ function addContents(root){
 }
 
 function addWork(root){
+  const first=!isConfigured();
   const panel=document.createElement('div');panel.className='data-panel work-panel';
-  panel.innerHTML='<h2>Meu trabalho</h2><p>Essas informações personalizam todos os conteúdos.</p>';
-  panel.append(field('Seu nome','name'),field('Nome do negócio','business'),field('O que você faz','service'),field('Para quem','audience'),field('Problema que resolve','problem'),field('Resultado que entrega','result'),field('Seu diferencial','difference'));
-  panel.appendChild(primary('SALVAR MINHAS INFORMAÇÕES',()=>{syncToCloud();showToast('Informações salvas no Destrave ✨');render()}));root.appendChild(panel);
+  panel.innerHTML=first?'<h2>Antes de destravar, preciso conhecer você ✦</h2><p>Preencha uma vez. O Destrave vai usar essas informações para entender você antes de criar qualquer conteúdo.</p>':'<h2>Meu trabalho</h2><p>Atualize quando algo mudar. Essas informações fazem parte da memória-base do Destrave.</p>';
+  panel.append(
+    field('Como você quer ser chamada?','name','Seu nome'),
+    field('O que você faz?','activity','Ex.: cantora, atriz, modelo, confeiteira, advogada...'),
+    field('Conte um pouco sobre seu trabalho, projeto ou talento','description','Explique com suas palavras'),
+    field('O que você quer movimentar, divulgar ou mostrar?','objective','Ex.: meu serviço, minha música, minha marca, meu trabalho...'),
+    field('Para quem você quer falar?','audience','Quem você quer alcançar?'),
+    field('Você vende ou oferece algo? O quê?','offer','Se não vende, pode deixar em branco'),
+    field('Que problema, desejo ou necessidade você atende?','problem','O que leva alguém até você?'),
+    field('Que resultado, transformação ou percepção você quer gerar?','result','O que você quer provocar nas pessoas?'),
+    field('Qual é seu diferencial?','difference','O que torna seu trabalho particular?'),
+    field('Como você prefere aparecer?','appearance','Ex.: apareço, não apareço, posso aparecer quando fizer sentido'),
+    field('O que você não quer fazer ou mostrar?','boundaries','Limites e preferências')
+  );
+  panel.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
+    if(!business.name||!business.activity||!business.objective){showToast('Preencha seu nome, o que você faz e o que quer movimentar.');return}
+    business.service=business.activity; business.business=business.business||business.activity;
+    await syncToCloud();showToast(first?'Agora eu conheço o seu trabalho. Vamos destravar ✦':'Informações atualizadas ✨');navigate('home');
+  }));root.appendChild(panel);
 }
 
 function showResult(item){
@@ -149,4 +168,4 @@ function render(){
 }
 
 render();
-if(localStorage.getItem('destrave-session')) syncFromCloud().then(ok=>{if(ok) render()});
+if(localStorage.getItem('destrave-session')) syncFromCloud().then(ok=>{if(ok){current=isConfigured()?'home':'work';render()}});
