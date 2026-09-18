@@ -58,9 +58,8 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
         {
           style: {
             position: 'relative',
-            width: '100%',
-            maxWidth: '430px',
-            aspectRatio: `${asset.width} / ${asset.height}`,
+            width: `${containerWidth}px`,
+            height: `${containerHeight}px`,
             margin: '0 auto',
             lineHeight: 0,
             backgroundImage: `url("${imageUri}")`,
