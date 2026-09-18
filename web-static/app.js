@@ -92,12 +92,18 @@ function addDaily(root){
   const goal=document.createElement('select'); goal.innerHTML='<option>Vender</option><option>Atrair pessoas</option><option>Passar confiança</option><option>Ensinar</option><option>Criar conexão</option>';
   const topic=document.createElement('textarea'); topic.placeholder='O que você quer divulgar hoje?';
   const format=document.createElement('select'); format.innerHTML='<option>Reels aparecendo e falando</option><option>Reels sem aparecer</option><option>Stories</option><option>Carrossel</option>';
-  panel.append(goal,topic,format,primary('✦ CRIAR MEU CONTEÚDO',()=>{
+  panel.append(goal,topic,format,primary('✦ CRIAR MEU CONTEÚDO',async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer você.');navigate('work');return}
     const subject=topic.value.trim()||business.objective||business.activity||'seu trabalho';
-    const name=business.name||'você';
-    const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:'Stories + Reels + Carrossel',requestedFormat:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:`PLANO COMPLETO DO DIA — ${subject}\n\nSTORIES\n1. Abra com uma situação ou pergunta que faça a pessoa se reconhecer.\n2. Mostre o problema que ${subject} resolve.\n3. Apresente o benefício de forma simples.\n4. Conduza para a ação.\n\nREELS\nGANCHO: Se as pessoas ainda não entenderam o valor de ${subject}, preste atenção.\n\nROTEIRO: ${name}, mostre o problema que isso resolve, explique como funciona e apresente o resultado que a pessoa pode alcançar. Use um exemplo real do seu dia a dia.\n\nCTA: Quer saber como ${subject} pode ajudar você? Me chama para conversar.\n\nCARROSSEL\nSlide 1: uma chamada forte sobre ${subject}.\nSlide 2: o problema que a pessoa vive.\nSlide 3: o que ela precisa entender.\nSlide 4: como ${subject} ajuda.\nSlide 5: benefício ou transformação.\nSlide 6: CTA para o próximo passo.\n\nCONEXÃO DO DIA\nOs Stories preparam o assunto, o Reels desenvolve a mensagem e o Carrossel reforça e salva a ideia. Mesmo quando você escolher apenas um formato na entrada, o Destrave entrega o movimento completo do dia.`};
-    contents.unshift(generated);syncToCloud();showResult(generated);
+    const btn=panel.querySelector('.primary'); const old=btn.textContent; btn.disabled=true; btn.textContent='✦ DESTRAVANDO SEU DIA...';
+    try{
+      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:goal.value,topic:subject,requestedFormat:format.value})});
+      const data=await r.json();
+      if(!data.ok) throw new Error(data.error+(data.details?' — '+data.details:''));
+      const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
+      contents.unshift(generated); await syncToCloud(); showResult(generated);
+    }catch(e){showToast(e.message||'Não foi possível gerar agora.')}
+    finally{btn.disabled=false;btn.textContent=old}
   })); root.appendChild(panel);
 }
 
