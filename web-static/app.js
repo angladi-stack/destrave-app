@@ -87,31 +87,47 @@ function addHome(root){
   root.appendChild(button('82.5%','17%','80%','9%',()=>navigate('alpha'),'Comunidade Alpha'));
 }
 function addDaily(root){
-  const state={goal:'Vender',topic:'',format:'Reels aparecendo e falando'};
-  const selected=document.createElement('div');selected.className='daily-live-fields';
-  const topic=document.createElement('textarea');topic.placeholder='O que você quer divulgar hoje?';topic.addEventListener('input',()=>state.topic=topic.value);
-  selected.appendChild(topic);root.appendChild(selected);
+  const state={goal:'',topic:'',ways:[]};
+  const selectGoal=(v,label)=>{state.goal=v;showToast(label+' selecionado')};
+  [
+    ['31.5%','18%','22%','4.8%','Vender','Vender'],
+    ['31.5%','42%','27%','4.8%','Alcançar pessoas','Alcançar pessoas'],
+    ['31.5%','70%','26%','4.8%','Passar confiança','Passar confiança'],
+    ['36.2%','18%','22%','4.8%','Ensinar','Ensinar'],
+    ['36.2%','42%','27%','4.8%','Criar conexão','Criar conexão'],
+    ['36.2%','70%','26%','4.8%','Escolha por mim','Escolha por mim']
+  ].forEach(([top,left,width,height,v,label])=>root.appendChild(button(top,left,width,height,()=>selectGoal(v,label),label)));
 
-  const goals=[['Vender','Vender'],['Atrair pessoas','Alcançar pessoas'],['Passar confiança','Passar confiança'],['Ensinar','Ensinar'],['Criar conexão','Criar conexão']];
-  goals.forEach(([value,label],idx)=>root.appendChild(button(idx<3?'29.1%':'34.3%',idx<3?(`${17+idx*27}%`):(`${17+(idx-3)*27}%`),'25%','4.4%',()=>{state.goal=value;showToast(label+' selecionado')},label)));
+  const topic=document.createElement('textarea');topic.className='daily-topic-input';
+  topic.placeholder='Ex.: serviço, produto, música, evento ou mensagem';
+  topic.addEventListener('input',()=>state.topic=topic.value);
+  root.appendChild(topic);
 
-  const formats=[['Reels aparecendo e falando','Reels aparecendo'],['Reels sem aparecer','Reels sem aparecer'],['Stories','Stories'],['Carrossel','Carrossel']];
-  formats.forEach(([value,label],idx)=>root.appendChild(button(idx<2?'52.2%':'57.2%',idx%2===0?'17%':'57%','37%','4.2%',()=>{state.format=value;showToast(label+' selecionado')},label)));
+  root.appendChild(button('49.0%','18%','58%','3.8%',()=>{state.topic='';topic.value='';showToast('Eu escolho o assunto por você ✦')},'Não sei. Escolha por mim'));
+
+  const toggleWay=(v,label)=>{const i=state.ways.indexOf(v);if(i>=0)state.ways.splice(i,1);else if(state.ways.length<2)state.ways.push(v);else{state.ways.shift();state.ways.push(v)}showToast(label+' selecionado')};
+  [
+    ['58.0%','18%','78%','4.5%','Posso aparecer e falar','Posso aparecer e falar'],
+    ['62.5%','18%','78%','4.5%','Posso mostrar sem falar','Posso mostrar sem falar'],
+    ['67.0%','18%','78%','4.5%','Não quero aparecer','Não quero aparecer'],
+    ['71.5%','18%','78%','4.5%','Tenho pouco tempo','Tenho pouco tempo']
+  ].forEach(([top,left,width,height,v,label])=>root.appendChild(button(top,left,width,height,()=>toggleWay(v,label),label)));
 
   const generate=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer você.');navigate('work');return}
-    const subject=state.topic.trim()||business.objective||business.activity||'seu trabalho';
+    const subject=state.topic.trim()||business.objective||business.activity||business.service||'meu trabalho';
+    const goal=state.goal||'Escolha por mim';
+    const requestedFormat=state.ways.length?state.ways.join(' + '):'Escolha por mim';
     showToast('✦ Destravando seu dia...');
     try{
-      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:state.goal,topic:subject,requestedFormat:state.format})});
-      const data=await r.json();if(!data.ok) throw new Error(data.error+(data.details?' — '+data.details:''));
-      const generated={id:Date.now(),title:`${state.goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat:state.format,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
+      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
+      const data=await r.json();if(!data.ok)throw new Error(data.error+(data.details?' — '+data.details:''));
+      const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
       contents.unshift(generated);await syncToCloud();showResult(generated);
     }catch(e){showToast(e.message||'Não foi possível gerar agora.')}
   };
-  root.appendChild(button('65.8%','17%','80%','5.6%',generate,'Criar meu conteúdo do dia'));
+  root.appendChild(button('77.8%','16%','81%','5.6%',generate,'Criar meu conteúdo do dia'));
 }
-
 function addContents(root){
   root.appendChild(button('8.4%','17%','80%','5%',()=>navigate('daily'),'Criar conteúdo do dia'));
   const panel=document.createElement('div');panel.className='data-panel contents-panel';panel.innerHTML='<h2>Seus conteúdos</h2>';
