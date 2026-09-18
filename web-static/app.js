@@ -123,6 +123,17 @@ function choiceField(label,key,options){
   wrap.appendChild(group);return wrap;
 }
 
+function multiChoiceField(label,key,options){
+  const wrap=document.createElement('div');wrap.className='choice-field';
+  const title=document.createElement('span');title.className='choice-title';title.textContent=label;wrap.appendChild(title);
+  const hint=document.createElement('small');hint.className='choice-hint';hint.textContent='Pode marcar mais de uma opção.';wrap.appendChild(hint);
+  const group=document.createElement('div');group.className='choice-group';
+  const selected=Array.isArray(business[key])?business[key]:business[key]?[business[key]]:[];
+  business[key]=selected;
+  options.forEach(option=>{const b=document.createElement('button');b.type='button';b.className='choice'+(selected.includes(option)?' selected':'');b.innerHTML='<span class="choice-dot" aria-hidden="true"></span><span class="choice-text"></span>';b.querySelector('.choice-text').textContent=option;b.addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();const values=Array.isArray(business[key])?[...business[key]]:[];const pos=values.indexOf(option);if(pos>=0){values.splice(pos,1);b.classList.remove('selected')}else{values.push(option);b.classList.add('selected')}business[key]=values;writeJSON('destrave-business',business)});group.appendChild(b)});
+  wrap.appendChild(group);return wrap;
+}
+
 function addWork(root){
   const first=!isConfigured();
   const panel=document.createElement('div');panel.className='data-panel work-panel';
@@ -134,7 +145,7 @@ function addWork(root){
     field('Pra quem você quer falar?','audience','Ex.: mães, mulheres, pessoas da minha cidade...'),
     choiceField('Como está sua vida na internet hoje?','digitalStage',['Tô começando do zero','Já postei, mas parei','Posto de vez em quando','Já posto bastante']),
     choiceField('Você gosta de aparecer nos vídeos?','appearance',['Sim','Ainda tenho vergonha','Prefiro não aparecer','Tanto faz']),
-    choiceField('O que você mais quer conseguir agora?','mainGoal',['Vender mais','Conseguir clientes','Ficar mais conhecida','Mostrar meu trabalho','Criar conexão','Crescer na internet','Outro'])
+    multiChoiceField('O que você quer conseguir na internet?','mainGoal',['Vender mais','Conseguir clientes','Ficar mais conhecida','Mostrar meu trabalho','Criar conexão','Crescer na internet','Outro'])
   );
   panel.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
     if(!business.name||!business.activity||!business.objective){showToast('Só falta dizer seu nome, o que você faz e o que quer divulgar.');return}
