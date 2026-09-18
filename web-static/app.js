@@ -96,7 +96,10 @@ function addDaily(root){
     ['36.2%','18%','22%','4.8%','Ensinar','Ensinar'],
     ['36.2%','42%','27%','4.8%','Criar conexão','Criar conexão'],
     ['36.2%','70%','26%','4.8%','Escolha por mim','Escolha por mim']
-  ].forEach(([top,left,width,height,v,label])=>root.appendChild(button(top,left,width,height,()=>selectGoal(v,label),label)));
+  ].forEach(([top,left,width,height,v,label])=>{
+    const b=button(top,left,width,height,()=>{state.goal=v;root.querySelectorAll('.daily-goal-hit').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');showToast(label+' selecionado')},label);
+    b.classList.add('daily-select-hit','daily-goal-hit');root.appendChild(b);
+  });
 
   const topic=document.createElement('textarea');topic.className='daily-topic-input';
   topic.placeholder='Ex.: serviço, produto, música, evento ou mensagem';
@@ -111,7 +114,18 @@ function addDaily(root){
     ['62.5%','18%','78%','4.5%','Posso mostrar sem falar','Posso mostrar sem falar'],
     ['67.0%','18%','78%','4.5%','Não quero aparecer','Não quero aparecer'],
     ['71.5%','18%','78%','4.5%','Tenho pouco tempo','Tenho pouco tempo']
-  ].forEach(([top,left,width,height,v,label])=>root.appendChild(button(top,left,width,height,()=>toggleWay(v,label),label)));
+  ].forEach(([top,left,width,height,v,label])=>{
+    const b=button(top,left,width,height,()=>{
+      const i=state.ways.indexOf(v);
+      if(i>=0){state.ways.splice(i,1);b.classList.remove('selected')}
+      else{
+        if(state.ways.length>=2){const old=state.ways.shift();root.querySelectorAll('.daily-way-hit').forEach(x=>{if(x.dataset.value===old)x.classList.remove('selected')})}
+        state.ways.push(v);b.classList.add('selected')
+      }
+      showToast(label+' selecionado')
+    },label);
+    b.dataset.value=v;b.classList.add('daily-select-hit','daily-way-hit');root.appendChild(b);
+  });
 
   const generate=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer você.');navigate('work');return}
