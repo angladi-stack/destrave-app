@@ -40,8 +40,11 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
     >
       <Image
         source={asset.local}
-        style={styles.image}
-        resizeMode="stretch"
+        style={[
+          styles.image,
+          { width: containerWidth, height: containerHeight },
+        ]}
+        resizeMode="contain"
       />
       {children}
     </View>
@@ -99,6 +102,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#120f0d',
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
 });
