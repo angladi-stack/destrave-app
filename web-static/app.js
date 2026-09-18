@@ -129,7 +129,9 @@ function addWork(root){
     field('Que problema, desejo ou necessidade você atende?','problem','O que leva alguém até você?'),
     field('Que resultado, transformação ou percepção você quer gerar?','result','O que você quer provocar nas pessoas?'),
     field('Qual é seu diferencial?','difference','O que torna seu trabalho particular?'),
-    field('Como você prefere aparecer?','appearance','Ex.: apareço, não apareço, posso aparecer quando fizer sentido'),
+    field('Como está sua presença na internet hoje?','digitalStage','Ex.: começando do zero; começando a aparecer; já postei e parei; posto às vezes; já tenho presença; produzo com frequência'),
+    field('Como é sua rotina de conteúdo hoje?','contentRoutine','Ex.: nunca postei; tenho poucos Reels; não faço Stories; posto quando consigo'),
+    field('Como você se sente aparecendo nos conteúdos?','appearance','Ex.: apareço; ainda tenho vergonha; não quero aparecer; posso aparecer quando fizer sentido'),
     field('O que você não quer fazer ou mostrar?','boundaries','Limites e preferências')
   );
   panel.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
