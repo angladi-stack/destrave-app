@@ -36,3 +36,6 @@ body{overflow-x:hidden}
 .generator-intro{margin:0 0 10px!important;font-size:13px!important;color:#766a60!important}
 .generator-panel select,.generator-panel textarea{margin-bottom:9px!important}
 .generator-panel textarea{min-height:88px!important}
+
+/* Cover the duplicated baked-in CTA below the real generator button. */
+.generator-panel::after{content:"";position:absolute;left:-1px;right:-1px;top:100%;height:145px;background:#fbfaf7;z-index:-1;pointer-events:none}
