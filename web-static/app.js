@@ -115,29 +115,31 @@ function addContents(root){
   root.appendChild(panel);
 }
 
+function choiceField(label,key,options){
+  const wrap=document.createElement('div');wrap.className='choice-field';
+  const title=document.createElement('span');title.className='choice-title';title.textContent=label;wrap.appendChild(title);
+  const group=document.createElement('div');group.className='choice-group';
+  options.forEach(option=>{const b=document.createElement('button');b.type='button';b.className='choice'+(business[key]===option?' selected':'');b.textContent=option;b.onclick=()=>{business[key]=option;group.querySelectorAll('.choice').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};group.appendChild(b)});
+  wrap.appendChild(group);return wrap;
+}
+
 function addWork(root){
   const first=!isConfigured();
   const panel=document.createElement('div');panel.className='data-panel work-panel';
-  panel.innerHTML=first?'<h2>Antes de destravar, preciso conhecer você ✦</h2><p>Preencha uma vez. O Destrave vai usar essas informações para entender você antes de criar qualquer conteúdo.</p>':'<h2>Meu trabalho</h2><p>Atualize quando algo mudar. Essas informações fazem parte da memória-base do Destrave.</p>';
+  panel.innerHTML=first?'<h2>Primeiro, quero conhecer você ✦</h2><p>É rapidinho. Assim o Destrave entende o que faz sentido para você.</p>':'<h2>Meu trabalho</h2><p>Se alguma coisa mudar, atualize aqui.</p>';
   panel.append(
-    field('Como você quer ser chamada?','name','Seu nome'),
-    field('O que você faz?','activity','Ex.: cantora, atriz, modelo, confeiteira, advogada...'),
-    field('Conte um pouco sobre seu trabalho, projeto ou talento','description','Explique com suas palavras'),
-    field('O que você quer movimentar, divulgar ou mostrar?','objective','Ex.: meu serviço, minha música, minha marca, meu trabalho...'),
-    field('Para quem você quer falar?','audience','Quem você quer alcançar?'),
-    field('Você vende ou oferece algo? O quê?','offer','Se não vende, pode deixar em branco'),
-    field('Que problema, desejo ou necessidade você atende?','problem','O que leva alguém até você?'),
-    field('Que resultado, transformação ou percepção você quer gerar?','result','O que você quer provocar nas pessoas?'),
-    field('Qual é seu diferencial?','difference','O que torna seu trabalho particular?'),
-    field('Como está sua presença na internet hoje?','digitalStage','Ex.: começando do zero; começando a aparecer; já postei e parei; posto às vezes; já tenho presença; produzo com frequência'),
-    field('Como é sua rotina de conteúdo hoje?','contentRoutine','Ex.: nunca postei; tenho poucos Reels; não faço Stories; posto quando consigo'),
-    field('Como você se sente aparecendo nos conteúdos?','appearance','Ex.: apareço; ainda tenho vergonha; não quero aparecer; posso aparecer quando fizer sentido'),
-    field('O que você não quer fazer ou mostrar?','boundaries','Limites e preferências')
+    field('Como você se chama?','name','Seu nome'),
+    field('O que você faz?','activity','Ex.: vendo roupas, sou cantora, faço unhas...'),
+    field('O que você quer mostrar ou divulgar na internet?','objective','Conte com suas palavras'),
+    field('Pra quem você quer falar?','audience','Ex.: mães, mulheres, pessoas da minha cidade...'),
+    choiceField('Como está sua vida na internet hoje?','digitalStage',['Tô começando do zero','Já postei, mas parei','Posto de vez em quando','Já posto bastante']),
+    choiceField('Você gosta de aparecer nos vídeos?','appearance',['Sim','Ainda tenho vergonha','Prefiro não aparecer','Tanto faz']),
+    choiceField('O que você mais quer conseguir agora?','mainGoal',['Vender mais','Conseguir clientes','Ficar mais conhecida','Mostrar meu trabalho','Criar conexão','Crescer na internet','Outro'])
   );
   panel.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
-    if(!business.name||!business.activity||!business.objective){showToast('Preencha seu nome, o que você faz e o que quer movimentar.');return}
+    if(!business.name||!business.activity||!business.objective){showToast('Só falta dizer seu nome, o que você faz e o que quer divulgar.');return}
     business.service=business.activity; business.business=business.business||business.activity;
-    await syncToCloud();showToast(first?'Agora eu conheço o seu trabalho. Vamos destravar ✦':'Informações atualizadas ✨');navigate('home');
+    await syncToCloud();showToast(first?'Agora eu conheço você. Vamos destravar ✦':'Informações atualizadas ✨');navigate('home');
   }));root.appendChild(panel);
 }
 
