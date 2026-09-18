@@ -112,7 +112,7 @@ function render(){
   const data=screens[current]||screens.home;
   const root=document.createElement('section'); root.className='screen';
   const image=document.createElement('img'); image.className='screen-image'; image.alt=data.asset===1?'Login Destrave':`Tela ${current}`;
-  image.src=`/assets/reference/asset_${data.asset}.webp`;
+  image.src=`/assets/reference/asset_${data.asset}.jpg`;
   root.appendChild(image);
   if(current==='login') addLogin(root); else {
     addSidebar(root);
