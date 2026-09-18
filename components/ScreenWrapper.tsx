@@ -43,10 +43,13 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       'div',
       {
         style: {
+          position: 'fixed',
+          inset: 0,
           width: '100%',
-          height: '100%',
+          height: '100dvh',
           overflowX: 'hidden',
-          overflowY: scrollEnabled ? 'auto' : 'hidden',
+          overflowY: scrollEnabled ? 'scroll' : 'hidden',
+          WebkitOverflowScrolling: 'touch',
           backgroundColor: '#14100d',
         },
       },
