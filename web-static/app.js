@@ -93,24 +93,29 @@ function addHome(root){
 }
 
 function addDaily(root){
-  const panel=document.createElement('div'); panel.className='data-panel generator-panel';
-  panel.innerHTML='<p class="generator-intro">Me diga só o que você quer movimentar hoje.</p>';
-  const goal=document.createElement('select'); goal.innerHTML='<option>Vender</option><option>Atrair pessoas</option><option>Passar confiança</option><option>Ensinar</option><option>Criar conexão</option>';
-  const topic=document.createElement('textarea'); topic.placeholder='O que você quer divulgar hoje?';
-  const format=document.createElement('select'); format.innerHTML='<option>Reels aparecendo e falando</option><option>Reels sem aparecer</option><option>Stories</option><option>Carrossel</option>';
-  panel.append(goal,topic,format,primary('✦ CRIAR MEU CONTEÚDO',async()=>{
+  const state={goal:'Vender',topic:'',format:'Reels aparecendo e falando'};
+  const selected=document.createElement('div');selected.className='daily-live-fields';
+  const topic=document.createElement('textarea');topic.placeholder='O que você quer divulgar hoje?';topic.addEventListener('input',()=>state.topic=topic.value);
+  selected.appendChild(topic);root.appendChild(selected);
+
+  const goals=[['Vender','Vender'],['Atrair pessoas','Alcançar pessoas'],['Passar confiança','Passar confiança'],['Ensinar','Ensinar'],['Criar conexão','Criar conexão']];
+  goals.forEach(([value,label],idx)=>root.appendChild(button(idx<3?'29.1%':'34.3%',idx<3?(`${17+idx*27}%`):(`${17+(idx-3)*27}%`),'25%','4.4%',()=>{state.goal=value;showToast(label+' selecionado')},label)));
+
+  const formats=[['Reels aparecendo e falando','Reels aparecendo'],['Reels sem aparecer','Reels sem aparecer'],['Stories','Stories'],['Carrossel','Carrossel']];
+  formats.forEach(([value,label],idx)=>root.appendChild(button(idx<2?'52.2%':'57.2%',idx%2===0?'17%':'57%','37%','4.2%',()=>{state.format=value;showToast(label+' selecionado')},label)));
+
+  const generate=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer você.');navigate('work');return}
-    const subject=topic.value.trim()||business.objective||business.activity||'seu trabalho';
-    const btn=panel.querySelector('.primary'); const old=btn.textContent; btn.disabled=true; btn.textContent='✦ DESTRAVANDO SEU DIA...';
+    const subject=state.topic.trim()||business.objective||business.activity||'seu trabalho';
+    showToast('✦ Destravando seu dia...');
     try{
-      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:goal.value,topic:subject,requestedFormat:format.value})});
-      const data=await r.json();
-      if(!data.ok) throw new Error(data.error+(data.details?' — '+data.details:''));
-      const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
-      contents.unshift(generated); await syncToCloud(); showResult(generated);
+      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:state.goal,topic:subject,requestedFormat:state.format})});
+      const data=await r.json();if(!data.ok) throw new Error(data.error+(data.details?' — '+data.details:''));
+      const generated={id:Date.now(),title:`${state.goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat:state.format,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
+      contents.unshift(generated);await syncToCloud();showResult(generated);
     }catch(e){showToast(e.message||'Não foi possível gerar agora.')}
-    finally{btn.disabled=false;btn.textContent=old}
-  })); root.appendChild(panel);
+  };
+  root.appendChild(button('65.8%','17%','80%','5.6%',generate,'Criar meu conteúdo do dia'));
 }
 
 function addContents(root){
