@@ -60,20 +60,15 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
             position: 'relative',
             width: '100%',
             maxWidth: '430px',
+            aspectRatio: `${asset.width} / ${asset.height}`,
             margin: '0 auto',
             lineHeight: 0,
+            backgroundImage: `url("${imageUri}")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'top center',
+            backgroundSize: '100% 100%',
           },
         },
-        React.createElement('img', {
-          src: imageUri,
-          alt: asset.name,
-          draggable: false,
-          style: {
-            display: 'block',
-            width: '100%',
-            height: 'auto',
-          },
-        }),
         React.createElement(
           'div',
           {
