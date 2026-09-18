@@ -1,11 +1,15 @@
 const screens = {
-  login: { asset: 1 }, home: { asset: 2 }, daily: { asset: 4 },
+  login: { asset: 1 }, home: { asset: 2 }, daily: { asset: 3 },
   contents: { asset: 5 }, work: { asset: 6 }, profile: { asset: 7 }, alpha: { asset: 8 }
 };
 
 const app = document.getElementById('app');
 const toast = document.getElementById('toast');
 let current = localStorage.getItem('destrave-session') ? 'home' : 'login';
+const readJSON=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))||fallback}catch{return fallback}};
+const writeJSON=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
+let business=readJSON('destrave-business',{});
+let contents=readJSON('destrave-contents',[]);
 
 function showToast(text){
   toast.textContent=text; toast.classList.add('show');
@@ -19,6 +23,15 @@ function button(top,left,width,height,onClick,label=''){
 }
 
 function navigate(name){ current=name; window.scrollTo(0,0); render(); }
+
+function field(label,key,placeholder='Nenhum dado cadastrado'){
+  const wrap=document.createElement('label'); wrap.className='form-field';
+  wrap.innerHTML=`<span>${label}</span>`;
+  const input=document.createElement('input'); input.value=business[key]||''; input.placeholder=placeholder;
+  input.addEventListener('input',()=>{business[key]=input.value}); wrap.appendChild(input); return wrap;
+}
+
+function primary(text,onClick){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent=text;b.addEventListener('click',onClick);return b}
 
 function addSidebar(root){
   const items=[
@@ -51,18 +64,40 @@ function addHome(root){
 }
 
 function addDaily(root){
-  root.appendChild(button('2%','84%','12%','4%',()=>navigate('profile'),'Perfil'));
-  root.appendChild(button('18%','18%','37%','6%',()=>showToast('Objetivo selecionado'),'Vender'));
-  root.appendChild(button('18%','58%','37%','6%',()=>showToast('Objetivo selecionado'),'Atrair pessoas'));
-  root.appendChild(button('70%','18%','78%','7%',()=>showToast('Conteúdo criado com sucesso ✨'),'Criar conteúdo'));
+  const panel=document.createElement('div'); panel.className='data-panel generator-panel';
+  panel.innerHTML='<h2>Crie seu conteúdo do dia</h2><p>Preencha o que deseja divulgar. O Destrave entrega um roteiro pronto.</p>';
+  const goal=document.createElement('select'); goal.innerHTML='<option>Vender</option><option>Atrair pessoas</option><option>Passar confiança</option><option>Ensinar</option><option>Criar conexão</option>';
+  const topic=document.createElement('textarea'); topic.placeholder='O que você quer divulgar hoje?';
+  const format=document.createElement('select'); format.innerHTML='<option>Reels aparecendo e falando</option><option>Reels sem aparecer</option><option>Stories</option><option>Carrossel</option>';
+  panel.append(goal,topic,format,primary('✦ CRIAR MEU CONTEÚDO',()=>{
+    const subject=topic.value.trim()||business.service||business.business||'seu trabalho';
+    const name=business.name||'você';
+    const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:`GANCHO: Se as pessoas ainda não entenderam o valor de ${subject}, preste atenção.\n\nROTEIRO: ${name}, mostre o problema que isso resolve, explique de forma simples como funciona e apresente o resultado que a pessoa pode alcançar. Fale com naturalidade e use um exemplo real do seu dia a dia.\n\nCTA: Quer saber como ${subject} pode ajudar você? Me chama para conversar.`};
+    contents.unshift(generated);writeJSON('destrave-contents',contents);showResult(generated);
+  })); root.appendChild(panel);
 }
 
 function addContents(root){
   root.appendChild(button('8.4%','17%','80%','5%',()=>navigate('daily'),'Criar conteúdo do dia'));
-  root.appendChild(button('17%','17%','80%','5%',()=>showToast('Busca pronta para usar'),'Buscar'));
-  root.appendChild(button('23%','17%','25%','4%',()=>showToast('Todos os conteúdos'),'Todos'));
-  root.appendChild(button('23%','45%','25%','4%',()=>showToast('Conteúdos salvos'),'Salvos'));
-  root.appendChild(button('23%','73%','24%','4%',()=>showToast('Conteúdos publicados'),'Publicados'));
+  const panel=document.createElement('div');panel.className='data-panel contents-panel';panel.innerHTML='<h2>Seus conteúdos</h2>';
+  if(!contents.length){panel.innerHTML+='<div class="empty"><strong>Nenhum conteúdo criado ainda.</strong><span>Crie seu primeiro conteúdo para ele aparecer aqui.</span></div>';panel.appendChild(primary('+ CRIAR PRIMEIRO CONTEÚDO',()=>navigate('daily')))}
+  else contents.forEach(item=>{const card=document.createElement('button');card.className='content-card';card.innerHTML=`<strong>${item.title}</strong><span>${item.format} • ${item.created}</span><small>Pronto para usar</small>`;card.onclick=()=>showResult(item);panel.appendChild(card)});
+  root.appendChild(panel);
+}
+
+function addWork(root){
+  const panel=document.createElement('div');panel.className='data-panel work-panel';
+  panel.innerHTML='<h2>Meu trabalho</h2><p>Essas informações personalizam todos os conteúdos.</p>';
+  panel.append(field('Seu nome','name'),field('Nome do negócio','business'),field('O que você faz','service'),field('Para quem','audience'),field('Problema que resolve','problem'),field('Resultado que entrega','result'),field('Seu diferencial','difference'));
+  panel.appendChild(primary('SALVAR MINHAS INFORMAÇÕES',()=>{writeJSON('destrave-business',business);showToast('Informações salvas no Destrave ✨');render()}));root.appendChild(panel);
+}
+
+function showResult(item){
+  const modal=document.createElement('div');modal.className='modal';
+  modal.innerHTML=`<div class="modal-card"><button class="close" aria-label="Fechar">×</button><h2>${item.title}</h2><p class="result-text"></p><div class="modal-actions"><button class="secondary">COPIAR</button><button class="primary">VER EM CONTEÚDOS</button></div></div>`;
+  modal.querySelector('.result-text').textContent=item.text;modal.querySelector('.close').onclick=()=>modal.remove();
+  modal.querySelector('.secondary').onclick=async()=>{try{await navigator.clipboard.writeText(item.text);showToast('Conteúdo copiado!')}catch{showToast('Selecione o texto para copiar')}};
+  modal.querySelector('.primary').onclick=()=>{modal.remove();navigate('contents')};document.body.appendChild(modal);
 }
 
 function addProfile(root){
@@ -84,6 +119,7 @@ function render(){
     if(current==='home') addHome(root);
     if(current==='daily') addDaily(root);
     if(current==='contents') addContents(root);
+    if(current==='work') addWork(root);
     if(current==='profile') addProfile(root);
     if(current==='alpha') addAlpha(root);
   }
