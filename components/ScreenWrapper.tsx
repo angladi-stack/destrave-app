@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   StyleSheet,
   useWindowDimensions,
   ScrollView,
-  Platform,
   SafeAreaView,
+  Image,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { AssetInfo } from '../constants/assets';
 
 interface ScreenWrapperProps {
@@ -21,17 +20,13 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
   scrollEnabled = true,
 }) => {
-  const { width: winWidth, height: winHeight } = useWindowDimensions();
+  const { width: winWidth } = useWindowDimensions();
 
   // On mobile phone screens, fill 100% of the screen width.
   // On desktop / tablet, center a realistic mobile viewport (max 430px wide).
   const isDesktop = winWidth > 480;
   const containerWidth = isDesktop ? Math.min(winWidth, 430) : winWidth;
   const containerHeight = containerWidth * asset.aspectRatio;
-
-  // Use local bundled image directly for instantaneous load and zero network failure,
-  // with remote URL reference embedded as specified in prompt.
-  const [imageSource, setImageSource] = useState<any>(asset.local);
 
   const content = (
     <View
@@ -44,12 +39,9 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
       ]}
     >
       <Image
-        source={imageSource}
+        source={asset.local}
         style={styles.image}
-        contentFit="contain"
-        priority="high"
-        transition={150}
-        onError={() => setImageSource(asset.local)}
+        resizeMode="stretch"
       />
       {children}
     </View>
@@ -61,7 +53,10 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
         {scrollEnabled ? (
           <ScrollView
             style={[styles.scrollView, { width: containerWidth }]}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { minHeight: containerHeight },
+            ]}
             showsVerticalScrollIndicator={false}
             bounces={true}
           >
@@ -85,7 +80,7 @@ const styles = StyleSheet.create({
   outerContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     backgroundColor: '#14100d',
   },
   scrollView: {
@@ -104,7 +99,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#120f0d',
   },
   image: {
-    width: '100%',
-    height: '100%',
+    ...StyleSheet.absoluteFillObject,
   },
 });
