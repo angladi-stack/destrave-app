@@ -57,9 +57,9 @@ function primary(text,onClick){const b=document.createElement('button');b.classN
 
 function addSidebar(root){
   const items=[
-    ['1.5%','7%','home','Destrave'],['10%','8%','home','Início'],
-    ['20%','8%','contents','Conteúdo'],['30%','8%','work','Meu trabalho'],
-    ['40%','8%','profile','Perfil'],['50%','9%','alpha','Alpha']
+    ['1.5%','7%','home','Destrave'],['18%','7%','home','Início'],
+    ['31%','7%','contents','Conteúdo'],['43%','8%','work','Meu trabalho'],
+    ['56%','7%','profile','Perfil'],['68%','8%','alpha','Alpha']
   ];
   items.forEach(([top,height,target,label])=>root.appendChild(button(top,'0%','15%',height,()=>navigate(target),label)));
 }
@@ -94,7 +94,7 @@ function addDaily(root){
   panel.append(goal,topic,format,primary('✦ CRIAR MEU CONTEÚDO',()=>{
     const subject=topic.value.trim()||business.service||business.business||'seu trabalho';
     const name=business.name||'você';
-    const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:`GANCHO: Se as pessoas ainda não entenderam o valor de ${subject}, preste atenção.\n\nROTEIRO: ${name}, mostre o problema que isso resolve, explique de forma simples como funciona e apresente o resultado que a pessoa pode alcançar. Fale com naturalidade e use um exemplo real do seu dia a dia.\n\nCTA: Quer saber como ${subject} pode ajudar você? Me chama para conversar.`};
+    const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:'Stories + Reels + Carrossel',requestedFormat:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:`PLANO COMPLETO DO DIA — ${subject}\n\nSTORIES\n1. Abra com uma situação ou pergunta que faça a pessoa se reconhecer.\n2. Mostre o problema que ${subject} resolve.\n3. Apresente o benefício de forma simples.\n4. Conduza para a ação.\n\nREELS\nGANCHO: Se as pessoas ainda não entenderam o valor de ${subject}, preste atenção.\n\nROTEIRO: ${name}, mostre o problema que isso resolve, explique como funciona e apresente o resultado que a pessoa pode alcançar. Use um exemplo real do seu dia a dia.\n\nCTA: Quer saber como ${subject} pode ajudar você? Me chama para conversar.\n\nCARROSSEL\nSlide 1: uma chamada forte sobre ${subject}.\nSlide 2: o problema que a pessoa vive.\nSlide 3: o que ela precisa entender.\nSlide 4: como ${subject} ajuda.\nSlide 5: benefício ou transformação.\nSlide 6: CTA para o próximo passo.\n\nCONEXÃO DO DIA\nOs Stories preparam o assunto, o Reels desenvolve a mensagem e o Carrossel reforça e salva a ideia. Mesmo quando você escolher apenas um formato na entrada, o Destrave entrega o movimento completo do dia.`};
     contents.unshift(generated);syncToCloud();showResult(generated);
   })); root.appendChild(panel);
 }
