@@ -58,13 +58,14 @@ function primary(text,onClick){const b=document.createElement('button');b.classN
 
 function addSidebar(root){
   const items=[
-    ['1.5%','7%','home','Destrave'],['10%','8%','home','Início'],
-    ['20%','8%','contents','Conteúdo'],['30%','8%','work','Meu trabalho'],
-    ['40%','8%','profile','Perfil'],['50%','9%','alpha','Alpha']
+    ['10.5%','7%','home','Início'],
+    ['21.0%','7%','contents','Conteúdo'],
+    ['31.8%','8%','work','Meu trabalho'],
+    ['42.7%','7%','profile','Perfil'],
+    ['53.2%','7%','alpha','Alpha']
   ];
   items.forEach(([top,height,target,label])=>root.appendChild(button(top,'0%','15%',height,()=>navigate(target),label)));
 }
-
 function addLogin(root){
   const email=document.createElement('input'); email.className='login-field'; email.type='email'; email.autocomplete='email'; email.placeholder='E-mail';
   Object.assign(email.style,{top:'48.8%',left:'23%',width:'65%',height:'5.8%'});
@@ -159,13 +160,30 @@ function addWork(root){
 }
 
 function showResult(item){
-  const modal=document.createElement('div');modal.className='modal';
-  modal.innerHTML=`<div class="modal-card"><button class="close" aria-label="Fechar">×</button><h2>${item.title}</h2><p class="result-text"></p><div class="modal-actions"><button class="secondary">COPIAR</button><button class="primary">VER EM CONTEÚDOS</button></div></div>`;
-  modal.querySelector('.result-text').textContent=item.text;modal.querySelector('.close').onclick=()=>modal.remove();
-  modal.querySelector('.secondary').onclick=async()=>{try{await navigator.clipboard.writeText(item.text);showToast('Conteúdo copiado!')}catch{showToast('Selecione o texto para copiar')}};
-  modal.querySelector('.primary').onclick=()=>{modal.remove();navigate('contents')};document.body.appendChild(modal);
+  const page=document.createElement('div');page.className='result-page';
+  const header=document.createElement('div');header.className='result-header';
+  const back=document.createElement('button');back.type='button';back.className='result-back';back.textContent='‹';
+  const title=document.createElement('div');title.innerHTML='<strong>Seu conteúdo do dia</strong><span>Stories + Reels + Carrossel</span>';
+  header.append(back,title);
+  const body=document.createElement('div');body.className='result-body';
+  const h=document.createElement('h1');h.textContent=item.title;
+  const text=document.createElement('div');text.className='result-full-text';text.textContent=item.text;
+  const actions=document.createElement('div');actions.className='result-actions';
+  const copy=primary('COPIAR TUDO',async()=>{try{await navigator.clipboard.writeText(item.text);showToast('Conteúdo copiado!')}catch{showToast('Selecione o texto para copiar')}});
+  const redo=primary('↻ REFAZER',()=>regenerate(item));
+  actions.append(copy,redo);body.append(h,text,actions);page.append(header,body);
+  back.onclick=()=>render();app.replaceChildren(page);window.scrollTo(0,0);
 }
 
+async function regenerate(item){
+  showToast('✦ Refazendo sem repetir...');
+  try{
+    const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});
+    const data=await r.json();if(!data.ok) throw new Error(data.error+(data.details?' — '+data.details:''));
+    const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
+    contents.unshift(fresh);await syncToCloud();showResult(fresh);
+  }catch(e){showToast(e.message||'Não foi possível refazer agora.')}
+}
 function addProfile(root){
   root.appendChild(button('91%','18%','78%','6%',()=>{localStorage.removeItem('destrave-session');navigate('login')},'Sair'));
 }
