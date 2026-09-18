@@ -6,6 +6,7 @@ import {
   ScrollView,
   SafeAreaView,
   Image,
+  Platform,
 } from 'react-native';
 import { AssetInfo } from '../constants/assets';
 
@@ -27,6 +28,59 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   const isDesktop = winWidth > 480;
   const containerWidth = isDesktop ? Math.min(winWidth, 430) : winWidth;
   const containerHeight = containerWidth * asset.aspectRatio;
+
+  // React Native Web's ScrollView was collapsing the tall reference image on
+  // Android browsers. Use normal document flow on web so the image itself
+  // defines the complete height, while the interactive layer stays aligned.
+  if (Platform.OS === 'web') {
+    const imageUri = Image.resolveAssetSource(asset.local).uri;
+
+    return React.createElement(
+      'div',
+      {
+        style: {
+          width: '100%',
+          height: '100%',
+          overflowX: 'hidden',
+          overflowY: scrollEnabled ? 'auto' : 'hidden',
+          backgroundColor: '#14100d',
+        },
+      },
+      React.createElement(
+        'div',
+        {
+          style: {
+            position: 'relative',
+            width: '100%',
+            maxWidth: '430px',
+            margin: '0 auto',
+            lineHeight: 0,
+          },
+        },
+        React.createElement('img', {
+          src: imageUri,
+          alt: asset.name,
+          draggable: false,
+          style: {
+            display: 'block',
+            width: '100%',
+            height: 'auto',
+          },
+        }),
+        React.createElement(
+          'div',
+          {
+            style: {
+              position: 'absolute',
+              inset: 0,
+              lineHeight: 'normal',
+            },
+          },
+          children,
+        ),
+      ),
+    );
+  }
 
   const content = (
     <View
