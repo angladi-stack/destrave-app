@@ -53,3 +53,12 @@ body{overflow-x:hidden}
 .daily-live-fields textarea::placeholder{color:#8b8179}
 
 .home-greeting,.home-recent{display:none!important}
+
+.result-page{width:100%;max-width:430px;min-height:100vh;margin:0 auto;background:#fbfaf7;color:#211811}
+.result-header{position:sticky;top:0;z-index:50;background:#17100c;color:#fff;padding:16px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #bd9147}
+.result-header strong,.result-header span{display:block}.result-header strong{font-family:Georgia,serif;font-size:21px}.result-header span{font-size:12px;color:#e6d3ad;margin-top:2px}
+.result-back{border:0;background:transparent;color:#fff;font-size:38px;line-height:1;padding:0 5px;cursor:pointer}
+.result-body{padding:22px 20px 34px}.result-body h1{font-family:Georgia,serif;font-size:27px;line-height:1.08;margin:0 0 22px}
+.result-full-text{white-space:pre-wrap;font-size:16px;line-height:1.6}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:sticky;bottom:0;background:#fbfaf7;padding:14px 0 4px;margin-top:24px}
+.result-actions .primary{width:100%}
