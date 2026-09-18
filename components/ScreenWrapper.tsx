@@ -33,7 +33,11 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   // Android browsers. Use normal document flow on web so the image itself
   // defines the complete height, while the interactive layer stays aligned.
   if (Platform.OS === 'web') {
-    const imageUri = Image.resolveAssetSource(asset.local).uri;
+    // Bundled Expo web assets resolve directly to a URL string.
+    const imageUri =
+      typeof asset.local === 'string'
+        ? asset.local
+        : asset.local?.uri || asset.local?.default || asset.local;
 
     return React.createElement(
       'div',
