@@ -159,22 +159,44 @@ function addWork(root){
   }));root.appendChild(panel);
 }
 
+function splitResult(text){
+  const raw=String(text||'');
+  const marks=[['stories','STORIES'],['reels','REELS'],['carousel','CARROSSEL'],['movement','MOVIMENTO']];
+  const found=[];
+  marks.forEach(([key,label])=>{const re=new RegExp('(?:^|\\n)#{0,3}\\s*(?:📱|🎬|▦|✦)?\\s*'+label+'[^\\n]*','i');const m=re.exec(raw);if(m)found.push({key,index:m.index+(m[0].startsWith('\n')?1:0),head:m[0].trim()})});
+  found.sort((a,b)=>a.index-b.index);
+  const out={};
+  found.forEach((f,i)=>{const from=f.index+f.head.length;const to=i+1<found.length?found[i+1].index:raw.length;out[f.key]=raw.slice(from,to).trim()});
+  if(!found.length) out.all=raw.trim();
+  return out;
+}
+function resultSection(icon,title,text){
+  const section=document.createElement('section');section.className='result-section';
+  section.innerHTML=`<div class="result-section-title"><span class="result-icon">${icon}</span><h2>${title}</h2></div><div class="result-section-text"></div>`;
+  section.querySelector('.result-section-text').textContent=text||'';
+  const copy=document.createElement('button');copy.type='button';copy.className='section-copy';copy.textContent='COPIAR '+title.toUpperCase();
+  copy.onclick=async()=>{try{await navigator.clipboard.writeText(text||'');showToast(title+' copiado!')}catch{showToast('Selecione o texto para copiar')}};
+  section.appendChild(copy);return section;
+}
 function showResult(item){
   const page=document.createElement('div');page.className='result-page';
   const header=document.createElement('div');header.className='result-header';
   const back=document.createElement('button');back.type='button';back.className='result-back';back.textContent='‹';
-  const title=document.createElement('div');title.innerHTML='<strong>Seu conteúdo do dia</strong><span>Stories + Reels + Carrossel</span>';
+  const title=document.createElement('div');title.innerHTML='<strong>Seu conteúdo do dia</strong><span>Seu movimento completo, organizado para executar.</span>';
   header.append(back,title);
   const body=document.createElement('div');body.className='result-body';
   const h=document.createElement('h1');h.textContent=item.title;
-  const text=document.createElement('div');text.className='result-full-text';text.textContent=item.text;
+  const parts=splitResult(item.text);
+  if(parts.stories) body.appendChild(resultSection('📱','Stories',parts.stories));
+  if(parts.reels) body.appendChild(resultSection('🎬','Reels',parts.reels));
+  if(parts.carousel) body.appendChild(resultSection('▦','Carrossel',parts.carousel));
+  if(parts.movement) body.appendChild(resultSection('✦','Seu movimento de hoje',parts.movement));
+  if(parts.all || (!parts.stories&&!parts.reels&&!parts.carousel)){body.appendChild(resultSection('✦','Plano do dia',parts.all||item.text))}
   const actions=document.createElement('div');actions.className='result-actions';
   const copy=primary('COPIAR TUDO',async()=>{try{await navigator.clipboard.writeText(item.text);showToast('Conteúdo copiado!')}catch{showToast('Selecione o texto para copiar')}});
-  const redo=primary('↻ REFAZER',()=>regenerate(item));
-  actions.append(copy,redo);body.append(h,text,actions);page.append(header,body);
+  const redo=primary('↻ REFAZER',()=>regenerate(item));actions.append(copy,redo);body.append(actions);page.append(header,body);
   back.onclick=()=>render();app.replaceChildren(page);window.scrollTo(0,0);
 }
-
 async function regenerate(item){
   showToast('✦ Refazendo sem repetir...');
   try{
