@@ -22,21 +22,21 @@ function navigate(name){ current=name; window.scrollTo(0,0); render(); }
 
 function addSidebar(root){
   const items=[
-    ['1.5%','7.5%','home','Destrave'],['10.5%','7.5%','home','Início'],
-    ['18.5%','7.5%','contents','Conteúdo'],['26%','7.5%','work','Meu trabalho'],
-    ['33%','7.5%','profile','Perfil'],['40%','7.5%','alpha','Alpha']
+    ['1.5%','7%','home','Destrave'],['10%','8%','home','Início'],
+    ['20%','8%','contents','Conteúdo'],['30%','8%','work','Meu trabalho'],
+    ['40%','8%','profile','Perfil'],['50%','9%','alpha','Alpha']
   ];
   items.forEach(([top,height,target,label])=>root.appendChild(button(top,'0%','15%',height,()=>navigate(target),label)));
 }
 
 function addLogin(root){
   const email=document.createElement('input'); email.className='login-field'; email.type='email'; email.autocomplete='email'; email.placeholder='E-mail';
-  Object.assign(email.style,{top:'43.1%',left:'9.5%',width:'81%',height:'6.2%'});
+  Object.assign(email.style,{top:'48.8%',left:'23%',width:'65%',height:'5.8%'});
   const pass=document.createElement('input'); pass.className='login-field'; pass.type='password'; pass.autocomplete='current-password'; pass.placeholder='Senha';
-  Object.assign(pass.style,{top:'51.2%',left:'9.5%',width:'81%',height:'6.2%'});
+  Object.assign(pass.style,{top:'56.1%',left:'23%',width:'65%',height:'5.8%'});
   root.append(email,pass);
-  root.appendChild(button('62.3%','9.5%','81%','5.7%',()=>{localStorage.setItem('destrave-session','1');navigate('home')},'Entrar'));
-  root.appendChild(button('72.8%','9.5%','81%','5.8%',()=>showToast('Em breve: conheça o Destrave ✨'),'Conhecer o Destrave'));
+  root.appendChild(button('68.4%','9.5%','81%','5.9%',()=>{localStorage.setItem('destrave-session','1');navigate('home')},'Entrar'));
+  root.appendChild(button('80.3%','9.5%','81%','5.9%',()=>showToast('Em breve: conheça o Destrave ✨'),'Conhecer o Destrave'));
 }
 
 function addHome(root){
