@@ -10,6 +10,28 @@ const readJSON=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))
 const writeJSON=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
 let business=readJSON('destrave-business',{});
 let contents=readJSON('destrave-contents',[]);
+let clientId=localStorage.getItem('destrave-client-id');
+if(!clientId){clientId=crypto.randomUUID();localStorage.setItem('destrave-client-id',clientId)}
+
+async function syncFromCloud(){
+  try{
+    const r=await fetch('/api/state',{headers:{'x-destrave-client':clientId}});
+    const data=await r.json();
+    if(data.ok){
+      business=data.business||{};
+      contents=Array.isArray(data.contents)?data.contents:[];
+      writeJSON('destrave-business',business);writeJSON('destrave-contents',contents);
+      return true;
+    }
+  }catch{}
+  return false;
+}
+async function syncToCloud(){
+  writeJSON('destrave-business',business);writeJSON('destrave-contents',contents);
+  try{
+    await fetch('/api/state',{method:'PUT',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({business,contents})});
+  }catch{}
+}
 
 function showToast(text){
   toast.textContent=text; toast.classList.add('show');
@@ -48,7 +70,7 @@ function addLogin(root){
   const pass=document.createElement('input'); pass.className='login-field'; pass.type='password'; pass.autocomplete='current-password'; pass.placeholder='Senha';
   Object.assign(pass.style,{top:'56.1%',left:'23%',width:'65%',height:'5.8%'});
   root.append(email,pass);
-  root.appendChild(button('68.4%','9.5%','81%','5.9%',()=>{localStorage.setItem('destrave-session','1');navigate('home')},'Entrar'));
+  root.appendChild(button('68.4%','9.5%','81%','5.9%',()=>{localStorage.setItem('destrave-session','1');syncFromCloud().finally(()=>navigate('home'))},'Entrar'));
   root.appendChild(button('80.3%','9.5%','81%','5.9%',()=>showToast('Em breve: conheça o Destrave ✨'),'Conhecer o Destrave'));
 }
 
@@ -73,7 +95,7 @@ function addDaily(root){
     const subject=topic.value.trim()||business.service||business.business||'seu trabalho';
     const name=business.name||'você';
     const generated={id:Date.now(),title:`${goal.value}: ${subject}`,format:format.value,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:`GANCHO: Se as pessoas ainda não entenderam o valor de ${subject}, preste atenção.\n\nROTEIRO: ${name}, mostre o problema que isso resolve, explique de forma simples como funciona e apresente o resultado que a pessoa pode alcançar. Fale com naturalidade e use um exemplo real do seu dia a dia.\n\nCTA: Quer saber como ${subject} pode ajudar você? Me chama para conversar.`};
-    contents.unshift(generated);writeJSON('destrave-contents',contents);showResult(generated);
+    contents.unshift(generated);syncToCloud();showResult(generated);
   })); root.appendChild(panel);
 }
 
@@ -89,7 +111,7 @@ function addWork(root){
   const panel=document.createElement('div');panel.className='data-panel work-panel';
   panel.innerHTML='<h2>Meu trabalho</h2><p>Essas informações personalizam todos os conteúdos.</p>';
   panel.append(field('Seu nome','name'),field('Nome do negócio','business'),field('O que você faz','service'),field('Para quem','audience'),field('Problema que resolve','problem'),field('Resultado que entrega','result'),field('Seu diferencial','difference'));
-  panel.appendChild(primary('SALVAR MINHAS INFORMAÇÕES',()=>{writeJSON('destrave-business',business);showToast('Informações salvas no Destrave ✨');render()}));root.appendChild(panel);
+  panel.appendChild(primary('SALVAR MINHAS INFORMAÇÕES',()=>{syncToCloud();showToast('Informações salvas no Destrave ✨');render()}));root.appendChild(panel);
 }
 
 function showResult(item){
@@ -127,3 +149,4 @@ function render(){
 }
 
 render();
+if(localStorage.getItem('destrave-session')) syncFromCloud().then(ok=>{if(ok) render()});
