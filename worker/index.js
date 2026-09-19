@@ -199,6 +199,73 @@ ${JSON.stringify(recent)}`;
         let plan;
         try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
         catch { return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer."},{status:502}); }
+
+        // FISCAL DO DESTRAVE: segunda etapa independente da criação.
+        // Não cria uma nova estratégia. Audita a resposta pronta contra os fatos confirmados
+        // e devolve o MESMO JSON corrigido quando encontrar invenções ou decisões não autorizadas.
+        if (env.GROQ_API_KEY) {
+          try {
+            const validatorPrompt = `Você é o FISCAL DE FIDELIDADE do Destrave. Você NÃO é o criador do conteúdo e NÃO deve inventar uma estratégia nova.
+
+Sua única função é revisar o JSON gerado e corrigir violações antes que ele chegue ao usuário.
+
+FONTES DE VERDADE:
+PERFIL/MEMÓRIA:
+${JSON.stringify(business)}
+
+PEDIDO DE HOJE:
+Objetivo selecionado: ${goal}
+Como prefere executar: ${requestedFormat}
+Assunto: ${requestToday || business.objective}
+
+JSON GERADO:
+${JSON.stringify(plan)}
+
+REGRAS DE FISCALIZAÇÃO:
+1. Tudo que descreve a pessoa, profissão, oferta, serviço, público, clientes, processo, recursos, equipamentos, habilidades, estilo, gênero, repertório, preço, prazo, disponibilidade, experiência ou resultado precisa estar sustentado pelas FONTES DE VERDADE.
+2. Objetivo futuro NÃO é fato presente. Ex.: querer cantar em eventos não prova que já oferece música ao vivo para eventos, repertório personalizado, trilha sob medida, casamento, festa corporativa ou processo de contratação.
+3. Ausência de informação NÃO autoriza escolher o contrário. Ex.: se instrumento não foi informado, não escreva "sem instrumentos" nem "a cappella". Use formulação neutra como "cante um trecho da forma que você normalmente canta".
+4. Não permita prova social ou interação simulada: cliente fictício, mensagem fictícia, depoimento, venda, contratação, comentário, agenda ou resultado.
+5. Não invente público específico a partir de objetivo amplo.
+6. Não invente processo comercial ou de trabalho.
+7. Preserve a EXECUÇÃO. Ao remover uma invenção, reescreva a instrução para continuar pronta para fazer. Não devolva ao usuário perguntas ou planejamento.
+8. Preserve a intenção estratégica, estrutura e campos do JSON sempre que forem compatíveis com os fatos. Corrija somente o necessário.
+9. Verifique também se o texto fala como realidade algo que é apenas desejo futuro.
+10. Faça uma segunda leitura procurando pressupostos implícitos, não apenas palavras proibidas.
+11. Retorne SOMENTE o JSON final corrigido, com exatamente a mesma estrutura de campos recebida. Sem relatório, sem markdown e sem explicações.`;
+
+            const vb=JSON.stringify({
+              model:"openai/gpt-oss-120b",
+              messages:[
+                {role:"system",content:"Audite com rigor factual. Retorne somente JSON válido."},
+                {role:"user",content:validatorPrompt}
+              ],
+              temperature:0.15,
+              max_completion_tokens:7000,
+              response_format:{type:"json_object"}
+            });
+            const vr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+              method:"POST",
+              headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
+              body:vb
+            });
+            const vd=await vr.json();
+            if (vr.ok) {
+              const checked=String(vd.choices?.[0]?.message?.content||"").trim();
+              if (checked) {
+                const checkedPlan=JSON.parse(checked.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim());
+                if (checkedPlan && typeof checkedPlan==="object" && checkedPlan.reels && checkedPlan.carousel && Array.isArray(checkedPlan.storiesStart)) {
+                  plan=checkedPlan;
+                  modelUsed += "+fiscal";
+                }
+              }
+            }
+          } catch (_) {
+            // Se o fiscal estiver temporariamente indisponível, preserva a geração válida
+            // em vez de derrubar toda a experiência do usuário.
+          }
+        }
+
         return json({ok:true,plan,text:JSON.stringify(plan),format:"Stories + Reels + Carrossel",model:modelUsed});
       } catch(error) {
         return json({ok:false,error:"Falha ao gerar conteúdo",message:error.message},{status:500});
