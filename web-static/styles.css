@@ -509,3 +509,9 @@ body{overflow-x:hidden}
   content:none!important;
   display:none!important;
 }
+
+
+/* 2026-09-19 — approved sidebar logo: slightly smaller */
+.sidebar-brand-original{
+  background-size:58px auto!important;
+}
