@@ -59,7 +59,9 @@ function primary(text,onClick){const b=document.createElement('button');b.classN
 function addSidebar(root){
   // Rebuilt navigation: logo at the top, menu below it.
   const nav=document.createElement('nav');nav.className='sidebar-real';nav.setAttribute('aria-label','Navegação principal');
-  const brand=document.createElement('div');brand.className='sidebar-brand';brand.innerHTML='<span class="sidebar-brand-mark">D</span><span class="sidebar-brand-name">DESTRAVE</span>';nav.appendChild(brand);
+  const brand=document.createElement('div');brand.className='sidebar-brand';
+  const brandLogo=document.createElement('div');brandLogo.className='sidebar-brand-original';brandLogo.setAttribute('aria-label','Destrave by Angladi');
+  brand.appendChild(brandLogo);nav.appendChild(brand);
   const items=[
     ['⌂','Início','home'],
     ['▣','Conteúdo','contents'],
