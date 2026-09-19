@@ -141,7 +141,7 @@ function addDaily(root){
     try{
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
       const data=await r.json();if(!data.ok)throw new Error(data.error+(data.details?' — '+data.details:''));
-      const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
+      const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};
       contents.unshift(generated);await syncToCloud();showResult(generated);
     }catch(e){showToast(e.message||'Não foi possível gerar agora.')}
   };
@@ -194,53 +194,30 @@ function addWork(root){
   }));root.appendChild(panel);
 }
 
-function splitResult(text){
-  const raw=String(text||'');
-  const marks=[['stories','STORIES'],['reels','REELS'],['carousel','CARROSSEL'],['movement','MOVIMENTO']];
-  const found=[];
-  marks.forEach(([key,label])=>{const re=new RegExp('(?:^|\\n)#{0,3}\\s*(?:📱|🎬|▦|✦)?\\s*'+label+'[^\\n]*','i');const m=re.exec(raw);if(m)found.push({key,index:m.index+(m[0].startsWith('\n')?1:0),head:m[0].trim()})});
-  found.sort((a,b)=>a.index-b.index);
-  const out={};
-  found.forEach((f,i)=>{const from=f.index+f.head.length;const to=i+1<found.length?found[i+1].index:raw.length;out[f.key]=raw.slice(from,to).trim()});
-  if(!found.length) out.all=raw.trim();
-  return out;
-}
-function resultSection(icon,title,text){
-  const section=document.createElement('section');section.className='result-section';
-  section.innerHTML=`<div class="result-section-title"><span class="result-icon">${icon}</span><h2>${title}</h2></div><div class="result-section-text"></div>`;
-  section.querySelector('.result-section-text').textContent=text||'';
-  const copy=document.createElement('button');copy.type='button';copy.className='section-copy';copy.textContent='COPIAR '+title.toUpperCase();
-  copy.onclick=async()=>{try{await navigator.clipboard.writeText(text||'');showToast(title+' copiado!')}catch{showToast('Selecione o texto para copiar')}};
-  section.appendChild(copy);return section;
-}
+function cleanText(v){return String(v||'').replace(/\\*\\*/g,'').replace(/^#+\\s*/gm,'').trim()}
+function copyBtn(label,text){const b=document.createElement('button');b.className='plan-copy';b.textContent='▣ '+label;b.onclick=async(e)=>{e.stopPropagation();try{await navigator.clipboard.writeText(text);showToast('Copiado!')}catch{showToast('Selecione o texto para copiar')}};return b}
+function storyCard(story){const d=document.createElement('div');d.className='story-card';d.innerHTML=`<b>${cleanText(story.title)}</b>${story.show?`<p>📷 <strong>O que mostrar:</strong><br>${cleanText(story.show)}</p>`:''}${story.say?`<p>💬 <strong>O que falar:</strong><br>${cleanText(story.say)}</p>`:''}${story.screenText?`<p>Ｔ <strong>Texto na tela:</strong><br>${cleanText(story.screenText)}</p>`:''}${story.interaction?`<p>↗ <strong>Interação:</strong><br>${cleanText(story.interaction)}</p>`:''}`;return d}
+function accordion(num,icon,title,badge,content,open=false){const box=document.createElement('section');box.className='plan-accordion'+(open?' open':'');const head=document.createElement('button');head.className='plan-accordion-head';head.innerHTML=`<span class="plan-num">${num}</span><span class="plan-aicon">${icon}</span><span class="plan-atitle">${title}</span><small>${badge||''}</small><span class="chev">⌄</span>`;const inside=document.createElement('div');inside.className='plan-accordion-body';inside.append(content);head.onclick=()=>box.classList.toggle('open');box.append(head,inside);return box}
+function parsePlan(item){if(item.plan)return item.plan;try{return JSON.parse(item.text)}catch{return null}}
 function showResult(item){
-  const page=document.createElement('div');page.className='result-page';
-  const header=document.createElement('div');header.className='result-header';
-  const back=document.createElement('button');back.type='button';back.className='result-back';back.textContent='‹';
-  const title=document.createElement('div');title.innerHTML='<strong>Seu conteúdo do dia</strong><span>Seu movimento completo, organizado para executar.</span>';
-  header.append(back,title);
-  const body=document.createElement('div');body.className='result-body';
-  const h=document.createElement('h1');h.textContent=item.title;
-  const parts=splitResult(item.text);
-  if(parts.stories) body.appendChild(resultSection('📱','Stories',parts.stories));
-  if(parts.reels) body.appendChild(resultSection('🎬','Reels',parts.reels));
-  if(parts.carousel) body.appendChild(resultSection('▦','Carrossel',parts.carousel));
-  if(parts.movement) body.appendChild(resultSection('✦','Seu movimento de hoje',parts.movement));
-  if(parts.all || (!parts.stories&&!parts.reels&&!parts.carousel)){body.appendChild(resultSection('✦','Plano do dia',parts.all||item.text))}
-  const actions=document.createElement('div');actions.className='result-actions';
-  const copy=primary('COPIAR TUDO',async()=>{try{await navigator.clipboard.writeText(item.text);showToast('Conteúdo copiado!')}catch{showToast('Selecione o texto para copiar')}});
-  const redo=primary('↻ REFAZER',()=>regenerate(item));actions.append(copy,redo);body.append(actions);page.append(header,body);
-  back.onclick=()=>render();app.replaceChildren(page);window.scrollTo(0,0);
+  const p=parsePlan(item);if(!p){showLegacyResult(item);return}
+  const page=document.createElement('div');page.className='plan-page';
+  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu conteúdo do dia está pronto.</h1><p>Siga os passos. Está tudo preparado.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
+  const hero=document.createElement('section');hero.className='plan-hero';hero.innerHTML=`<small>OBJETIVO DE HOJE</small><h2>${cleanText(p.objective)}</h2><p>${cleanText(p.why)}</p><div class="plan-need">▣ Você só vai precisar: ${(p.need||[]).map(cleanText).join(', ')}</div><button>▶ COMEÇAR PELO PASSO 1</button>`;page.append(hero);
+  const body=document.createElement('main');body.className='plan-main';body.innerHTML='<h2>Faça nesta ordem</h2>';
+  const s1=document.createElement('div');s1.className='story-grid';(p.storiesStart||[]).forEach(x=>s1.append(storyCard(x)));s1.append(copyBtn('COPIAR STORIES',(p.storiesStart||[]).map(x=>JSON.stringify(x)).join('\n')));
+  body.append(accordion(1,'▣','Stories para começar',(p.storiesStart||[]).length+' Stories',s1,true));
+  const r=document.createElement('div');r.className='plan-detail';r.innerHTML=`<p><strong>⚡ Gancho:</strong><br>${cleanText(p.reels?.hook)}</p><p><strong>🎥 Como gravar:</strong><br>${cleanText(p.reels?.recording)}</p><p><strong>📝 Roteiro completo:</strong><br>${cleanText(p.reels?.script)}</p><p><strong>Legenda:</strong><br>${cleanText(p.reels?.caption)}</p><p><strong>CTA:</strong><br>${cleanText(p.reels?.cta)}</p>`;r.append(copyBtn('COPIAR REELS',[p.reels?.hook,p.reels?.script,p.reels?.caption,p.reels?.cta].join('\n\n')));body.append(accordion(2,'🎬','Reels principal',cleanText(p.reels?.duration),r));
+  const sc=document.createElement('div');sc.className='story-grid';(p.storiesContinue||[]).forEach(x=>sc.append(storyCard(x)));sc.append(copyBtn('COPIAR STORIES',(p.storiesContinue||[]).map(x=>JSON.stringify(x)).join('\n')));body.append(accordion(3,'▣','Stories para continuar',(p.storiesContinue||[]).length+' Stories',sc));
+  const car=document.createElement('div');car.className='plan-detail';(p.carousel?.slides||[]).forEach(x=>{const d=document.createElement('div');d.className='slide-card';d.innerHTML=`<b>SLIDE ${x.number}</b><h3>${cleanText(x.title)}</h3><p>${cleanText(x.text)}</p>`;car.append(d)});car.insertAdjacentHTML('beforeend',`<p><strong>Legenda:</strong><br>${cleanText(p.carousel?.caption)}</p><p><strong>CTA:</strong><br>${cleanText(p.carousel?.cta)}</p>`);car.append(copyBtn('COPIAR CARROSSEL',JSON.stringify(p.carousel)));body.append(accordion(4,'▦','Carrossel',(p.carousel?.slides||[]).length+' slides',car));
+  const close=document.createElement('div');close.className='story-grid';close.append(storyCard({title:'Fechamento',...(p.closingStory||{})}));body.append(accordion(5,'➤','Story de fechamento','CTA final',close));
+  const check=document.createElement('section');check.className='plan-check';check.innerHTML='<h3>☑ Antes de terminar</h3><label><input type="checkbox"> Stories publicados</label><label><input type="checkbox"> Reels publicado</label><label><input type="checkbox"> Carrossel publicado ou salvo</label><label><input type="checkbox"> Respondi quem chamou</label>';body.append(check);
+  const why=document.createElement('details');why.className='plan-why';why.innerHTML=`<summary>💡 Por que foi criado assim?</summary><p><strong>${cleanText(p.strategy)}</strong><br>${cleanText(p.why)}</p><p>${cleanText(p.movement)}</p>`;body.append(why);
+  const actions=document.createElement('div');actions.className='plan-actions';const save=primary('✦ SALVAR MEU CONTEÚDO',async()=>{await syncToCloud();showToast('Conteúdo salvo ✦')});const redo=primary('↻ CRIAR OUTRA VERSÃO',()=>regenerate(item));actions.append(save,redo);body.append(actions);page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
 }
-async function regenerate(item){
-  showToast('✦ Refazendo sem repetir...');
-  try{
-    const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});
-    const data=await r.json();if(!data.ok) throw new Error(data.error+(data.details?' — '+data.details:''));
-    const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,model:data.model||'gemini'};
-    contents.unshift(fresh);await syncToCloud();showResult(fresh);
-  }catch(e){showToast(e.message||'Não foi possível refazer agora.')}
-}
+function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
+async function regenerate(item){showToast('✦ Criando outra versão...');try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error(data.error+(data.details?' — '+data.details:''));const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();showResult(fresh)}catch(e){showToast(e.message||'Não foi possível criar outra versão agora.')}}
+
 function addProfile(root){
   root.appendChild(button('91%','18%','78%','6%',()=>{localStorage.removeItem('destrave-session');navigate('login')},'Sair'));
 }
