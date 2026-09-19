@@ -62,7 +62,16 @@ function button(top,left,width,height,onClick,label=''){
   b.addEventListener('click',onClick); return b;
 }
 
-function navigate(name){ if(name!=='work'&&name!=='login'&&localStorage.getItem('destrave-session')&&!isConfigured()) name='work'; current=name; window.scrollTo(0,0); render(); }
+function navigate(name,fromHistory=false){
+  if(name!=='work'&&name!=='login'&&localStorage.getItem('destrave-session')&&!isConfigured()) name='work';
+  if(!fromHistory && name!==current) history.pushState({destraveScreen:name},'',location.href);
+  current=name; window.scrollTo(0,0); render();
+}
+window.addEventListener('popstate',e=>{
+  const target=e.state&&e.state.destraveScreen;
+  if(target){navigate(target,true);return}
+  if(localStorage.getItem('destrave-session')){navigate('home',true)}
+});
 
 function field(label,key,placeholder='Nenhum dado cadastrado'){
   const wrap=document.createElement('label'); wrap.className='form-field';
@@ -509,5 +518,6 @@ function render(){
   app.replaceChildren(root);
 }
 
+history.replaceState({destraveScreen:current},'',location.href);
 render();
 if(localStorage.getItem('destrave-session')) syncFromCloud().then(ok=>{if(ok){current=isConfigured()?'home':'work';render()}});
