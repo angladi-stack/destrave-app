@@ -57,8 +57,9 @@ function field(label,key,placeholder='Nenhum dado cadastrado'){
 function primary(text,onClick){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent=text;b.addEventListener('click',onClick);return b}
 
 function addSidebar(root){
-  // Rebuilt navigation from directly below the D/logo downward.
+  // Rebuilt navigation: logo at the top, menu below it.
   const nav=document.createElement('nav');nav.className='sidebar-real';nav.setAttribute('aria-label','Navegação principal');
+  const brand=document.createElement('div');brand.className='sidebar-brand';brand.innerHTML='<span class="sidebar-brand-mark">D</span><span class="sidebar-brand-name">DESTRAVE</span>';nav.appendChild(brand);
   const items=[
     ['⌂','Início','home'],
     ['▣','Conteúdo','contents'],
@@ -413,7 +414,7 @@ function render(){
   const image=document.createElement('img'); image.className='screen-image'; image.alt=data.asset===1?'Login Destrave':`Tela ${current}`;
   image.src=`/assets/reference/asset_${data.asset}.jpg`;
   root.appendChild(image);
-  if(current==='login') { addSidebar(root); addLogin(root); } else {
+  if(current==='login') { addLogin(root); } else {
     addSidebar(root);
     if(current==='home') addHome(root);
     if(current==='daily') addDaily(root);
