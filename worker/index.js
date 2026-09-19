@@ -195,6 +195,23 @@ ${JSON.stringify(recent)}`;
           }
         }
 
+        // Motor 3: Cloudflare Workers AI.
+        if (!textOut && env.AI) {
+          try {
+            const cr=await env.AI.run("@cf/google/gemma-4-26b-a4b-it",{
+              messages:[
+                {role:"system",content:"Responda somente com JSON valido, sem markdown nem comentarios."},
+                {role:"user",content:motherPrompt}
+              ],
+              chat_template_kwargs:{enable_thinking:false},
+              max_tokens:7000,
+              temperature:0.82
+            });
+            const cloudflareText=String(cr?.response ?? cr?.choices?.[0]?.message?.content ?? "").trim();
+            if (cloudflareText) { textOut=cloudflareText; modelUsed="cloudflare/gemma-4-26b-a4b-it"; }
+            else lastError="Cloudflare Workers AI sem conteudo";
+          } catch (error) { lastError=error.message || "Cloudflare Workers AI indisponivel"; }
+        }
         if (!textOut) return json({ok:false,error:"Não consegui gerar o conteúdo agora.",details:lastError},{status:502});
         let plan;
         try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
