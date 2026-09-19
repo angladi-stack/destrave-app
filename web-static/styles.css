@@ -308,3 +308,41 @@ body{overflow-x:hidden}
   background-color:#633722!important;
   border:0!important;
 }
+
+
+/* 2026-09-18 23h — Home: align rebuilt white UI directly under hero.
+   Percentages corrected against the actual tall screen canvas seen on mobile. */
+.home-below-hero{
+  top:45.8%!important;
+  height:7.4%!important;
+  background:#fbfaf7!important;
+  z-index:90!important;
+}
+.home-below-hero::before{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;right:0!important;
+  top:-12px!important;height:18px!important;
+  background:#fbfaf7!important;
+  z-index:-1!important;
+}
+.home-real-middle{
+  top:53.2%!important;
+  height:46.8%!important;
+  padding-top:7px!important;
+  background:#fbfaf7!important;
+  z-index:89!important;
+  overflow:hidden!important;
+}
+.home-real-middle .home-daily-message.real{
+  min-height:118px!important;
+  height:auto!important;
+  padding:17px 16px!important;
+  margin-top:11px!important;
+  justify-content:flex-start!important;
+}
+.home-real-middle .home-daily-message.real strong{
+  font-size:16px!important;
+  line-height:1.3!important;
+}
+.home-alpha-inline{margin-top:11px!important}
