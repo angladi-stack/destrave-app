@@ -466,7 +466,7 @@ function addProfile(root){
   panel.querySelector('.plan-row').onclick=()=>showToast('Seu acesso ao Destrave está ativo ✦');
   panel.querySelector('.action-password').onclick=()=>showToast('Alteração de senha será conectada ao acesso da conta.');
   panel.querySelector('.action-forgot').onclick=()=>showToast('Recuperação de senha será conectada ao acesso da conta.');
-  panel.querySelector('.action-support').onclick=()=>showToast('Suporte do Destrave ✦');
+  panel.querySelector('.action-support').onclick=()=>{window.location.href='https://wa.me/5573982083851?text='+encodeURIComponent('Olá! Preciso de ajuda com o Destrave.');};
   panel.querySelector('.profile-logout').onclick=()=>{localStorage.removeItem('destrave-session');navigate('login')};
   root.appendChild(panel);
 }
