@@ -58,13 +58,18 @@ function primary(text,onClick){const b=document.createElement('button');b.classN
 
 function addSidebar(root){
   const items=[
-    ['10.5%','7%','home','Início'],
-    ['21.0%','7%','contents','Conteúdo'],
-    ['31.8%','8%','work','Meu trabalho'],
-    ['42.7%','7%','profile','Perfil'],
-    ['53.2%','7%','alpha','Alpha']
+    ['14.7%','7.2%','home','Início'],
+    ['23.5%','7.2%','contents','Conteúdo'],
+    ['32.4%','8.0%','work','Meu trabalho'],
+    ['41.5%','7.5%','profile','Perfil'],
+    ['50.2%','8.0%','alpha','Alpha']
   ];
-  items.forEach(([top,height,target,label])=>root.appendChild(button(top,'0%','15%',height,()=>navigate(target),label)));
+  items.forEach(([top,height,target,label])=>{
+    const b=button(top,'1.4%','11.2%',height,()=>navigate(target),label);
+    b.classList.add('sidebar-hit');
+    if(current===target)b.classList.add('sidebar-active');
+    root.appendChild(b);
+  });
 }
 function addLogin(root){
   const email=document.createElement('input'); email.className='login-field'; email.type='email'; email.autocomplete='email'; email.placeholder='E-mail';
@@ -102,7 +107,7 @@ function addDaily(root){
   });
 
   const topic=document.createElement('textarea');topic.className='daily-topic-input';
-  topic.placeholder='Ex.: serviço, produto, música, evento ou mensagem';
+  topic.placeholder='';
   topic.addEventListener('input',()=>state.topic=topic.value);
   root.appendChild(topic);
 
