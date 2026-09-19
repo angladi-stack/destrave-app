@@ -413,7 +413,7 @@ function render(){
   const image=document.createElement('img'); image.className='screen-image'; image.alt=data.asset===1?'Login Destrave':`Tela ${current}`;
   image.src=`/assets/reference/asset_${data.asset}.jpg`;
   root.appendChild(image);
-  if(current==='login') addLogin(root); else {
+  if(current==='login') { addSidebar(root); addLogin(root); } else {
     addSidebar(root);
     if(current==='home') addHome(root);
     if(current==='daily') addDaily(root);
