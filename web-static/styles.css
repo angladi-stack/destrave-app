@@ -453,3 +453,21 @@ body{overflow-x:hidden}
   background:#633722!important;
   border:0!important;
 }
+
+
+/* 2026-09-18 — gold circle around the clean D brand mark. */
+.sidebar-brand-original::before{
+  width:48px!important;
+  height:48px!important;
+  box-sizing:border-box!important;
+  border:2px solid #e4b45e!important;
+  border-radius:50%!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:31px!important;
+}
+.sidebar-brand-original::after{
+  top:22px!important;
+  left:62%!important;
+}
