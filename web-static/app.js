@@ -57,18 +57,17 @@ function field(label,key,placeholder='Nenhum dado cadastrado'){
 function primary(text,onClick){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent=text;b.addEventListener('click',onClick);return b}
 
 function addSidebar(root){
+  // Hitboxes follow the actual icon+label positions painted in each approved screen image.
   const items=[
-    ['14.7%','7.2%','home','Início'],
-    ['23.5%','7.2%','contents','Conteúdo'],
-    ['32.4%','8.0%','work','Meu trabalho'],
-    ['41.5%','7.5%','profile','Perfil'],
-    ['50.2%','8.0%','alpha','Alpha']
+    ['12.4%','7.3%','home','Início'],
+    ['21.2%','7.5%','contents','Conteúdo'],
+    ['30.3%','8.2%','work','Meu trabalho'],
+    ['39.7%','7.7%','profile','Perfil'],
+    ['48.7%','8.0%','alpha','Alpha']
   ];
   items.forEach(([top,height,target,label])=>{
-    const b=button(top,'1.4%','11.2%',height,()=>navigate(target),label);
-    b.classList.add('sidebar-hit');
-    if(current===target)b.classList.add('sidebar-active');
-    root.appendChild(b);
+    const b=button(top,'0%','14.5%',height,()=>navigate(target),label);
+    b.classList.add('sidebar-hit');root.appendChild(b);
   });
 }
 function addLogin(root){
@@ -95,12 +94,12 @@ function addDaily(root){
   const state={goal:'',topic:'',ways:[]};
   const selectGoal=(v,label)=>{state.goal=v;showToast(label+' selecionado')};
   [
-    ['31.5%','18%','22%','4.8%','Vender','Vender'],
-    ['31.5%','42%','27%','4.8%','Alcançar pessoas','Alcançar pessoas'],
-    ['31.5%','70%','26%','4.8%','Passar confiança','Passar confiança'],
-    ['36.2%','18%','22%','4.8%','Ensinar','Ensinar'],
-    ['36.2%','42%','27%','4.8%','Criar conexão','Criar conexão'],
-    ['36.2%','70%','26%','4.8%','Escolha por mim','Escolha por mim']
+    ['32.5%','18%','22%','4.7%','Vender','Vender'],
+    ['32.5%','42%','27%','4.7%','Alcançar pessoas','Alcançar pessoas'],
+    ['32.5%','70%','26%','4.7%','Passar confiança','Passar confiança'],
+    ['37.6%','18%','22%','4.7%','Ensinar','Ensinar'],
+    ['37.6%','42%','27%','4.7%','Criar conexão','Criar conexão'],
+    ['37.6%','70%','26%','4.7%','Escolha por mim','Escolha por mim']
   ].forEach(([top,left,width,height,v,label])=>{
     const b=button(top,left,width,height,()=>{state.goal=v;root.querySelectorAll('.daily-goal-hit').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');showToast(label+' selecionado')},label);
     b.classList.add('daily-select-hit','daily-goal-hit');root.appendChild(b);
@@ -111,14 +110,14 @@ function addDaily(root){
   topic.addEventListener('input',()=>state.topic=topic.value);
   root.appendChild(topic);
 
-  root.appendChild(button('49.0%','18%','58%','3.8%',()=>{state.topic='';topic.value='';showToast('Eu escolho o assunto por você ✦')},'Não sei. Escolha por mim'));
+  root.appendChild(button('55.4%','18%','58%','4.2%',()=>{state.topic='';topic.value='';showToast('Eu escolho o assunto por você ✦')},'Não sei. Escolha por mim'));
 
   const toggleWay=(v,label)=>{const i=state.ways.indexOf(v);if(i>=0)state.ways.splice(i,1);else if(state.ways.length<2)state.ways.push(v);else{state.ways.shift();state.ways.push(v)}showToast(label+' selecionado')};
   [
-    ['58.0%','18%','78%','4.5%','Posso aparecer e falar','Posso aparecer e falar'],
-    ['62.5%','18%','78%','4.5%','Posso mostrar sem falar','Posso mostrar sem falar'],
-    ['67.0%','18%','78%','4.5%','Não quero aparecer','Não quero aparecer'],
-    ['71.5%','18%','78%','4.5%','Tenho pouco tempo','Tenho pouco tempo']
+    ['67.8%','18%','78%','4.4%','Posso aparecer e falar','Posso aparecer e falar'],
+    ['72.4%','18%','78%','4.4%','Posso mostrar sem falar','Posso mostrar sem falar'],
+    ['77.0%','18%','78%','4.4%','Não quero aparecer','Não quero aparecer'],
+    ['81.6%','18%','78%','4.4%','Tenho pouco tempo','Tenho pouco tempo']
   ].forEach(([top,left,width,height,v,label])=>{
     const b=button(top,left,width,height,()=>{
       const i=state.ways.indexOf(v);
@@ -145,7 +144,7 @@ function addDaily(root){
       contents.unshift(generated);await syncToCloud();showResult(generated);
     }catch(e){showToast(e.message||'Não foi possível gerar agora.')}
   };
-  root.appendChild(button('77.8%','16%','81%','5.6%',generate,'Criar meu conteúdo do dia'));
+  root.appendChild(button('88.4%','16%','81%','5.8%',generate,'Criar meu conteúdo do dia'));
 }
 function addContents(root){
   root.appendChild(button('8.4%','17%','80%','5%',()=>navigate('daily'),'Criar conteúdo do dia'));
