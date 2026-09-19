@@ -266,8 +266,7 @@ RETORNE SOMENTE JSON VÁLIDO:
         // e devolve o MESMO JSON corrigido quando encontrar invenções ou decisões não autorizadas.
         if (env.GROQ_API_KEY) {
           try {
-            const validatorPrompt = `Você é o FISCAL DE QUALIDADE E FIDELIDADE do Destrave.
-
+            const validatorPrompt = `Você é o FISCAL do Destrave.
 COFRE DE FATOS:
 ${confirmedFactLines || "- Nenhum fato adicional confirmado."}
 PERFIL:
@@ -277,27 +276,14 @@ ${JSON.stringify({goal, requestedFormat, requestToday})}
 JSON GERADO:
 ${JSON.stringify(plan)}
 
-Sua função é impedir que uma resposta rasa, genérica, inventada ou escrita em terceira pessoa chegue ao cliente.
-
-REGRA CRÍTICA DE HISTÓRICO:
-Uma geração anterior NÃO é prova de execução. Se o JSON disser ou insinuar que a pessoa "já fez", "já publicou", "já apresentou" ou concluiu algo, isso precisa estar explicitamente confirmado nos fatos/dados. A mera presença de conteúdo no histórico não autoriza essa afirmação. Na dúvida, trate histórico como sugestões geradas, não ações realizadas.
-
-REPROVE E CORRIJA se:
-- houver narração "Daniel falando/mostrando", nome repetido ou instrução em terceira pessoa. Fale diretamente com "você";
-- os passos forem preparação óbvia: iluminação, janela, segurar/posicionar celular, abrir câmera, apertar gravar, respirar, cortar início/fim, "publique";
-- faltar um ângulo/ideia central;
-- a resposta puder servir praticamente igual para qualquer profissão;
-- "where" contiver categorias vagas como "plataforma de vídeo" ou "rede social";
-- "extra" for apenas dica técnica e não movimento adicional;
-- houver primeira pessoa, sentimento, preferência, cliente, experiência, rotina, processo ou resultado não sustentado;
-- houver formatos desnecessários ou várias peças só para aumentar volume;
-- houver promessa de resultado externo;
-- houver planejamento disfarçado de execução;
-- a pessoa ainda precisar decidir estratégia que o Destrave poderia decidir.
-
-Mantenha simples de executar, mas eleve o raciocínio.
-Preserve o novo schema exatamente.
-Retorne somente JSON válido.`;
+Audite e corrija o JSON sem mudar o schema.
+Exija: uma direção central específica; Reels, Stories, Feed e WhatsApp coerentes com a mesma direção e utilizáveis separadamente; execução realmente pronta; quickVersion simples; motivation obrigatória e específica.
+Reprove conteúdo genérico, marketinguês, decisões estratégicas devolvidas à pessoa, operação óbvia de celular, invenções, promessas de resultado, CTAs empilhados e formatos desconectados.
+GERADO NÃO É EXECUTADO: histórico anterior não prova publicação ou ação.
+Fale diretamente com "você".
+A pessoa recebe todas as possibilidades, mas nunca deve ser tratada como obrigada a executar todas.
+Se faltar um fato indispensável, needsInput=true com UMA pergunta factual e blocos vazios.
+Retorne somente JSON válido.`
 
             const vb=JSON.stringify({
               model:"openai/gpt-oss-120b",
@@ -319,7 +305,7 @@ Retorne somente JSON válido.`;
               const checked=String(vd.choices?.[0]?.message?.content||"").trim();
               if (checked) {
                 const checkedPlan=JSON.parse(checked.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim());
-                if (checkedPlan && typeof checkedPlan==="object" && typeof checkedPlan.needsInput==="boolean" && Array.isArray(checkedPlan.steps) && Array.isArray(checkedPlan.readyToUse)) {
+                if (checkedPlan && typeof checkedPlan==="object" && typeof checkedPlan.needsInput==="boolean" && (checkedPlan.needsInput || (checkedPlan.reels && Array.isArray(checkedPlan.stories) && checkedPlan.feed && checkedPlan.whatsapp))) {
                   plan=checkedPlan;
                   modelUsed += "+fiscal";
                 }
@@ -331,7 +317,7 @@ Retorne somente JSON válido.`;
           }
         }
 
-        return json({ok:true,plan,text:JSON.stringify(plan),format:"Movimento do dia",model:modelUsed});
+        return json({ok:true,plan,text:JSON.stringify(plan),format:"Conteúdo do dia",model:modelUsed});
       } catch(error) {
         return json({ok:false,error:"Falha ao gerar conteúdo",message:error.message},{status:500});
       }
