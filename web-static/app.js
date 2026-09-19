@@ -39,6 +39,23 @@ function showToast(text){
   clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200);
 }
 
+function showGenerating(){
+  const old=document.querySelector('.destrave-generating');if(old)old.remove();
+  const overlay=document.createElement('div');overlay.className='destrave-generating';
+  overlay.innerHTML='<div class="generating-card"><div class="generating-mark">✦</div><strong>Destravando seu conteúdo...</strong><p>Entendendo o que faz sentido para você.</p><div class="generating-progress"><i></i></div></div>';
+  document.body.appendChild(overlay);
+  const strong=overlay.querySelector('strong'), p=overlay.querySelector('p');
+  const steps=[
+    ['Destravando sua estratégia...','Conectando seu objetivo com o próximo movimento.'],
+    ['Criando seu Reels...','Preparando uma ideia clara para você gravar.'],
+    ['Preparando seus Stories...','Organizando a sequência para criar conexão.'],
+    ['Montando seu Carrossel...','Finalizando tudo para você executar.']
+  ];
+  let n=0;strong.textContent=steps[0][0];p.textContent=steps[0][1];
+  const timer=setInterval(()=>{n=(n+1)%steps.length;strong.textContent=steps[n][0];p.textContent=steps[n][1]},3500);
+  return ()=>{clearInterval(timer);overlay.remove()};
+}
+
 function button(top,left,width,height,onClick,label=''){
   const b=document.createElement('button'); b.className='hotspot'; b.type='button';
   Object.assign(b.style,{top,left,width,height}); b.setAttribute('aria-label',label);
@@ -342,13 +359,13 @@ function addDaily(root){
     const subject=state.topic.trim()||business.objective||business.activity||business.service||'meu trabalho';
     const goal=state.goal||'Escolha por mim';
     const requestedFormat=state.ways.length?state.ways.join(' + '):'Escolha por mim';
-    showToast('✦ Destravando seu dia...');
+    const stopGenerating=showGenerating();
     try{
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
       const data=await r.json();if(!data.ok)throw new Error('generation_failed');
       const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};
-      contents.unshift(generated);await syncToCloud();showResult(generated);
-    }catch(e){showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
+      contents.unshift(generated);await syncToCloud();stopGenerating();showResult(generated);
+    }catch(e){stopGenerating();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
   };
   const go=primary('✦ CRIAR MEU CONTEÚDO DO DIA  ›',generate);go.classList.add('daily-generate');
   panel.appendChild(go);root.appendChild(panel);
