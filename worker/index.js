@@ -98,11 +98,14 @@ Refazer com abordagem diferente: ${redo}
 
 HISTÓRICO RECENTE — NÃO REPITA:
 ${JSON.stringify(recent)}`;
-        const gr = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{
-          method:"POST",
-          headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
-          body:JSON.stringify({contents:[{parts:[{text:motherPrompt}]}],generationConfig:{temperature:0.82,maxOutputTokens:7000,responseMimeType:"application/json"}})
-        });
+        let gr;
+        const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
+        const geminiBody=JSON.stringify({contents:[{parts:[{text:motherPrompt}]}],generationConfig:{temperature:0.82,maxOutputTokens:7000,responseMimeType:"application/json"}});
+        for(let attempt=0;attempt<3;attempt++){
+          gr=await fetch(geminiUrl,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:geminiBody});
+          if(gr.ok || ![429,500,502,503,504].includes(gr.status)) break;
+          await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+        }
         const gd = await gr.json();
         if (!gr.ok) return json({ok:false,error:"Falha no Gemini",details:gd?.error?.message || "Erro da API"},{status:502});
         const textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
