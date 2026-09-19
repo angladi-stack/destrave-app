@@ -497,6 +497,10 @@ function addProfile(root){
   root.appendChild(panel);
 }
 function addAlpha(root){
+  const header=document.createElement('div');
+  header.className='alpha-clean-header';
+  header.innerHTML='<strong>Alpha</strong><span>A comunidade dos Imparáveis.</span>';
+  root.appendChild(header);
   root.appendChild(button('63%','20%','74%','6%',()=>showToast('Você será avisada assim que a Comunidade Alpha abrir ✨'),'Quero ser avisado'));
 }
 
