@@ -282,8 +282,9 @@ function addHome(root){
 
   // Keep the approved top hero image. Everything white below it is real UI.
   root.appendChild(button('20.6%','17%','80%','31.5%',()=>navigate('daily'),'Criar meu conteúdo do dia'));
-  root.appendChild(button('53.0%','17%','39%','6.7%',()=>navigate('daily'),'Feito para você'));
-  root.appendChild(button('53.0%','58%','39%','6.7%',()=>navigate('daily'),'Execução completa'));
+  const belowHero=document.createElement('section');belowHero.className='home-below-hero';
+  belowHero.innerHTML='<button type="button"><b>∞</b><span><small>Feito para você</small><strong>Entende o que você faz</strong></span></button><button type="button"><b>◎</b><span><small>Execução completa</small><strong>Pronto para gravar e publicar</strong></span></button>';
+  belowHero.querySelectorAll('button').forEach(b=>b.onclick=()=>navigate('daily'));root.appendChild(belowHero);
 
   const middle=document.createElement('section');middle.className='home-real-middle';
   middle.innerHTML=`
@@ -305,8 +306,10 @@ function addHome(root){
   }
   root.appendChild(middle);
 
-  // Keep the approved lower Alpha image and make its whole region clickable.
-  root.appendChild(button('91.0%','17%','80%','7.5%',()=>navigate('alpha'),'Comunidade Alpha'));
+  // Real Alpha card placed above the old baked lower area so it cannot disappear behind overlays.
+  const alpha=document.createElement('button');alpha.type='button';alpha.className='home-alpha-real';
+  alpha.innerHTML='<span class="alpha-mark">✦</span><span><strong>Comunidade Alpha</strong><small>Comunidade dos Imparáveis &nbsp; • &nbsp; Em breve</small></span><i>›</i>';
+  alpha.onclick=()=>navigate('alpha');root.appendChild(alpha);
 }
 function addDaily(root){
   // From section 1 down this is real HTML. The approved header/hero image above stays untouched.
