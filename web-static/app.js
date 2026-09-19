@@ -282,18 +282,15 @@ function addHome(root){
 
   // Keep the approved top hero image. Everything white below it is real UI.
   root.appendChild(button('20.6%','17%','80%','31.5%',()=>navigate('daily'),'Criar meu conteúdo do dia'));
+  root.appendChild(button('53.0%','17%','39%','6.7%',()=>navigate('daily'),'Feito para você'));
+  root.appendChild(button('53.0%','58%','39%','6.7%',()=>navigate('daily'),'Execução completa'));
 
   const middle=document.createElement('section');middle.className='home-real-middle';
   middle.innerHTML=`
-    <div class="home-feature-grid">
-      <button type="button" class="home-feature"><b>∞</b><span><small>Feito para você</small><strong>Entende o que você faz</strong></span></button>
-      <button type="button" class="home-feature"><b>◎</b><span><small>Execução completa</small><strong>Pronto para gravar e publicar</strong></span></button>
-    </div>
     <div class="home-last-head"><h2>Últimos conteúdos</h2><button type="button">Ver todos ›</button></div>
     <div class="home-latest-real"></div>
     <div class="home-daily-message real"><small>✦ MENSAGEM DE HOJE</small><strong></strong></div>
   `;
-  middle.querySelectorAll('.home-feature').forEach(b=>b.onclick=()=>navigate('daily'));
   middle.querySelector('.home-last-head button').onclick=()=>navigate('contents');
   middle.querySelector('.home-daily-message strong').textContent=message;
   const latest=middle.querySelector('.home-latest-real');
