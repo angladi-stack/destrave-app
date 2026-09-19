@@ -578,3 +578,26 @@ body{overflow-x:hidden}
 .alpha-clean-header strong{
   font-weight:500!important;
 }
+
+
+/* 2026-09-19 — Alpha: restore original stronger typography, keep centered */
+.alpha-clean-header{
+  text-align:center!important;
+}
+.alpha-clean-header strong{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:30px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:0!important;
+  color:#211811!important;
+  margin:0 0 4px!important;
+}
+.alpha-clean-header span{
+  font-family:Arial,sans-serif!important;
+  font-size:15px!important;
+  line-height:1.2!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+  color:#716a72!important;
+}
