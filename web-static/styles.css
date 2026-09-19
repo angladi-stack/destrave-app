@@ -106,3 +106,11 @@ body{overflow-x:hidden}
 .home-daily-message small{display:block;margin:0 0 6px;color:#a7752d;font:700 9px/1.2 Arial,sans-serif;letter-spacing:1.7px}
 .home-daily-message strong{display:block;color:#251a13;font:700 16px/1.28 Georgia,serif}
 @media(max-width:350px){.home-daily-message{padding:12px 13px}.home-daily-message strong{font-size:14px}}
+
+/* Rebuilt brown sidebar: starts below the existing D/logo; the logo itself remains untouched. */
+.sidebar-real{position:absolute;z-index:40;left:0;top:9.3%;width:15.2%;height:54%;box-sizing:border-box;background:linear-gradient(180deg,#5a321d 0%,#4a2818 100%);border-radius:0 0 14px 0;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:stretch;gap:2px;box-shadow:5px 5px 16px rgba(40,22,12,.10)}
+.sidebar-real-item{appearance:none;border:0;background:transparent;color:#fff;width:100%;min-height:72px;padding:7px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-radius:11px;cursor:pointer}
+.sidebar-real-icon{display:grid;place-items:center;width:28px;height:28px;font-size:22px;line-height:1;color:#fff}.sidebar-real-label{font:600 8.5px/1.12 Arial,sans-serif;text-align:center;color:#fff;max-width:56px}
+.sidebar-real-item.active{background:linear-gradient(145deg,#f8d992,#d99b3c);box-shadow:inset 0 0 0 1px rgba(255,245,211,.45)}.sidebar-real-item.active .sidebar-real-icon,.sidebar-real-item.active .sidebar-real-label{color:#3b2415;font-weight:800}
+.sidebar-hit{display:none!important}
+@media(max-width:350px){.sidebar-real-item{min-height:64px}.sidebar-real-label{font-size:7.5px}}
