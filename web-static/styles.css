@@ -261,3 +261,50 @@ body{overflow-x:hidden}
   box-shadow:none!important;
 }
 .screen::before,.screen::after{pointer-events:none}
+
+
+/* 2026-09-18 — definitive Home lower rebuild.
+   Hide the baked lower portion of asset_2 with one continuous opaque sheet,
+   then place only the functional cards on top. */
+.home-below-hero{
+  top:53.15%!important;
+  left:15.2%!important;
+  width:84.8%!important;
+  height:7.4%!important;
+  margin:0!important;
+  padding:7px 12px!important;
+  background:#fbfaf7!important;
+  z-index:80!important;
+}
+.home-below-hero::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  left:0;
+  right:0;
+  top:-18px;
+  height:24px;
+  background:#fbfaf7;
+}
+.home-real-middle{
+  top:60.45%!important;
+  left:15.2%!important;
+  width:84.8%!important;
+  height:39.55%!important;
+  margin:0!important;
+  padding:7px 12px 12px!important;
+  background:#fbfaf7!important;
+  z-index:79!important;
+}
+.home-last-head{margin:0 1px 7px!important}
+
+/* Brand cleanup: no white divider next to the D. */
+.sidebar-brand{border-bottom:0!important}
+.sidebar-brand-original{
+  left:0!important;
+  right:0!important;
+  top:0!important;
+  bottom:30px!important;
+  background-color:#633722!important;
+  border:0!important;
+}
