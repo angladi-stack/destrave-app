@@ -57,16 +57,16 @@ function field(label,key,placeholder='Nenhum dado cadastrado'){
 function primary(text,onClick){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent=text;b.addEventListener('click',onClick);return b}
 
 function addSidebar(root){
-  // Hitboxes follow the actual icon+label positions painted in each approved screen image.
+  // Exact clickable bands over the five items painted in the brown sidebar.
   const items=[
-    ['12.4%','7.3%','home','Início'],
-    ['21.2%','7.5%','contents','Conteúdo'],
-    ['30.3%','8.2%','work','Meu trabalho'],
-    ['39.7%','7.7%','profile','Perfil'],
-    ['48.7%','8.0%','alpha','Alpha']
+    ['13.0%','7.5%','home','Início'],
+    ['22.3%','7.8%','contents','Conteúdo'],
+    ['32.0%','8.2%','work','Meu trabalho'],
+    ['41.4%','7.8%','profile','Perfil'],
+    ['49.8%','8.0%','alpha','Alpha']
   ];
   items.forEach(([top,height,target,label])=>{
-    const b=button(top,'0%','14.5%',height,()=>navigate(target),label);
+    const b=button(top,'0%','14.2%',height,()=>navigate(target),label);
     b.classList.add('sidebar-hit');root.appendChild(b);
   });
 }
@@ -91,46 +91,33 @@ function addHome(root){
   root.appendChild(button('82.5%','17%','80%','9%',()=>navigate('alpha'),'Comunidade Alpha'));
 }
 function addDaily(root){
+  // From section 1 down this is real HTML. The approved header/hero image above stays untouched.
   const state={goal:'',topic:'',ways:[]};
-  const selectGoal=(v,label)=>{state.goal=v;showToast(label+' selecionado')};
-  [
-    ['32.5%','18%','22%','4.7%','Vender','Vender'],
-    ['32.5%','42%','27%','4.7%','Alcançar pessoas','Alcançar pessoas'],
-    ['32.5%','70%','26%','4.7%','Passar confiança','Passar confiança'],
-    ['37.6%','18%','22%','4.7%','Ensinar','Ensinar'],
-    ['37.6%','42%','27%','4.7%','Criar conexão','Criar conexão'],
-    ['37.6%','70%','26%','4.7%','Escolha por mim','Escolha por mim']
-  ].forEach(([top,left,width,height,v,label])=>{
-    const b=button(top,left,width,height,()=>{state.goal=v;root.querySelectorAll('.daily-goal-hit').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');showToast(label+' selecionado')},label);
-    b.classList.add('daily-select-hit','daily-goal-hit');root.appendChild(b);
-  });
-
-  const topic=document.createElement('textarea');topic.className='daily-topic-input';
-  topic.placeholder='';
-  topic.addEventListener('input',()=>state.topic=topic.value);
-  root.appendChild(topic);
-
-  root.appendChild(button('55.4%','18%','58%','4.2%',()=>{state.topic='';topic.value='';showToast('Eu escolho o assunto por você ✦')},'Não sei. Escolha por mim'));
-
-  const toggleWay=(v,label)=>{const i=state.ways.indexOf(v);if(i>=0)state.ways.splice(i,1);else if(state.ways.length<2)state.ways.push(v);else{state.ways.shift();state.ways.push(v)}showToast(label+' selecionado')};
-  [
-    ['67.8%','18%','78%','4.4%','Posso aparecer e falar','Posso aparecer e falar'],
-    ['72.4%','18%','78%','4.4%','Posso mostrar sem falar','Posso mostrar sem falar'],
-    ['77.0%','18%','78%','4.4%','Não quero aparecer','Não quero aparecer'],
-    ['81.6%','18%','78%','4.4%','Tenho pouco tempo','Tenho pouco tempo']
-  ].forEach(([top,left,width,height,v,label])=>{
-    const b=button(top,left,width,height,()=>{
-      const i=state.ways.indexOf(v);
-      if(i>=0){state.ways.splice(i,1);b.classList.remove('selected')}
-      else{
-        if(state.ways.length>=2){const old=state.ways.shift();root.querySelectorAll('.daily-way-hit').forEach(x=>{if(x.dataset.value===old)x.classList.remove('selected')})}
-        state.ways.push(v);b.classList.add('selected')
-      }
-      showToast(label+' selecionado')
-    },label);
-    b.dataset.value=v;b.classList.add('daily-select-hit','daily-way-hit');root.appendChild(b);
-  });
-
+  const panel=document.createElement('section');panel.className='daily-real-panel';
+  panel.innerHTML=`
+    <div class="daily-box">
+      <h2>1. O que você quer conseguir hoje?</h2><p>Escolha 1 objetivo.</p>
+      <div class="daily-goals"></div>
+    </div>
+    <div class="daily-box">
+      <h2>2. O que você quer divulgar hoje?</h2>
+      <div class="daily-topic-wrap"><input class="daily-real-topic" placeholder="Ex.: serviço, produto, música, evento ou mensagem"></div>
+      <label class="daily-auto"><input type="checkbox"> Não sei. Escolha por mim.</label>
+    </div>
+    <div class="daily-box">
+      <h2>3. Como você quer fazer hoje?</h2><p>Escolha até 2 opções.</p>
+      <div class="daily-ways"></div>
+    </div>
+    <p class="daily-ready">Uma vez só. Tudo pronto.</p>
+  `;
+  const goals=['Vender','Alcançar pessoas','Passar confiança','Ensinar','Criar conexão','Escolha por mim'];
+  const goalsWrap=panel.querySelector('.daily-goals');
+  goals.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='daily-real-choice';b.textContent=v;b.onclick=()=>{state.goal=v;goalsWrap.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};goalsWrap.appendChild(b)});
+  const topic=panel.querySelector('.daily-real-topic');topic.oninput=()=>state.topic=topic.value;
+  panel.querySelector('.daily-auto input').onchange=e=>{if(e.target.checked){state.topic='';topic.value='';topic.disabled=true}else topic.disabled=false};
+  const ways=['Posso aparecer e falar','Posso mostrar sem falar','Não quero aparecer','Tenho pouco tempo'];
+  const waysWrap=panel.querySelector('.daily-ways');
+  ways.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='daily-real-choice wide';b.textContent=v;b.onclick=()=>{const i=state.ways.indexOf(v);if(i>=0){state.ways.splice(i,1);b.classList.remove('selected')}else{if(state.ways.length>=2){const old=state.ways.shift();[...waysWrap.children].find(x=>x.textContent===old)?.classList.remove('selected')}state.ways.push(v);b.classList.add('selected')}};waysWrap.appendChild(b)});
   const generate=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer você.');navigate('work');return}
     const subject=state.topic.trim()||business.objective||business.activity||business.service||'meu trabalho';
@@ -144,7 +131,8 @@ function addDaily(root){
       contents.unshift(generated);await syncToCloud();showResult(generated);
     }catch(e){showToast(e.message||'Não foi possível gerar agora.')}
   };
-  root.appendChild(button('88.4%','16%','81%','5.8%',generate,'Criar meu conteúdo do dia'));
+  const go=primary('✦ CRIAR MEU CONTEÚDO DO DIA  ›',generate);go.classList.add('daily-generate');
+  panel.appendChild(go);root.appendChild(panel);
 }
 function addContents(root){
   root.appendChild(button('8.4%','17%','80%','5%',()=>navigate('daily'),'Criar conteúdo do dia'));
