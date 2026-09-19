@@ -136,3 +136,8 @@ body{overflow-x:hidden}
 .sidebar-brand{flex:0 0 11.2%;min-height:11.2%;display:flex;flex-direction:column;align-items:center;justify-content:center;border-bottom:1px solid rgba(236,193,117,.22);color:#f1c777;box-sizing:border-box}
 .sidebar-brand-mark{font:700 31px/1 Georgia,serif;letter-spacing:-2px;text-shadow:0 1px 0 rgba(255,255,255,.18)}.sidebar-brand-name{margin-top:4px;font:700 6.8px/1 Arial,sans-serif;letter-spacing:1.05px;color:#f4dfb8}
 .sidebar-real-item{flex:0 0 10.5%!important}
+
+/* Original brand artwork: crop the approved home reference itself, never redraw the logo. */
+.sidebar-brand{position:relative!important;overflow:hidden!important;background:#5b321f!important}
+.sidebar-brand-original{position:absolute;inset:0;background-image:url('/assets/reference/asset_2.jpg');background-repeat:no-repeat;background-size:657.9% auto;background-position:left top;pointer-events:none}
+.sidebar-brand-mark,.sidebar-brand-name{display:none!important}
