@@ -182,3 +182,14 @@ body{overflow-x:hidden}
 .home-real-middle{top:60.5%!important;height:30.2%!important;padding-top:8px!important}
 .home-last-head{margin-top:2px!important}
 .home-real-middle .home-daily-message.real{min-height:84px!important;margin-top:8px!important}
+
+/* Final Home cleanup requested from screenshot. */
+.home-below-hero{position:absolute;z-index:34;top:52.1%;left:15.2%;width:84.8%;height:7.3%;box-sizing:border-box;background:#fbfaf7;padding:7px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.home-below-hero button{border:1px solid #e7e0da;border-radius:12px;background:#fff;display:grid;grid-template-columns:43px 1fr;align-items:center;text-align:left;padding:6px;color:#211811}.home-below-hero b{font-size:27px;text-align:center}.home-below-hero small,.home-below-hero strong{display:block}.home-below-hero small{font-size:10px;color:#756d78}.home-below-hero strong{font-size:11px;line-height:1.12;margin-top:3px}
+.home-real-middle{top:59.4%!important;height:31.0%!important;background:#fbfaf7!important}
+.home-real-middle::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10px;background:#fbfaf7;z-index:-1}
+.home-alpha-real{position:absolute;z-index:36;top:91.2%;left:17%;width:80%;height:6.5%;box-sizing:border-box;border:0;border-radius:13px;background:linear-gradient(105deg,#3b2417,#b47632 52%,#e6b55d);color:#fff;display:grid;grid-template-columns:43px 1fr 24px;align-items:center;text-align:left;padding:7px 10px;box-shadow:0 3px 10px rgba(48,29,17,.12)}.home-alpha-real .alpha-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#2b1b12;color:#f1c978;font-size:18px}.home-alpha-real strong,.home-alpha-real small{display:block}.home-alpha-real strong{font:700 15px Georgia,serif}.home-alpha-real small{font-size:9px;margin-top:3px}.home-alpha-real i{font:32px/1 Arial,sans-serif;font-style:normal;text-align:center}
+
+/* Completely cover the old baked mini-home tile below the brand on every internal screen. */
+.sidebar-brand::after{bottom:-28px!important;height:31px!important;background:#633722!important;z-index:99!important}
+.sidebar-real-item:first-of-type{margin-top:25px!important}
