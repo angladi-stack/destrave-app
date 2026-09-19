@@ -345,10 +345,10 @@ function addDaily(root){
     showToast('✦ Destravando seu dia...');
     try{
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
-      const data=await r.json();if(!data.ok)throw new Error(data.error+(data.details?' — '+data.details:''));
+      const data=await r.json();if(!data.ok)throw new Error('generation_failed');
       const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};
       contents.unshift(generated);await syncToCloud();showResult(generated);
-    }catch(e){showToast(e.message||'Não foi possível gerar agora.')}
+    }catch(e){showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
   };
   const go=primary('✦ CRIAR MEU CONTEÚDO DO DIA  ›',generate);go.classList.add('daily-generate');
   panel.appendChild(go);root.appendChild(panel);
@@ -447,7 +447,7 @@ function showResult(item){
   const actions=document.createElement('div');actions.className='plan-actions';const save=primary('✦ SALVAR MEU CONTEÚDO',async()=>{await syncToCloud();showToast('Conteúdo salvo ✦')});const redo=primary('↻ CRIAR OUTRA VERSÃO',()=>regenerate(item));actions.append(save,redo);body.append(actions);page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
 }
 function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
-async function regenerate(item){showToast('✦ Criando outra versão...');try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error(data.error+(data.details?' — '+data.details:''));const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();showResult(fresh)}catch(e){showToast(e.message||'Não foi possível criar outra versão agora.')}}
+async function regenerate(item){showToast('✦ Criando outra versão...');try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();showResult(fresh)}catch(e){showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
 
 function addProfile(root){
   const panel=document.createElement('main');panel.className='rebuilt-page rebuilt-profile';
