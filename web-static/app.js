@@ -345,8 +345,9 @@ function addDaily(root){
       <div class="daily-goals"></div>
     </div>
     <div class="daily-box">
-      <h2>2. O que você quer divulgar hoje?</h2>
-      <div class="daily-topic-wrap"><input class="daily-real-topic" placeholder="Ex.: serviço, produto, música, evento ou mensagem"></div>
+      <h2>2. O que você quer conseguir com esse conteúdo hoje?</h2>
+      <p>Conte do seu jeito. Quanto mais detalhes você der, mais personalizado fica.</p>
+      <div class="daily-topic-wrap"><input class="daily-real-topic" placeholder="Ex.: Sou cantor e quero apresentações em casamentos. Quero mostrar meu repertório romântico."></div>
       <label class="daily-auto"><input type="checkbox"> Não sei. Escolha por mim.</label>
     </div>
     <div class="daily-box">
