@@ -401,3 +401,15 @@ body{overflow-x:hidden}
   display:none!important;
   content:none!important;
 }
+
+
+/* 2026-09-18 — restore full approved D logo; keep original divider if necessary. */
+.sidebar-brand-original{
+  left:0!important;
+  right:0!important;
+  top:0!important;
+  bottom:30px!important;
+  overflow:visible!important;
+  background-size:657.9% auto!important;
+  background-position:left top!important;
+}
