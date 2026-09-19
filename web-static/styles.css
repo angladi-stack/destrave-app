@@ -483,3 +483,14 @@ body{overflow-x:hidden}
 .generating-progress i{display:block;height:100%;width:38%;border-radius:999px;background:linear-gradient(90deg,#a86d22,#efc86f);animation:destraveLoad 1.35s ease-in-out infinite}
 @keyframes destravePulse{0%,100%{transform:scale(1);opacity:.72}50%{transform:scale(1.08);opacity:1}}
 @keyframes destraveLoad{0%{transform:translateX(-110%)}100%{transform:translateX(290%)}}
+
+
+/* 2026-09-19 — official Destrave mark in sidebar */
+.sidebar-brand-original{
+  background-image:url('./destrave-logo.png')!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:72px auto!important;
+}
+.sidebar-brand-original::before,
+.sidebar-brand-original::after{content:none!important;display:none!important;}
