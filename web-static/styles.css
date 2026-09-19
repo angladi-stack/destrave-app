@@ -99,3 +99,10 @@ body{overflow-x:hidden}
 .daily-ways{display:grid;gap:7px}.daily-real-choice.wide{width:100%;min-height:39px;text-align:left;padding-left:42px;font-size:12px}
 .daily-ready{text-align:center;color:#756c68;font-size:11px;margin:3px 0 8px}.daily-generate{width:100%!important;margin:0!important;border-radius:14px!important;min-height:50px!important;font-size:14px!important}
 @media(max-width:350px){.daily-goals{grid-template-columns:1fr 1fr}.daily-real-panel{padding-left:9px;padding-right:9px}}
+
+
+/* Home: one elegant message per calendar day. Only this exact message area is dynamic. */
+.home-daily-message{position:absolute;z-index:24;top:68.2%;left:17%;width:80%;min-height:11.5%;box-sizing:border-box;padding:15px 17px 14px;border:1px solid rgba(199,157,83,.35);border-radius:16px;background:rgba(255,253,248,.97);box-shadow:0 7px 22px rgba(49,31,18,.07);display:flex;flex-direction:column;justify-content:center;pointer-events:none}
+.home-daily-message small{display:block;margin:0 0 6px;color:#a7752d;font:700 9px/1.2 Arial,sans-serif;letter-spacing:1.7px}
+.home-daily-message strong{display:block;color:#251a13;font:700 16px/1.28 Georgia,serif}
+@media(max-width:350px){.home-daily-message{padding:12px 13px}.home-daily-message strong{font-size:14px}}
