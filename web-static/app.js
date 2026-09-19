@@ -463,72 +463,78 @@ function accordion(num,icon,title,badge,content,open=false){const box=document.c
 function parsePlan(item){if(item.plan)return item.plan;try{return JSON.parse(item.text)}catch{return null}}
 function showResult(item){
   const p=parsePlan(item);if(!p){showLegacyResult(item);return}
+  // Compatibilidade: conteúdos antigos continuam abrindo no layout anterior.
+  if(!p.directionTitle && p.movementTitle){showMovementResult(item,p);return}
   const page=document.createElement('div');page.className='plan-page movement-page';
-  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu movimento de hoje está pronto.</h1><p>É só seguir. O Destrave já pensou por você.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
+  const top=document.createElement('header');top.className='plan-top';
+  top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu conteúdo de hoje está pronto.</h1><p>Você tem todas as possibilidades. Escolha o que cabe no seu dia.</p></div>';
+  top.querySelector('button').onclick=()=>render();page.append(top);
 
   if(p.needsInput){
     const ask=document.createElement('section');ask.className='plan-hero movement-question';
-    ask.innerHTML='<small>SÓ PRECISO DE UMA COISA</small><h2></h2><p>Responda isso e o Destrave termina seu movimento sem devolver a estratégia para você.</p>';
+    ask.innerHTML='<small>SÓ PRECISO DE UMA COISA</small><h2></h2><p>Responda isso e o Destrave termina seu conteúdo por você.</p>';
     ask.querySelector('h2').textContent=cleanText(p.question||'Conte esse detalhe para continuar.');
     page.append(ask);
     const actions=document.createElement('div');actions.className='plan-actions';
-    const redo=primary('↻ VOLTAR E RESPONDER',()=>navigate('daily'));actions.append(redo);page.append(actions);
+    actions.append(primary('↻ VOLTAR E RESPONDER',()=>navigate('daily')));page.append(actions);
     app.replaceChildren(page);window.scrollTo(0,0);return;
   }
 
   const hero=document.createElement('section');hero.className='plan-hero';
-  hero.innerHTML='<small>SEU MOVIMENTO DE HOJE ✦</small><h2></h2><p></p><button type="button">▶ COMEÇAR</button>';
-  hero.querySelector('h2').textContent=cleanText(p.movementTitle||'Seu próximo movimento');
+  hero.innerHTML='<small>SEU CONTEÚDO DO DIA ✦</small><h2></h2><p></p><div class="plan-choice-note">Você não precisa fazer tudo. Escolha a opção que fizer sentido para o seu dia.</div><button type="button">VER MINHAS OPÇÕES ↓</button>';
+  hero.querySelector('h2').textContent=cleanText(p.directionTitle||'Sua direção de hoje');
   hero.querySelector('p').textContent=cleanText(p.why||'');
   page.append(hero);
 
   const body=document.createElement('main');body.className='plan-main movement-main';
-  body.innerHTML='<h2>Faça assim</h2>';
-  const steps=document.createElement('section');steps.className='movement-steps';
-  (p.steps||[]).forEach((x,i)=>{
-    const card=document.createElement('div');card.className='plan-detail movement-step';
-    card.innerHTML='<b class="movement-step-num"></b><h3></h3><p></p>';
-    card.querySelector('b').textContent=String(i+1);
-    card.querySelector('h3').textContent=cleanText(x.title||('Passo '+(i+1)));
-    card.querySelector('p').textContent=cleanText(x.instruction||'');
-    steps.append(card);
-  });
-  body.append(steps);
+  body.innerHTML='<h2>Escolha como você quer se movimentar hoje</h2><p class="plan-intro">Reels, Stories, Feed ou WhatsApp: cada opção funciona sozinha e já está pronta para você executar.</p>';
 
-  if((p.readyToUse||[]).length){
-    const ready=document.createElement('section');ready.className='plan-check movement-ready';
-    ready.innerHTML='<h3>✦ Pronto para usar</h3>';
-    (p.readyToUse||[]).forEach(x=>{
-      const d=document.createElement('div');d.className='plan-detail movement-ready-item';
-      d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(x.label||'Texto');d.querySelector('p').textContent=cleanText(x.text||'');ready.append(d);
-    });
-    if(p.copyText) ready.append(copyBtn('COPIAR TEXTO',p.copyText));
-    body.append(ready);
+  const reels=document.createElement('div');reels.className='plan-format-content';
+  if(p.reels){
+    const add=(label,value)=>{if(!value)return;const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=label;d.querySelector('p').textContent=cleanText(value);reels.append(d)};
+    add('Ideia',p.reels.title);add('Gancho',p.reels.hook);
+    if((p.reels.steps||[]).length){const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong>Faça assim</strong>';(p.reels.steps||[]).forEach((x,i)=>{const q=document.createElement('p');q.textContent=(i+1)+'. '+cleanText(x);d.append(q)});reels.append(d)}
+    add('Fala pronta',p.reels.script);add('Texto na tela',p.reels.screenText);add('Legenda',p.reels.caption);add('CTA',p.reels.cta);
+    if(p.reels.caption) reels.append(copyBtn('COPIAR LEGENDA',p.reels.caption));
   }
+  body.append(accordion('1','▶','Reels','PRONTO PARA GRAVAR',reels,true));
 
-  if((p.where||[]).length){
-    const where=document.createElement('section');where.className='plan-check movement-where';
-    where.innerHTML='<h3>Onde isso pode entrar</h3><p></p>';
-    where.querySelector('p').textContent=p.where.map(cleanText).join(' • ');
-    body.append(where);
+  const stories=document.createElement('div');stories.className='plan-format-content';
+  (p.stories||[]).forEach(x=>stories.append(storyCard(x)));
+  body.append(accordion('2','▯','Stories','SEQUÊNCIA PRONTA',stories));
+
+  const feed=document.createElement('div');feed.className='plan-format-content';
+  if(p.feed){
+    const info=document.createElement('div');info.className='plan-detail';info.innerHTML='<strong></strong><p></p>';info.querySelector('strong').textContent=cleanText(p.feed.format||'Feed');info.querySelector('p').textContent=cleanText(p.feed.instructions||'');feed.append(info);
+    if((p.feed.slides||[]).length){const slides=document.createElement('div');slides.className='plan-detail';slides.innerHTML='<strong>Conteúdo</strong>';p.feed.slides.forEach((x,i)=>{const q=document.createElement('p');q.textContent='Slide '+(i+1)+': '+cleanText(x);slides.append(q)});feed.append(slides)}
+    if(p.feed.caption){const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong>Legenda</strong><p></p>';d.querySelector('p').textContent=cleanText(p.feed.caption);feed.append(d);feed.append(copyBtn('COPIAR LEGENDA',p.feed.caption))}
+    if(p.feed.cta){const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong>CTA</strong><p></p>';d.querySelector('p').textContent=cleanText(p.feed.cta);feed.append(d)}
   }
+  body.append(accordion('3','▣','Feed','PRONTO PARA POSTAR',feed));
 
-  if((p.extra||[]).length){
-    const extra=document.createElement('section');extra.className='plan-check movement-extra';
-    extra.innerHTML='<h3>Se quiser se movimentar um pouco mais</h3>';
-    p.extra.slice(0,2).forEach(x=>{const pEl=document.createElement('p');pEl.textContent=cleanText(x);extra.append(pEl)});
-    body.append(extra);
+  const wa=document.createElement('div');wa.className='plan-format-content';
+  if(p.whatsapp){
+    const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(p.whatsapp.format||'WhatsApp');d.querySelector('p').textContent=cleanText(p.whatsapp.instructions||'');wa.append(d);
+    if(p.whatsapp.text){const t=document.createElement('div');t.className='plan-detail';t.innerHTML='<strong>Texto pronto</strong><p></p>';t.querySelector('p').textContent=cleanText(p.whatsapp.text);wa.append(t);wa.append(copyBtn('COPIAR TEXTO',p.whatsapp.text))}
   }
+  body.append(accordion('4','◉','Status / WhatsApp','PRONTO PARA USAR',wa));
 
-  const done=document.createElement('section');done.className='plan-check movement-done';
-  done.innerHTML='<h3>☑ Antes de terminar</h3><label><input type="checkbox"> Fiz o movimento de hoje</label>';
-  body.append(done);
+  if(p.quickVersion){const quick=document.createElement('section');quick.className='plan-check movement-extra';quick.innerHTML='<h3>✦ Se hoje estiver corrido</h3><p></p>';quick.querySelector('p').textContent=cleanText(p.quickVersion);body.append(quick)}
+  if(p.motivation){const motivation=document.createElement('section');motivation.className='plan-check movement-ready';motivation.innerHTML='<h3>✦ Antes de ir</h3><p></p>';motivation.querySelector('p').textContent=cleanText(p.motivation);body.append(motivation)}
 
   const actions=document.createElement('div');actions.className='plan-actions';
-  const save=primary('✦ SALVAR MEU MOVIMENTO',async()=>{await syncToCloud();showToast('Movimento salvo ✦')});
-  const redo=primary('↻ CRIAR OUTRA VERSÃO',()=>regenerate(item));actions.append(save,redo);body.append(actions);
+  actions.append(primary('✦ SALVAR MEU CONTEÚDO',async()=>{await syncToCloud();showToast('Conteúdo salvo ✦')}),primary('↻ CRIAR OUTRA VERSÃO',()=>regenerate(item)));
+  body.append(actions);page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
+  hero.querySelector('button').onclick=()=>body.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function showMovementResult(item,p){
+  const page=document.createElement('div');page.className='plan-page movement-page';
+  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu movimento de hoje está pronto.</h1><p>É só seguir. O Destrave já pensou por você.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
+  const hero=document.createElement('section');hero.className='plan-hero';hero.innerHTML='<small>SEU MOVIMENTO DE HOJE ✦</small><h2></h2><p></p>';hero.querySelector('h2').textContent=cleanText(p.movementTitle||'Seu próximo movimento');hero.querySelector('p').textContent=cleanText(p.why||'');page.append(hero);
+  const body=document.createElement('main');body.className='plan-main movement-main';body.innerHTML='<h2>Faça assim</h2>';
+  (p.steps||[]).forEach((x,i)=>{const d=document.createElement('div');d.className='plan-detail movement-step';d.innerHTML='<b class="movement-step-num"></b><h3></h3><p></p>';d.querySelector('b').textContent=String(i+1);d.querySelector('h3').textContent=cleanText(x.title||'Passo '+(i+1));d.querySelector('p').textContent=cleanText(x.instruction||'');body.append(d)});
+  (p.readyToUse||[]).forEach(x=>{const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(x.label||'Texto');d.querySelector('p').textContent=cleanText(x.text||'');body.append(d)});
   page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
-  const startBtn=hero.querySelector('button');startBtn.onclick=()=>body.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
 async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
