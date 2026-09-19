@@ -57,6 +57,34 @@ export default {
           requestToday: requestToday || ""
         };
         const confirmedFactLines = Object.entries(factVault).filter(([,v]) => String(v || "").trim()).map(([k,v]) => "- " + k + ": " + String(v).trim()).join("\n");
+        const knownFactText = Object.values(factVault).filter(v=>String(v||"").trim()).join(" ").toLowerCase();
+        const forbiddenAssumptions = [
+          {re:/\blink(?: na bio| abaixo)?\b/i, allow:/\blink\b/i},
+          {re:/\bagenda aberta\b/i, allow:/\bagenda aberta\b/i},
+          {re:/\bpront[oa] para entrega\b/i, allow:/\bpront[oa] para entrega\b/i},
+          {re:/\brec[eé]m[- ]?feito\b/i, allow:/\brec[eé]m[- ]?feito\b/i},
+          {re:/\bembalagem personalizada\b/i, allow:/\bembalagem personalizada\b/i},
+          {re:/\bpromo[cç][aã]o\b/i, allow:/\bpromo[cç][aã]o\b/i},
+          {re:/\bdesconto\b/i, allow:/\bdesconto\b/i},
+          {re:/\bestoque\b/i, allow:/\bestoque\b/i},
+          {re:/\bdepoimento\b/i, allow:/\bdepoimento\b/i},
+          {re:/\bcliente(?:s)? (?:disse|falou|amou|adorou)\b/i, allow:/\bcliente(?:s)?\b/i}
+        ];
+        const promisePatterns = [
+          /\bgera(?:r)? encomendas\b/i,/\bgera(?:r)? vendas\b/i,/\bvai vender\b/i,
+          /\bvende por voc[eê]\b/i,/\bcria desejo instant[aâ]neo\b/i,/\bgarante (?:vendas|clientes|encomendas)\b/i
+        ];
+        const placeholderPattern = /\[[^\]]+\]|\{\{[^}]+\}\}/;
+        function deterministicAudit(candidate){
+          const serialized=JSON.stringify(candidate||{});
+          const violations=[];
+          if (placeholderPattern.test(serialized)) violations.push("placeholder");
+          for (const p of promisePatterns) if (p.test(serialized)) violations.push("promessa de resultado");
+          for (const rule of forbiddenAssumptions) {
+            if (rule.re.test(serialized) && !rule.allow.test(knownFactText)) violations.push("fato operacional não confirmado: "+String(rule.re));
+          }
+          return [...new Set(violations)];
+        }
         const motherPrompt = `Você é o CÉREBRO OFICIAL DO DESTRAVE by Angladi.
 
 ESSÊNCIA
@@ -331,6 +359,37 @@ Retorne somente JSON válido.`
             // Se o fiscal estiver temporariamente indisponível, preserva a geração válida
             // em vez de derrubar toda a experiência do usuário.
           }
+        }
+
+        // GUARDA FINAL DETERMINÍSTICA: o modelo fiscal não tem a palavra final sobre fatos básicos.
+        // Se ainda restar placeholder, promessa forte ou pressuposição operacional detectável,
+        // uma última correção é solicitada. Se ela não puder ser validada, a resposta é bloqueada.
+        let hardViolations=deterministicAudit(plan);
+        if (hardViolations.length && env.GROQ_API_KEY) {
+          try {
+            const repairPrompt=`Corrija SOMENTE as violações factuais abaixo no JSON do Conteúdo do Dia.
+VIOLAÇÕES: ${hardViolations.join("; ")}
+FATOS CONFIRMADOS:
+${confirmedFactLines || "- nenhum"}
+JSON:
+${JSON.stringify(plan)}
+Regras: não invente substitutos; não use placeholders; se o dado for dispensável, reescreva sem ele; se for indispensável, needsInput=true e faça uma única pergunta factual. Preserve o schema e a direção quando possível. Retorne somente JSON válido.`;
+            const rb=JSON.stringify({
+              model:"openai/gpt-oss-120b",
+              messages:[{role:"system",content:"Correção factual estrita. Somente JSON válido."},{role:"user",content:repairPrompt}],
+              temperature:0.05,max_completion_tokens:7000,response_format:{type:"json_object"}
+            });
+            const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:rb});
+            const rd=await rr.json();
+            if(rr.ok){
+              const repaired=JSON.parse(String(rd.choices?.[0]?.message?.content||"").replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim());
+              if(repaired && typeof repaired==="object") plan=repaired;
+            }
+          } catch(_){}
+          hardViolations=deterministicAudit(plan);
+        }
+        if(hardViolations.length){
+          return json({ok:false,error:"O Destrave bloqueou uma resposta que usava informação não confirmada. Tente criar outra versão.",code:"FACT_GUARD",details:hardViolations},{status:422});
         }
 
         return json({ok:true,plan,text:JSON.stringify(plan),format:"Conteúdo do dia",model:modelUsed});
