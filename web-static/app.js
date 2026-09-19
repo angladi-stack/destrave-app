@@ -42,18 +42,9 @@ function showToast(text){
 function showGenerating(){
   const old=document.querySelector('.destrave-generating');if(old)old.remove();
   const overlay=document.createElement('div');overlay.className='destrave-generating';
-  overlay.innerHTML='<div class="generating-card"><div class="generating-mark">✦</div><strong>Destravando seu conteúdo...</strong><p>Entendendo o que faz sentido para você.</p><div class="generating-progress"><i></i></div></div>';
+  overlay.innerHTML='<div class="generating-card"><div class="generating-mark">✦</div><strong>Criando seu conteúdo...</strong><p>O Destrave está preparando seu próximo movimento.</p><div class="generating-progress"><i></i></div></div>';
   document.body.appendChild(overlay);
-  const strong=overlay.querySelector('strong'), p=overlay.querySelector('p');
-  const steps=[
-    ['Destravando sua estratégia...','Conectando seu objetivo com o próximo movimento.'],
-    ['Criando seu Reels...','Preparando uma ideia clara para você gravar.'],
-    ['Preparando seus Stories...','Organizando a sequência para criar conexão.'],
-    ['Montando seu Carrossel...','Finalizando tudo para você executar.']
-  ];
-  let n=0;strong.textContent=steps[0][0];p.textContent=steps[0][1];
-  const timer=setInterval(()=>{n=(n+1)%steps.length;strong.textContent=steps[n][0];p.textContent=steps[n][1]},3500);
-  return ()=>{clearInterval(timer);overlay.remove()};
+  return ()=>overlay.remove();
 }
 
 function button(top,left,width,height,onClick,label=''){
@@ -326,7 +317,7 @@ function addHome(root){
     const item=contents[0],card=document.createElement('button');card.type='button';card.className='home-latest-card';
     card.innerHTML='<div class="latest-thumb">▶</div><span><strong></strong><small></small><em>Pronto para usar</em></span><i>⋮</i>';
     card.querySelector('span strong').textContent=item.title||'Seu conteúdo mais recente';
-    card.querySelector('span small').textContent=item.format||'Stories + Reels + Carrossel';
+    card.querySelector('span small').textContent=item.format||'Movimento do dia';
     card.onclick=()=>showResult(item);latest.appendChild(card);
   }else{
     const empty=document.createElement('button');empty.type='button';empty.className='home-latest-card empty';empty.innerHTML='<span><strong>Nenhum conteúdo criado ainda</strong><small>Crie o primeiro conteúdo do seu dia.</small></span>';empty.onclick=()=>navigate('daily');latest.appendChild(empty);
@@ -373,7 +364,7 @@ function addDaily(root){
     try{
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
       const data=await r.json();if(!data.ok)throw new Error('generation_failed');
-      const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Stories + Reels + Carrossel',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};
+      const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Movimento do dia',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};
       contents.unshift(generated);await syncToCloud();stopGenerating();showResult(generated);
     }catch(e){stopGenerating();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
   };
@@ -401,7 +392,7 @@ function addContents(root){
       return matches&&byFilter;
     });
     if(!visible.length){const empty=document.createElement('div');empty.className='contents-empty';empty.innerHTML='<strong>Nenhum conteúdo encontrado.</strong><span>Crie um conteúdo ou tente outra busca.</span>';items.appendChild(empty);return}
-    visible.forEach(item=>{const card=document.createElement('button');card.type='button';card.className='content-card real';card.innerHTML='<strong></strong><span></span><small></small>';card.querySelector('strong').textContent=item.title||'Conteúdo';card.querySelector('span').textContent=(item.format||'Stories + Reels + Carrossel')+' • '+(item.created||'');card.querySelector('small').textContent='Pronto para usar';card.onclick=()=>showResult(item);items.appendChild(card)});
+    visible.forEach(item=>{const card=document.createElement('button');card.type='button';card.className='content-card real';card.innerHTML='<strong></strong><span></span><small></small>';card.querySelector('strong').textContent=item.title||'Conteúdo';card.querySelector('span').textContent=(item.format||'Movimento do dia')+' • '+(item.created||'');card.querySelector('small').textContent='Pronto para usar';card.onclick=()=>showResult(item);items.appendChild(card)});
   };
   input.oninput=draw;
   panel.querySelectorAll('.contents-tabs button').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;panel.querySelectorAll('.contents-tabs button').forEach(x=>x.classList.toggle('active',x===b));draw()});
@@ -472,19 +463,72 @@ function accordion(num,icon,title,badge,content,open=false){const box=document.c
 function parsePlan(item){if(item.plan)return item.plan;try{return JSON.parse(item.text)}catch{return null}}
 function showResult(item){
   const p=parsePlan(item);if(!p){showLegacyResult(item);return}
-  const page=document.createElement('div');page.className='plan-page';
-  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu conteúdo do dia está pronto.</h1><p>Siga os passos. Está tudo preparado.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
-  const hero=document.createElement('section');hero.className='plan-hero';hero.innerHTML=`<small>OBJETIVO DE HOJE</small><h2>${cleanText(p.objective)}</h2><p>${cleanText(p.why)}</p><div class="plan-need">▣ Você só vai precisar: ${(p.need||[]).map(cleanText).join(', ')}</div><button>▶ COMEÇAR PELO PASSO 1</button>`;page.append(hero);
-  const body=document.createElement('main');body.className='plan-main';body.innerHTML='<h2>Faça nesta ordem</h2>';
-  const s1=document.createElement('div');s1.className='story-grid';(p.storiesStart||[]).forEach(x=>s1.append(storyCard(x)));s1.append(copyBtn('COPIAR STORIES',(p.storiesStart||[]).map(x=>JSON.stringify(x)).join('\n')));
-  body.append(accordion(1,'▣','Stories para começar',(p.storiesStart||[]).length+' Stories',s1,true));
-  const r=document.createElement('div');r.className='plan-detail';r.innerHTML=`<p><strong>⚡ Gancho:</strong><br>${cleanText(p.reels?.hook)}</p><p><strong>🎥 Como gravar:</strong><br>${cleanText(p.reels?.recording)}</p><p><strong>📝 Roteiro completo:</strong><br>${cleanText(p.reels?.script)}</p><p><strong>Legenda:</strong><br>${cleanText(p.reels?.caption)}</p><p><strong>CTA:</strong><br>${cleanText(p.reels?.cta)}</p>`;r.append(copyBtn('COPIAR REELS',[p.reels?.hook,p.reels?.script,p.reels?.caption,p.reels?.cta].join('\n\n')));body.append(accordion(2,'🎬','Reels principal',cleanText(p.reels?.duration),r));
-  const sc=document.createElement('div');sc.className='story-grid';(p.storiesContinue||[]).forEach(x=>sc.append(storyCard(x)));sc.append(copyBtn('COPIAR STORIES',(p.storiesContinue||[]).map(x=>JSON.stringify(x)).join('\n')));body.append(accordion(3,'▣','Stories para continuar',(p.storiesContinue||[]).length+' Stories',sc));
-  const car=document.createElement('div');car.className='plan-detail';(p.carousel?.slides||[]).forEach(x=>{const d=document.createElement('div');d.className='slide-card';d.innerHTML=`<b>SLIDE ${x.number}</b><h3>${cleanText(x.title)}</h3><p>${cleanText(x.text)}</p>`;car.append(d)});car.insertAdjacentHTML('beforeend',`<p><strong>Legenda:</strong><br>${cleanText(p.carousel?.caption)}</p><p><strong>CTA:</strong><br>${cleanText(p.carousel?.cta)}</p>`);car.append(copyBtn('COPIAR CARROSSEL',JSON.stringify(p.carousel)));body.append(accordion(4,'▦','Carrossel',(p.carousel?.slides||[]).length+' slides',car));
-  const close=document.createElement('div');close.className='story-grid';close.append(storyCard({title:'Fechamento',...(p.closingStory||{})}));body.append(accordion(5,'➤','Story de fechamento','CTA final',close));
-  const check=document.createElement('section');check.className='plan-check';check.innerHTML='<h3>☑ Antes de terminar</h3><label><input type="checkbox"> Stories publicados</label><label><input type="checkbox"> Reels publicado</label><label><input type="checkbox"> Carrossel publicado ou salvo</label><label><input type="checkbox"> Respondi quem chamou</label>';body.append(check);
-  const why=document.createElement('details');why.className='plan-why';why.innerHTML=`<summary>💡 Por que foi criado assim?</summary><p><strong>${cleanText(p.strategy)}</strong><br>${cleanText(p.why)}</p><p>${cleanText(p.movement)}</p>`;body.append(why);
-  const actions=document.createElement('div');actions.className='plan-actions';const save=primary('✦ SALVAR MEU CONTEÚDO',async()=>{await syncToCloud();showToast('Conteúdo salvo ✦')});const redo=primary('↻ CRIAR OUTRA VERSÃO',()=>regenerate(item));actions.append(save,redo);body.append(actions);page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
+  const page=document.createElement('div');page.className='plan-page movement-page';
+  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu movimento de hoje está pronto.</h1><p>É só seguir. O Destrave já pensou por você.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
+
+  if(p.needsInput){
+    const ask=document.createElement('section');ask.className='plan-hero movement-question';
+    ask.innerHTML='<small>SÓ PRECISO DE UMA COISA</small><h2></h2><p>Responda isso e o Destrave termina seu movimento sem devolver a estratégia para você.</p>';
+    ask.querySelector('h2').textContent=cleanText(p.question||'Conte esse detalhe para continuar.');
+    page.append(ask);
+    const actions=document.createElement('div');actions.className='plan-actions';
+    const redo=primary('↻ VOLTAR E RESPONDER',()=>navigate('daily'));actions.append(redo);page.append(actions);
+    app.replaceChildren(page);window.scrollTo(0,0);return;
+  }
+
+  const hero=document.createElement('section');hero.className='plan-hero';
+  hero.innerHTML='<small>SEU MOVIMENTO DE HOJE ✦</small><h2></h2><p></p><button type="button">▶ COMEÇAR</button>';
+  hero.querySelector('h2').textContent=cleanText(p.movementTitle||'Seu próximo movimento');
+  hero.querySelector('p').textContent=cleanText(p.why||'');
+  page.append(hero);
+
+  const body=document.createElement('main');body.className='plan-main movement-main';
+  body.innerHTML='<h2>Faça assim</h2>';
+  const steps=document.createElement('section');steps.className='movement-steps';
+  (p.steps||[]).forEach((x,i)=>{
+    const card=document.createElement('div');card.className='plan-detail movement-step';
+    card.innerHTML='<b class="movement-step-num"></b><h3></h3><p></p>';
+    card.querySelector('b').textContent=String(i+1);
+    card.querySelector('h3').textContent=cleanText(x.title||('Passo '+(i+1)));
+    card.querySelector('p').textContent=cleanText(x.instruction||'');
+    steps.append(card);
+  });
+  body.append(steps);
+
+  if((p.readyToUse||[]).length){
+    const ready=document.createElement('section');ready.className='plan-check movement-ready';
+    ready.innerHTML='<h3>✦ Pronto para usar</h3>';
+    (p.readyToUse||[]).forEach(x=>{
+      const d=document.createElement('div');d.className='plan-detail movement-ready-item';
+      d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(x.label||'Texto');d.querySelector('p').textContent=cleanText(x.text||'');ready.append(d);
+    });
+    if(p.copyText) ready.append(copyBtn('COPIAR TEXTO',p.copyText));
+    body.append(ready);
+  }
+
+  if((p.where||[]).length){
+    const where=document.createElement('section');where.className='plan-check movement-where';
+    where.innerHTML='<h3>Onde isso pode entrar</h3><p></p>';
+    where.querySelector('p').textContent=p.where.map(cleanText).join(' • ');
+    body.append(where);
+  }
+
+  if((p.extra||[]).length){
+    const extra=document.createElement('section');extra.className='plan-check movement-extra';
+    extra.innerHTML='<h3>Se quiser se movimentar um pouco mais</h3>';
+    p.extra.slice(0,2).forEach(x=>{const pEl=document.createElement('p');pEl.textContent=cleanText(x);extra.append(pEl)});
+    body.append(extra);
+  }
+
+  const done=document.createElement('section');done.className='plan-check movement-done';
+  done.innerHTML='<h3>☑ Antes de terminar</h3><label><input type="checkbox"> Fiz o movimento de hoje</label>';
+  body.append(done);
+
+  const actions=document.createElement('div');actions.className='plan-actions';
+  const save=primary('✦ SALVAR MEU MOVIMENTO',async()=>{await syncToCloud();showToast('Movimento salvo ✦')});
+  const redo=primary('↻ CRIAR OUTRA VERSÃO',()=>regenerate(item));actions.append(save,redo);body.append(actions);
+  page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
+  const startBtn=hero.querySelector('button');startBtn.onclick=()=>body.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
 async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
