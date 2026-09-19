@@ -81,6 +81,30 @@ function addLogin(root){
 }
 
 function addHome(root){
+  const dailyMessages=[
+    'Hoje você não precisa fazer tudo. Precisa fazer o próximo movimento.',
+    'Seu trabalho merece ser visto. Hoje, mostre um pouco dele.',
+    'Não espere a ideia perfeita. Execute a próxima ideia certa.',
+    'Um conteúdo publicado vale mais do que dez ideias guardadas.',
+    'A presença que você quer construir começa no movimento de hoje.',
+    'Você não precisa estar pronta para tudo. Só para o próximo passo.',
+    'Hoje, faça sua presença digital sair da intenção e virar ação.',
+    'O seu ritmo pode ser leve. O importante é continuar em movimento.',
+    'Quem precisa do que você faz só pode escolher você se conseguir te encontrar.',
+    'Não complique o conteúdo de hoje. Clareza, verdade e movimento.',
+    'Seu próximo conteúdo não precisa impressionar. Precisa comunicar.',
+    'A constância começa quando você para de esperar o dia perfeito.',
+    'Mostre o que você faz de um jeito que as pessoas consigam entender.',
+    'Hoje é um bom dia para deixar seu trabalho falar por você.'
+  ];
+  const now=new Date();
+  const dayKey=Math.floor(new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime()/86400000);
+  const message=dailyMessages[((dayKey%dailyMessages.length)+dailyMessages.length)%dailyMessages.length];
+  const dailyMessage=document.createElement('div');
+  dailyMessage.className='home-daily-message';
+  dailyMessage.innerHTML='<small>✦ MENSAGEM DE HOJE</small><strong></strong>';
+  dailyMessage.querySelector('strong').textContent=message;
+  root.appendChild(dailyMessage);
   root.appendChild(button('1.6%','84%','12%','4.4%',()=>navigate('profile'),'Perfil'));
   root.appendChild(button('34%','19%','78.5%','4%',()=>navigate('daily'),'Criar meu conteúdo do dia'));
   root.appendChild(button('43.2%','17%','39%','7.5%',()=>showToast('Conteúdo feito para você ✨'),'Feito para você'));
