@@ -82,6 +82,14 @@ Refazer: ${redo}
 HISTÓRICO RECENTE
 ${JSON.stringify(recent)}
 
+REGRA CRÍTICA — GERADO NÃO SIGNIFICA EXECUTADO
+O histórico pode conter movimentos que o Destrave GEROU, mas isso NÃO prova que a pessoa os executou.
+Nunca diga ou presuma "você já fez", "você já publicou", "você já apresentou", "agora que você fez..." ou equivalentes apenas porque existe uma geração anterior no histórico.
+Só trate um movimento como EXECUTADO quando houver evidência explícita de conclusão no contexto/dados (por exemplo, confirmação real de que a pessoa fez ou estado de conclusão enviado pelo sistema).
+Se o histórico não distinguir com segurança gerado de executado, trate-o apenas como histórico de SUGESTÕES/GERAÇÕES: use-o para evitar repetição, mas NÃO como fato da vida da pessoa.
+Progressão baseada em execução só pode usar movimentos confirmados como feitos.
+Sem confirmação de execução, progrida pela qualidade/variedade da orientação sem inventar que a pessoa cumpriu etapas anteriores.
+
 MISSÃO DE CADA GERAÇÃO
 Não pergunte apenas "qual conteúdo ela pode postar?".
 Pense silenciosamente:
@@ -241,6 +249,7 @@ Antes de retornar, pergunte:
 15. "extra" realmente amplia movimento?
 16. Depois de fazer, a pessoa termina um pouco mais destravada do que começou?
 17. Eu consideraria esta resposta digna de um serviço pago, ou ela parece conselho gratuito óbvio?
+18. Afirmei que a pessoa já fez/publicou/praticou algo apenas porque apareceu no histórico? Se sim, remova essa afirmação.
 Se falhar, REFAÇA INTERNAMENTE. Não explique a auditoria ao usuário.
 
 Se needsInput=true, não fabrique execução: faça a micropergunta e retorne arrays vazios.
@@ -352,6 +361,9 @@ JSON GERADO:
 ${JSON.stringify(plan)}
 
 Sua função é impedir que uma resposta rasa, genérica, inventada ou escrita em terceira pessoa chegue ao cliente.
+
+REGRA CRÍTICA DE HISTÓRICO:
+Uma geração anterior NÃO é prova de execução. Se o JSON disser ou insinuar que a pessoa "já fez", "já publicou", "já apresentou" ou concluiu algo, isso precisa estar explicitamente confirmado nos fatos/dados. A mera presença de conteúdo no histórico não autoriza essa afirmação. Na dúvida, trate histórico como sugestões geradas, não ações realizadas.
 
 REPROVE E CORRIJA se:
 - houver narração "Daniel falando/mostrando", nome repetido ou instrução em terceira pessoa. Fale diretamente com "você";
