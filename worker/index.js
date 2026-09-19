@@ -100,21 +100,63 @@ Refazer com abordagem diferente: ${redo}
 
 HISTÓRICO RECENTE — NÃO REPITA:
 ${JSON.stringify(recent)}`;
-        let gr;
-        const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
-        const geminiBody=JSON.stringify({contents:[{parts:[{text:motherPrompt}]}],generationConfig:{temperature:0.82,maxOutputTokens:7000,responseMimeType:"application/json"}});
-        for(let attempt=0;attempt<3;attempt++){
-          gr=await fetch(geminiUrl,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:geminiBody});
-          if(gr.ok || ![429,500,502,503,504].includes(gr.status)) break;
-          await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));
+        let textOut="";
+        let modelUsed="";
+        let lastError="";
+
+        // Motor 1: Gemini. Faz uma única tentativa para não desperdiçar a cota gratuita.
+        if (env.GEMINI_API_KEY) {
+          try {
+            const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
+            const geminiBody=JSON.stringify({contents:[{parts:[{text:motherPrompt}]}],generationConfig:{temperature:0.82,maxOutputTokens:7000,responseMimeType:"application/json"}});
+            const gr=await fetch(geminiUrl,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:geminiBody});
+            const gd=await gr.json();
+            if (gr.ok) {
+              textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+              if (textOut) modelUsed="gemini-3.6-flash";
+            } else {
+              lastError=gd?.error?.message || "Gemini indisponível";
+            }
+          } catch (error) {
+            lastError=error.message || "Gemini indisponível";
+          }
         }
-        const gd = await gr.json();
-        if (!gr.ok) return json({ok:false,error:"Falha no Gemini",details:gd?.error?.message || "Erro da API"},{status:502});
-        const textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-        if (!textOut) return json({ok:false,error:"A IA não retornou conteúdo."},{status:502});
+
+        // Motor 2: Groq. Só é chamado se o Gemini não entregar conteúdo.
+        if (!textOut && env.GROQ_API_KEY) {
+          try {
+            const groqBody=JSON.stringify({
+              model:"openai/gpt-oss-120b",
+              messages:[
+                {role:"system",content:"Responda somente com JSON válido, sem markdown nem comentários."},
+                {role:"user",content:motherPrompt}
+              ],
+              temperature:0.82,
+              max_completion_tokens:7000,
+              response_format:{type:"json_object"}
+            });
+            const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+              method:"POST",
+              headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
+              body:groqBody
+            });
+            const rd=await rr.json();
+            if (rr.ok) {
+              textOut=String(rd.choices?.[0]?.message?.content||"").trim();
+              if (textOut) modelUsed="groq/openai-gpt-oss-120b";
+            } else {
+              lastError=rd?.error?.message || "Groq indisponível";
+            }
+          } catch (error) {
+            lastError=error.message || "Groq indisponível";
+          }
+        }
+
+        if (!textOut) return json({ok:false,error:"Não consegui gerar o conteúdo agora.",details:lastError},{status:502});
         let plan;
-        try { plan=JSON.parse(textOut); } catch { return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer."},{status:502}); }
-        return json({ok:true,plan,text:JSON.stringify(plan),format:"Stories + Reels + Carrossel",model:"gemini-3.6-flash"});
+        try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
+        catch { return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer."},{status:502}); }
+        return json({ok:true,plan,text:JSON.stringify(plan),format:"Stories + Reels + Carrossel",model:modelUsed});
       } catch(error) {
         return json({ok:false,error:"Falha ao gerar conteúdo",message:error.message},{status:500});
       }
