@@ -567,3 +567,14 @@ body{overflow-x:hidden}
   letter-spacing:.15px!important;
   color:#756d68!important;
 }
+
+
+/* 2026-09-19 — center Alpha header and add subtle weight */
+.alpha-clean-header{
+  text-align:center!important;
+  padding-left:14px!important;
+  padding-right:14px!important;
+}
+.alpha-clean-header strong{
+  font-weight:500!important;
+}
