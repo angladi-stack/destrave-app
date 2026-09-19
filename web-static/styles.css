@@ -87,3 +87,15 @@ body{overflow-x:hidden}
 
 /* Active gold state is already painted into each approved screen image. Do not draw a second block. */
 .sidebar-hit.sidebar-active{background:transparent!important;box-shadow:none!important}
+
+/* Daily rebuilt from section 1 down; approved top header and eagle hero remain visible. */
+.daily-real-panel{position:absolute;z-index:30;top:30.2%;left:15.2%;width:84.8%;min-height:69.8%;box-sizing:border-box;background:#fbfaf7;padding:8px 12px 22px;color:#211811}
+.daily-box{background:#fff;border:1px solid #e6ded5;border-radius:13px;padding:12px 11px;margin:0 0 10px}
+.daily-box h2{font:700 20px/1.08 Georgia,serif;margin:0 0 2px}.daily-box>p{font-size:12px;color:#655d58;margin:0 0 9px}
+.daily-goals{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.daily-real-choice{min-height:42px;border:1px solid #e6ded5;border-radius:18px;background:#fff;color:#211811;font-size:11px;padding:6px 4px}
+.daily-real-choice.selected{background:#fff0c9;border-color:#ddb45e;box-shadow:inset 0 0 0 1px rgba(221,180,94,.18);color:#211811;font-weight:700}
+.daily-topic-wrap{border:1px solid #e2ddd7;border-radius:12px;padding:0 10px;background:#fff}.daily-real-topic{width:100%;height:48px;border:0;outline:0;background:transparent;font-size:13px;color:#211811;box-sizing:border-box}.daily-real-topic::placeholder{color:#9ba0b3}.daily-real-topic:disabled{opacity:.45}
+.daily-auto{display:flex;align-items:center;gap:8px;font-size:13px;margin-top:9px}.daily-auto input{width:19px;height:19px}
+.daily-ways{display:grid;gap:7px}.daily-real-choice.wide{width:100%;min-height:39px;text-align:left;padding-left:42px;font-size:12px}
+.daily-ready{text-align:center;color:#756c68;font-size:11px;margin:3px 0 8px}.daily-generate{width:100%!important;margin:0!important;border-radius:14px!important;min-height:50px!important;font-size:14px!important}
+@media(max-width:350px){.daily-goals{grid-template-columns:1fr 1fr}.daily-real-panel{padding-left:9px;padding-right:9px}}
