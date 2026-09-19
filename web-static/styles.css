@@ -193,3 +193,10 @@ body{overflow-x:hidden}
 /* Completely cover the old baked mini-home tile below the brand on every internal screen. */
 .sidebar-brand::after{bottom:-28px!important;height:31px!important;background:#633722!important;z-index:99!important}
 .sidebar-real-item:first-of-type{margin-top:25px!important}
+
+/* Screenshot correction: cover the baked old "Últimos conteúdos" before drawing the real one once. */
+.home-real-middle{top:57.2%!important;height:40.5%!important;padding-top:12px!important;overflow:hidden!important;z-index:38!important}
+.home-last-head{margin-top:0!important}
+.home-alpha-real{display:none!important}
+.home-alpha-inline{width:100%;min-height:62px;margin-top:10px;box-sizing:border-box;border:0;border-radius:13px;background:linear-gradient(105deg,#3b2417,#a96d30 55%,#e5b45c);color:#fff;display:grid;grid-template-columns:43px 1fr 24px;align-items:center;text-align:left;padding:7px 10px}.home-alpha-inline .alpha-mark{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#2b1b12;color:#f1c978;font-size:18px}.home-alpha-inline strong,.home-alpha-inline small{display:block}.home-alpha-inline strong{font:700 15px Georgia,serif}.home-alpha-inline small{font-size:9px;margin-top:3px}.home-alpha-inline i{font:32px/1 Arial,sans-serif;font-style:normal;text-align:center}
+.home-real-middle .home-daily-message.real{min-height:82px!important}
