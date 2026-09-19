@@ -105,7 +105,7 @@ ${JSON.stringify(recent)}`;
         let lastError="";
 
         // Motor 1: Gemini. Faz uma única tentativa para não desperdiçar a cota gratuita.
-        if (env.GEMINI_API_KEY) {
+        if (false && env.GEMINI_API_KEY) {
           try {
             const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
             const geminiBody=JSON.stringify({contents:[{parts:[{text:motherPrompt}]}],generationConfig:{temperature:0.82,maxOutputTokens:7000,responseMimeType:"application/json"}});
