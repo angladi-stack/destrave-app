@@ -273,19 +273,43 @@ function addHome(root){
   const now=new Date();
   const dayKey=Math.floor(new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime()/86400000);
   const message=dailyMessages[((dayKey%dailyMessages.length)+dailyMessages.length)%dailyMessages.length];
-  const dailyMessage=document.createElement('div');
-  dailyMessage.className='home-daily-message';
-  dailyMessage.innerHTML='<small>✦ MENSAGEM DE HOJE</small><strong></strong>';
-  dailyMessage.querySelector('strong').textContent=message;
-  root.appendChild(dailyMessage);
-  root.appendChild(button('1.6%','84%','12%','4.4%',()=>navigate('profile'),'Perfil'));
-  root.appendChild(button('34%','19%','78.5%','4%',()=>navigate('daily'),'Criar meu conteúdo do dia'));
-  root.appendChild(button('43.2%','17%','39%','7.5%',()=>showToast('Conteúdo feito para você ✨'),'Feito para você'));
-  root.appendChild(button('43.2%','58%','39%','7.5%',()=>showToast('Execução completa e pronta para publicar'),'Execução completa'));
-  root.appendChild(button('54%','74%','23%','3.5%',()=>navigate('contents'),'Ver todos'));
-  root.appendChild(button('57.8%','17%','79%','8%',()=>navigate('daily'),'Conteúdo recente'));
-  root.appendChild(button('68%','17%','80%','12%',()=>showToast('Você só precisa executar o próximo movimento.'),'Impulso do dia'));
-  root.appendChild(button('82.5%','17%','80%','9%',()=>navigate('alpha'),'Comunidade Alpha'));
+
+  const greeting=document.createElement('header');greeting.className='home-live-greeting';
+  const firstName=(business.name||'').trim().split(/\s+/)[0]||'você';
+  greeting.innerHTML='<div><h1></h1><p>Vamos criar o seu conteúdo de hoje.</p></div><button type="button" aria-label="Abrir perfil">●</button>';
+  greeting.querySelector('h1').textContent='Oi, '+firstName+' ✦';
+  greeting.querySelector('button').onclick=()=>navigate('profile');root.appendChild(greeting);
+
+  // Keep the approved top hero image. Everything white below it is real UI.
+  root.appendChild(button('20.6%','17%','80%','31.5%',()=>navigate('daily'),'Criar meu conteúdo do dia'));
+
+  const middle=document.createElement('section');middle.className='home-real-middle';
+  middle.innerHTML=`
+    <div class="home-feature-grid">
+      <button type="button" class="home-feature"><b>∞</b><span><small>Feito para você</small><strong>Entende o que você faz</strong></span></button>
+      <button type="button" class="home-feature"><b>◎</b><span><small>Execução completa</small><strong>Pronto para gravar e publicar</strong></span></button>
+    </div>
+    <div class="home-last-head"><h2>Últimos conteúdos</h2><button type="button">Ver todos ›</button></div>
+    <div class="home-latest-real"></div>
+    <div class="home-daily-message real"><small>✦ MENSAGEM DE HOJE</small><strong></strong></div>
+  `;
+  middle.querySelectorAll('.home-feature').forEach(b=>b.onclick=()=>navigate('daily'));
+  middle.querySelector('.home-last-head button').onclick=()=>navigate('contents');
+  middle.querySelector('.home-daily-message strong').textContent=message;
+  const latest=middle.querySelector('.home-latest-real');
+  if(contents.length){
+    const item=contents[0],card=document.createElement('button');card.type='button';card.className='home-latest-card';
+    card.innerHTML='<div class="latest-thumb">▶</div><span><strong></strong><small></small><em>Pronto para usar</em></span><i>⋮</i>';
+    card.querySelector('span strong').textContent=item.title||'Seu conteúdo mais recente';
+    card.querySelector('span small').textContent=item.format||'Stories + Reels + Carrossel';
+    card.onclick=()=>showResult(item);latest.appendChild(card);
+  }else{
+    const empty=document.createElement('button');empty.type='button';empty.className='home-latest-card empty';empty.innerHTML='<span><strong>Nenhum conteúdo criado ainda</strong><small>Crie o primeiro conteúdo do seu dia.</small></span>';empty.onclick=()=>navigate('daily');latest.appendChild(empty);
+  }
+  root.appendChild(middle);
+
+  // Keep the approved lower Alpha image and make its whole region clickable.
+  root.appendChild(button('91.0%','17%','80%','7.5%',()=>navigate('alpha'),'Comunidade Alpha'));
 }
 function addDaily(root){
   // From section 1 down this is real HTML. The approved header/hero image above stays untouched.
