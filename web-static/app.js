@@ -57,18 +57,22 @@ function field(label,key,placeholder='Nenhum dado cadastrado'){
 function primary(text,onClick){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent=text;b.addEventListener('click',onClick);return b}
 
 function addSidebar(root){
-  // Exact clickable bands over the five items painted in the brown sidebar.
+  // Rebuilt navigation from directly below the D/logo downward.
+  const nav=document.createElement('nav');nav.className='sidebar-real';nav.setAttribute('aria-label','Navegação principal');
   const items=[
-    ['13.0%','7.5%','home','Início'],
-    ['22.3%','7.8%','contents','Conteúdo'],
-    ['32.0%','8.2%','work','Meu trabalho'],
-    ['41.4%','7.8%','profile','Perfil'],
-    ['49.8%','8.0%','alpha','Alpha']
+    ['⌂','Início','home'],
+    ['▣','Conteúdo','contents'],
+    ['◇','Meu trabalho','work'],
+    ['♙','Perfil','profile'],
+    ['✦','Alpha','alpha']
   ];
-  items.forEach(([top,height,target,label])=>{
-    const b=button(top,'0%','14.2%',height,()=>navigate(target),label);
-    b.classList.add('sidebar-hit');root.appendChild(b);
+  items.forEach(([icon,label,target])=>{
+    const b=document.createElement('button');b.type='button';b.className='sidebar-real-item'+(current===target?' active':'');
+    b.innerHTML='<span class="sidebar-real-icon" aria-hidden="true"></span><span class="sidebar-real-label"></span>';
+    b.querySelector('.sidebar-real-icon').textContent=icon;b.querySelector('.sidebar-real-label').textContent=label;
+    b.setAttribute('aria-label',label);b.onclick=()=>navigate(target);nav.appendChild(b);
   });
+  root.appendChild(nav);
 }
 function addLogin(root){
   const email=document.createElement('input'); email.className='login-field'; email.type='email'; email.autocomplete='email'; email.placeholder='E-mail';
