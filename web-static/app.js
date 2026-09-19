@@ -360,9 +360,14 @@ function multiChoiceField(label,key,options){
 
 function addWork(root){
   const first=!isConfigured();
-  const panel=document.createElement('div');panel.className='data-panel work-panel';
-  panel.innerHTML=first?'<h2>Primeiro, quero conhecer você ✦</h2><p>É rapidinho. Assim o Destrave entende o que faz sentido para você.</p>':'<h2>Meu trabalho</h2><p>Se alguma coisa mudar, atualize aqui.</p>';
-  panel.append(
+  const panel=document.createElement('main');panel.className='rebuilt-page rebuilt-work';
+  panel.innerHTML=`
+    <header class="rebuilt-head"><div><h1>Meu trabalho</h1><p>Conte uma vez. O Destrave lembra para você.</p></div><button class="round-profile" type="button" aria-label="Abrir perfil">●</button></header>
+    <section class="memory-hero"><small>MEMÓRIA DO DESTRAVE</small><h2>Quanto mais ele conhece você, mais certeiro fica.</h2><p>Uso estas informações para criar conteúdos com a sua realidade, sem repetir perguntas.</p><span>✦ Memória ativa</span></section>
+    <section class="rebuilt-card work-form"><h2>${first?'Primeiro, quero conhecer você ✦':'Meu trabalho'}</h2><p>${first?'É rapidinho. Assim o Destrave entende o que faz sentido para você.':'Se alguma coisa mudar, atualize aqui.'}</p></section>`;
+  panel.querySelector('.round-profile').onclick=()=>navigate('profile');
+  const form=panel.querySelector('.work-form');
+  form.append(
     field('Como você se chama?','name','Seu nome'),
     field('O que você faz?','activity','Ex.: vendo roupas, sou cantora, faço unhas...'),
     field('O que você quer mostrar ou divulgar na internet?','objective','Conte com suas palavras'),
@@ -371,13 +376,13 @@ function addWork(root){
     choiceField('Você gosta de aparecer nos vídeos?','appearance',['Sim','Ainda tenho vergonha','Prefiro não aparecer','Tanto faz']),
     multiChoiceField('O que você quer conseguir na internet?','mainGoal',['Vender mais','Conseguir clientes','Ficar mais conhecida','Mostrar meu trabalho','Criar conexão','Crescer na internet','Outro'])
   );
-  panel.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
+  form.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
     if(!business.name||!business.activity||!business.objective){showToast('Só falta dizer seu nome, o que você faz e o que quer divulgar.');return}
-    business.service=business.activity; business.business=business.business||business.activity;
+    business.service=business.activity;business.business=business.business||business.activity;
     await syncToCloud();showToast(first?'Agora eu conheço você. Vamos destravar ✦':'Informações atualizadas ✨');navigate('home');
-  }));root.appendChild(panel);
+  }));
+  root.appendChild(panel);
 }
-
 function cleanText(v){return String(v||'').replace(/\\*\\*/g,'').replace(/^#+\\s*/gm,'').trim()}
 function copyBtn(label,text){const b=document.createElement('button');b.className='plan-copy';b.textContent='▣ '+label;b.onclick=async(e)=>{e.stopPropagation();try{await navigator.clipboard.writeText(text);showToast('Copiado!')}catch{showToast('Selecione o texto para copiar')}};return b}
 function storyCard(story){const d=document.createElement('div');d.className='story-card';d.innerHTML=`<b>${cleanText(story.title)}</b>${story.show?`<p>📷 <strong>O que mostrar:</strong><br>${cleanText(story.show)}</p>`:''}${story.say?`<p>💬 <strong>O que falar:</strong><br>${cleanText(story.say)}</p>`:''}${story.screenText?`<p>Ｔ <strong>Texto na tela:</strong><br>${cleanText(story.screenText)}</p>`:''}${story.interaction?`<p>↗ <strong>Interação:</strong><br>${cleanText(story.interaction)}</p>`:''}`;return d}
@@ -403,9 +408,26 @@ function showLegacyResult(item){const page=document.createElement('div');page.cl
 async function regenerate(item){showToast('✦ Criando outra versão...');try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error(data.error+(data.details?' — '+data.details:''));const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();showResult(fresh)}catch(e){showToast(e.message||'Não foi possível criar outra versão agora.')}}
 
 function addProfile(root){
-  root.appendChild(button('91%','18%','78%','6%',()=>{localStorage.removeItem('destrave-session');navigate('login')},'Sair'));
+  const panel=document.createElement('main');panel.className='rebuilt-page rebuilt-profile';
+  const name=business.name||'Seu nome', initial=(name.trim()[0]||'D').toUpperCase();
+  panel.innerHTML=`
+    <header class="rebuilt-head"><div><h1>Perfil</h1><p>Seus dados, acesso e preferências.</p></div></header>
+    <section class="profile-hero"><div class="avatar">${initial}</div><div class="profile-ident"><h2></h2><p class="profile-email">Dados da sua conta</p><span>✦ Acesso ativo</span></div><button class="edit-work" type="button">✎ Editar dados</button></section>
+    <section class="rebuilt-card"><h2>Meu acesso</h2><button class="setting-row plan-row" type="button"><b>♔</b><span><strong>Plano</strong><small>Destrave</small></span><em>Ativo</em></button><div class="setting-row static"><b>▣</b><span><strong>Acesso</strong><small>Seus conteúdos e memória ficam vinculados ao seu perfil.</small></span></div></section>
+    <section class="rebuilt-card"><h2>Preferências</h2><label class="setting-row"><b>♧</b><span><strong>Lembrete diário</strong><small>Receber um impulso para executar</small></span><input class="pref-toggle" data-key="dailyReminder" type="checkbox"></label><label class="setting-row"><b>✉</b><span><strong>Novidades do Destrave</strong><small>Atualizações e novos recursos</small></span><input class="pref-toggle" data-key="news" type="checkbox"></label></section>
+    <section class="rebuilt-card"><h2>Segurança e ajuda</h2><button class="setting-row action-password" type="button"><b>♙</b><span><strong>Alterar minha senha</strong><small>Atualize sua senha de acesso</small></span><i>›</i></button><button class="setting-row action-forgot" type="button"><b>?</b><span><strong>Esqueci minha senha</strong><small>Recupere seu acesso</small></span><i>›</i></button><button class="setting-row action-support" type="button"><b>◯</b><span><strong>Falar com o suporte</strong><small>Atendimento e ajuda</small></span><i>›</i></button></section>
+    <button class="profile-logout" type="button">SAIR DA MINHA CONTA</button>`;
+  panel.querySelector('.profile-ident h2').textContent=name;
+  panel.querySelector('.edit-work').onclick=()=>navigate('work');
+  const prefs=readJSON('destrave-preferences',{dailyReminder:true,news:true});
+  panel.querySelectorAll('.pref-toggle').forEach(t=>{t.checked=prefs[t.dataset.key]!==false;t.onchange=()=>{prefs[t.dataset.key]=t.checked;writeJSON('destrave-preferences',prefs);showToast('Preferência atualizada ✦')}});
+  panel.querySelector('.plan-row').onclick=()=>showToast('Seu acesso ao Destrave está ativo ✦');
+  panel.querySelector('.action-password').onclick=()=>showToast('Alteração de senha será conectada ao acesso da conta.');
+  panel.querySelector('.action-forgot').onclick=()=>showToast('Recuperação de senha será conectada ao acesso da conta.');
+  panel.querySelector('.action-support').onclick=()=>showToast('Suporte do Destrave ✦');
+  panel.querySelector('.profile-logout').onclick=()=>{localStorage.removeItem('destrave-session');navigate('login')};
+  root.appendChild(panel);
 }
-
 function addAlpha(root){
   root.appendChild(button('63%','20%','74%','6%',()=>showToast('Você será avisada assim que a Comunidade Alpha abrir ✨'),'Quero ser avisado'));
 }
