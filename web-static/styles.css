@@ -601,3 +601,39 @@ body{overflow-x:hidden}
   letter-spacing:0!important;
   color:#716a72!important;
 }
+
+
+/* 2026-09-19 — Alpha premium framed header */
+.alpha-clean-header{
+  text-align:center!important;
+  padding:18px 20px 9px!important;
+}
+.alpha-clean-header strong{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:150px!important;
+  padding:7px 22px 8px!important;
+  border:1px solid rgba(174,125,54,.62)!important;
+  border-radius:999px!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:29px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  letter-spacing:.2px!important;
+  color:#241912!important;
+  margin:0 0 7px!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.8) inset!important;
+}
+.alpha-clean-header strong::before,
+.alpha-clean-header strong::after{
+  content:"✦"!important;
+  color:#b17a2d!important;
+  font-size:9px!important;
+  margin:0 10px!important;
+}
+.alpha-clean-header span{
+  display:block!important;
+  font-size:13px!important;
+  color:#716a72!important;
+}
