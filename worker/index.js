@@ -68,6 +68,8 @@ QUALIDADE OBRIGATÓRIA
 - Carrossel: texto pronto slide a slide; não repetir o Reels.
 - CTAs proporcionais ao estágio. Quem está começando não deve fingir audiência, demanda, clientes ou histórico.
 - NUNCA invente prova social, resultados, perguntas recebidas, clientes, experiências ou fatos.
+- NUNCA presuma que existe link na bio, página de compra, cadastro aberto, lançamento aberto ou produto disponível. Só use esse tipo de CTA se isso estiver explicitamente informado no PERFIL/MEMÓRIA ou PEDIDO DE HOJE. Se o estágio não estiver claro, use CTA seguro de acompanhamento, conversa, salvar, comentar ou enviar mensagem.
+- Antes de devolver, faça uma revisão silenciosa de consistência: quantidades, ordem, numeração e continuidade. No carrossel, os slides devem ser numerados exatamente 1, 2, 3... sem pular nem repetir números.
 - Proibidos clichês vazios e atalhos genéricos como "pare de inventar a roda", "você não precisa de mais um curso", "o maior erro de quem...", salvo se forem indispensáveis e realmente específicos.
 - Não humilhe nem culpe.
 - Se redo=true, a nova versão deve ser substancialmente diferente.
