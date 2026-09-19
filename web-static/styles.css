@@ -176,3 +176,9 @@ body{overflow-x:hidden}
 .home-real-middle .home-daily-message.real{position:relative!important;top:auto!important;left:auto!important;width:100%!important;height:auto!important;min-height:91px!important;margin-top:9px!important;padding:13px 15px!important;background:#fffdf8!important;border:1px solid rgba(199,157,83,.42)!important;border-radius:14px!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;justify-content:center!important}
 .home-real-middle .home-daily-message.real small{margin-bottom:5px!important}.home-real-middle .home-daily-message.real strong{font-size:16px!important;line-height:1.2!important}
 @media(max-width:350px){.home-live-greeting h1{font-size:25px}.home-real-middle{padding-left:9px;padding-right:9px}.home-last-head h2{font-size:22px}}
+
+/* Home overlap correction: do not redraw the two feature cards already present in approved artwork. */
+.home-feature-grid{display:none!important}
+.home-real-middle{top:60.5%!important;height:30.2%!important;padding-top:8px!important}
+.home-last-head{margin-top:2px!important}
+.home-real-middle .home-daily-message.real{min-height:84px!important;margin-top:8px!important}
