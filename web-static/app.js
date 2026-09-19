@@ -6,7 +6,7 @@ const screens = {
 const app = document.getElementById('app');
 const toast = document.getElementById('toast');
 let current = localStorage.getItem('destrave-session') ? 'home' : 'login';
-const isConfigured=()=>Boolean(business.name&&business.activity&&business.objective);
+const isConfigured=()=>Boolean(business.name&&business.activity&&((Array.isArray(business.mainGoal)&&business.mainGoal.length)||business.objective));
 const readJSON=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))||fallback}catch{return fallback}};
 const writeJSON=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
 let business=readJSON('destrave-business',{});
@@ -436,17 +436,30 @@ function addWork(root){
     <section class="rebuilt-card work-form"><h2>${first?'Primeiro, quero conhecer você ✦':'Meu trabalho'}</h2><p>${first?'É rapidinho. Assim o Destrave entende o que faz sentido para você.':'Se alguma coisa mudar, atualize aqui.'}</p></section>`;
   panel.querySelector('.round-profile').onclick=()=>navigate('profile');
   const form=panel.querySelector('.work-form');
+
+  const activity=field('2. O que você faz ou o que faz parte da sua vida hoje?','activity','Ex.: sou manicure, sou mãe, trabalho de Uber, estou criando um projeto...');
+  const activityHint=document.createElement('small');activityHint.className='choice-hint';activityHint.textContent='Pode ser seu trabalho, profissão, negócio, projeto, rotina ou algo importante da sua vida.';activity.appendChild(activityHint);
+
   form.append(
-    field('Como você se chama?','name','Seu nome'),
-    field('O que você faz?','activity','Ex.: vendo roupas, sou cantora, faço unhas...'),
-    field('O que você quer mostrar ou divulgar na internet?','objective','Conte com suas palavras'),
-    field('Pra quem você quer falar?','audience','Ex.: mães, mulheres, pessoas da minha cidade...'),
-    choiceField('Como está sua vida na internet hoje?','digitalStage',['Tô começando do zero','Já postei, mas parei','Posto de vez em quando','Já posto bastante']),
-    choiceField('Você gosta de aparecer nos vídeos?','appearance',['Sim','Ainda tenho vergonha','Prefiro não aparecer','Tanto faz']),
-    multiChoiceField('O que você quer conseguir na internet?','mainGoal',['Vender mais','Conseguir clientes','Ficar mais conhecida','Mostrar meu trabalho','Criar conexão','Crescer na internet','Outro'])
+    field('1. Como você se chama?','name','Seu nome'),
+    activity,
+    multiChoiceField('3. O que você quer conseguir na internet?','mainGoal',['Vender','Conseguir clientes','Mostrar o que faço','Ser mais conhecida(o)','Criar conexão','Crescer na internet','Começar a aparecer','Ainda estou descobrindo']),
+    choiceField('4. Como está sua vida na internet hoje?','digitalStage',['Estou começando do zero','Já comecei, mas parei','Apareço/posto de vez em quando','Já tenho uma presença ativa']),
+    choiceField('5. Como você se sente em aparecer?','appearance',['Gosto de aparecer','Quero aparecer, mas ainda tenho vergonha','Prefiro não aparecer','Tanto faz para mim'])
   );
+
+  const free=document.createElement('label');free.className='form-field work-free-field';
+  free.innerHTML='<span>6. Agora me conta do seu jeito ✦</span><strong style="display:block;margin-top:6px">O que você gostaria de fazer na internet?</strong><small class="choice-hint" style="display:block;margin:8px 0 10px">Pode me contar o que você pensa em mostrar, compartilhar, divulgar ou construir. Não precisa explicar bonito nem ter tudo decidido. Escreva do seu jeito.</small>';
+  const area=document.createElement('textarea');area.rows=6;area.placeholder='Escreva livremente aqui...';area.value=business.freeContext||'';
+  area.addEventListener('input',()=>{business.freeContext=area.value});
+  free.appendChild(area);
+  const optional=document.createElement('small');optional.className='choice-hint';optional.textContent='Se ainda não souber direito, tudo bem. Conte apenas o que você já sabe. Este campo é opcional.';free.appendChild(optional);
+  form.appendChild(free);
+
   form.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
-    if(!business.name||!business.activity||!business.objective){showToast('Só falta dizer seu nome, o que você faz e o que quer divulgar.');return}
+    const goals=Array.isArray(business.mainGoal)?business.mainGoal:[];
+    if(!business.name||!business.activity||!goals.length){showToast('Só falta seu nome, o que faz parte da sua vida e o que você quer conseguir na internet.');return}
+    business.objective=goals.join(', ');
     business.service=business.activity;business.business=business.business||business.activity;
     await syncToCloud();showToast(first?'Agora eu conheço você. Vamos destravar ✦':'Informações atualizadas ✨');navigate('home');
   }));
