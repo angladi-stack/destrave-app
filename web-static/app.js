@@ -332,11 +332,31 @@ function addDaily(root){
   panel.appendChild(go);root.appendChild(panel);
 }
 function addContents(root){
-  root.appendChild(button('8.4%','17%','80%','5%',()=>navigate('daily'),'Criar conteúdo do dia'));
-  const panel=document.createElement('div');panel.className='data-panel contents-panel';panel.innerHTML='<h2>Seus conteúdos</h2>';
-  if(!contents.length){panel.innerHTML+='<div class="empty"><strong>Nenhum conteúdo criado ainda.</strong><span>Crie seu primeiro conteúdo para ele aparecer aqui.</span></div>';panel.appendChild(primary('+ CRIAR PRIMEIRO CONTEÚDO',()=>navigate('daily')))}
-  else contents.forEach(item=>{const card=document.createElement('button');card.className='content-card';card.innerHTML=`<strong>${item.title}</strong><span>${item.format} • ${item.created}</span><small>Pronto para usar</small>`;card.onclick=()=>showResult(item);panel.appendChild(card)});
-  root.appendChild(panel);
+  const panel=document.createElement('main');panel.className='rebuilt-page rebuilt-contents';
+  panel.innerHTML=`
+    <header class="rebuilt-head"><div><h1>Meus conteúdos</h1><p>Tudo o que já foi criado para você.</p></div><button class="round-profile contents-profile" type="button" aria-label="Abrir perfil">●</button></header>
+    <button class="contents-create" type="button">✦ &nbsp; + CRIAR CONTEÚDO DO DIA <span>›</span></button>
+    <div class="contents-search"><span>⌕</span><input type="search" placeholder="Buscar pelo assunto"></div>
+    <div class="contents-tabs"><button class="active" data-filter="all">Todos</button><button data-filter="saved">Salvos</button><button data-filter="published">Publicados</button></div>
+    <section class="rebuilt-card contents-real-list"><h2>Seus conteúdos</h2><div class="contents-items"></div></section>`;
+  panel.querySelector('.contents-profile').onclick=()=>navigate('profile');
+  panel.querySelector('.contents-create').onclick=()=>navigate('daily');
+  const input=panel.querySelector('.contents-search input'), items=panel.querySelector('.contents-items');
+  let filter='all';
+  const draw=()=>{
+    const q=input.value.trim().toLowerCase();items.replaceChildren();
+    const visible=contents.filter(item=>{
+      const matches=!q||((item.title||'')+' '+(item.format||'')).toLowerCase().includes(q);
+      const state=String(item.status||'').toLowerCase();
+      const byFilter=filter==='all'||(filter==='saved'&&(state==='salvo'||state==='saved'))||(filter==='published'&&(state==='publicado'||state==='published'));
+      return matches&&byFilter;
+    });
+    if(!visible.length){const empty=document.createElement('div');empty.className='contents-empty';empty.innerHTML='<strong>Nenhum conteúdo encontrado.</strong><span>Crie um conteúdo ou tente outra busca.</span>';items.appendChild(empty);return}
+    visible.forEach(item=>{const card=document.createElement('button');card.type='button';card.className='content-card real';card.innerHTML='<strong></strong><span></span><small></small>';card.querySelector('strong').textContent=item.title||'Conteúdo';card.querySelector('span').textContent=(item.format||'Stories + Reels + Carrossel')+' • '+(item.created||'');card.querySelector('small').textContent='Pronto para usar';card.onclick=()=>showResult(item);items.appendChild(card)});
+  };
+  input.oninput=draw;
+  panel.querySelectorAll('.contents-tabs button').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;panel.querySelectorAll('.contents-tabs button').forEach(x=>x.classList.toggle('active',x===b));draw()});
+  draw();root.appendChild(panel);
 }
 
 function choiceField(label,key,options){
