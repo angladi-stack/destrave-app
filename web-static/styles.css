@@ -375,3 +375,29 @@ body{overflow-x:hidden}
 .rebuilt-work .memory-hero p{
   max-width:100%!important;
 }
+
+
+/* 2026-09-18 — clean Destrave D brand: crop out the baked white divider itself. */
+.sidebar-brand{
+  overflow:hidden!important;
+  border:0!important;
+  background:#633722!important;
+}
+.sidebar-brand-original{
+  left:8px!important;
+  right:18px!important;
+  top:8px!important;
+  bottom:34px!important;
+  overflow:hidden!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background-color:#633722!important;
+  background-size:657.9% auto!important;
+  background-position:left top!important;
+}
+.sidebar-brand::before,
+.sidebar-brand::after{
+  display:none!important;
+  content:none!important;
+}
