@@ -413,3 +413,43 @@ body{overflow-x:hidden}
   background-size:657.9% auto!important;
   background-position:left top!important;
 }
+
+
+/* 2026-09-18 — professional sidebar brand reset.
+   Do not use the fragile full-screen artwork crop for the brand area.
+   Render a clean typographic D mark instead, with no stray house/divider artifacts. */
+.sidebar-brand-original{
+  background-image:none!important;
+  background:none!important;
+  position:absolute!important;
+  inset:0!important;
+  overflow:hidden!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+.sidebar-brand-original::before{
+  content:"D"!important;
+  display:block!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:35px!important;
+  line-height:1!important;
+  font-weight:700!important;
+  color:#e4b45e!important;
+  text-shadow:0 1px 0 #f3d18c!important;
+}
+.sidebar-brand-original::after{
+  content:"✦"!important;
+  position:absolute!important;
+  top:20px!important;
+  left:57%!important;
+  font-size:7px!important;
+  line-height:1!important;
+  color:#f2cf82!important;
+}
+.sidebar-brand{
+  height:94px!important;
+  min-height:94px!important;
+  background:#633722!important;
+  border:0!important;
+}
