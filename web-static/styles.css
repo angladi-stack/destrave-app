@@ -544,3 +544,26 @@ body{overflow-x:hidden}
   line-height:1.2!important;
   color:#716a72!important;
 }
+
+
+/* 2026-09-19 — Alpha premium typography refinement only */
+.alpha-clean-header{
+  padding:25px 20px 10px 20px!important;
+}
+.alpha-clean-header strong{
+  font-family:"Times New Roman",Georgia,serif!important;
+  font-size:27px!important;
+  line-height:1!important;
+  font-weight:400!important;
+  letter-spacing:.3px!important;
+  color:#241912!important;
+  margin:0 0 7px!important;
+}
+.alpha-clean-header span{
+  font-family:Arial,sans-serif!important;
+  font-size:12.5px!important;
+  line-height:1.2!important;
+  font-weight:400!important;
+  letter-spacing:.15px!important;
+  color:#756d68!important;
+}
