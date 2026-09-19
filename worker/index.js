@@ -45,7 +45,18 @@ export default {
         }
         const recent = history.slice(0,8).map(x=>({title:x.title,format:x.format,text:String(x.text||"").slice(0,1200)}));
         const redo = Boolean(body.redo);
-        const motherPrompt = `Você é o cérebro estratégico do Destrave by Angladi. Sua função não é preencher um molde de marketing: é decidir o próximo movimento específico desta pessoa HOJE e entregar execução pronta.
+        const factVault = {
+          name: business.name || "",
+          activity: business.activity || business.service || "",
+          objective: business.objective || "",
+          audience: business.audience || business.public || "",
+          digitalStage: business.stage || business.digitalStage || "",
+          appearance: business.appearance || business.appearancePreference || "",
+          goalToday: goal,
+          requestToday: requestToday || ""
+        };
+        const confirmedFactLines = Object.entries(factVault).filter(([,v]) => String(v || "").trim()).map(([k,v]) => "- " + k + ": " + String(v).trim()).join("\n");
+        const motherPrompt = `COFRE DE FATOS — AUTORIDADE MAXIMA\nFATOS CONFIRMADOS:\n${confirmedFactLines || "- Nenhum fato adicional confirmado."}\n\nREGRA ABSOLUTA: somente fatos sustentados pelo cofre, PERFIL/MEMÓRIA ou PEDIDO DE HOJE podem ser afirmados. Tudo o mais é DESCONHECIDO e não pode virar oferta, processo, público, habilidade, recurso, estilo, repertório, experiência, cliente ou resultado. Não complete lacunas pelo que é comum à profissão. Quando faltar detalhe, entregue execução com formulação neutra ancorada no confirmado. Exemplo: "cante um trecho de uma música que você realmente canta"; não escolha gênero, ocasião ou repertório não informado. Se criatividade e fidelidade conflitarem, FIDELIDADE vence.\n\nVocê é o cérebro estratégico do Destrave by Angladi. Sua função não é preencher um molde de marketing: é decidir o próximo movimento específico desta pessoa HOJE e entregar execução pronta.
 
 IDENTIDADE DO PRODUTO
 - O Destrave encontra a pessoa no ponto em que ela está e mostra o próximo movimento que faz sentido executar.
@@ -222,7 +233,7 @@ ${JSON.stringify(recent)}`;
         // e devolve o MESMO JSON corrigido quando encontrar invenções ou decisões não autorizadas.
         if (env.GROQ_API_KEY) {
           try {
-            const validatorPrompt = `Você é o FISCAL DE FIDELIDADE do Destrave. Você NÃO é o criador do conteúdo e NÃO deve inventar uma estratégia nova.
+            const validatorPrompt = `COFRE DE FATOS — AUTORIDADE MAXIMA:\n${confirmedFactLines || "- Nenhum fato adicional confirmado."}\n\nREGRA ABSOLUTA DO FISCAL: qualquer afirmação sobre a pessoa ou trabalho sem sustentação no cofre ou nas fontes literais abaixo deve ser removida ou neutralizada. Não complete lacunas por probabilidade profissional.\n\nVocê é o FISCAL DE FIDELIDADE do Destrave. Você NÃO é o criador do conteúdo e NÃO deve inventar uma estratégia nova.
 
 Sua única função é revisar o JSON gerado e corrigir violações antes que ele chegue ao usuário.
 
