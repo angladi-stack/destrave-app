@@ -291,6 +291,7 @@ function addHome(root){
     <div class="home-last-head"><h2>Últimos conteúdos</h2><button type="button">Ver todos ›</button></div>
     <div class="home-latest-real"></div>
     <div class="home-daily-message real"><small>✦ MENSAGEM DE HOJE</small><strong></strong></div>
+    <button type="button" class="home-alpha-inline"><span class="alpha-mark">✦</span><span><strong>Comunidade Alpha</strong><small>Comunidade dos Imparáveis &nbsp; • &nbsp; Em breve</small></span><i>›</i></button>
   `;
   middle.querySelector('.home-last-head button').onclick=()=>navigate('contents');
   middle.querySelector('.home-daily-message strong').textContent=message;
@@ -306,10 +307,7 @@ function addHome(root){
   }
   root.appendChild(middle);
 
-  // Real Alpha card placed above the old baked lower area so it cannot disappear behind overlays.
-  const alpha=document.createElement('button');alpha.type='button';alpha.className='home-alpha-real';
-  alpha.innerHTML='<span class="alpha-mark">✦</span><span><strong>Comunidade Alpha</strong><small>Comunidade dos Imparáveis &nbsp; • &nbsp; Em breve</small></span><i>›</i>';
-  alpha.onclick=()=>navigate('alpha');root.appendChild(alpha);
+  const alphaInline=middle.querySelector('.home-alpha-inline');if(alphaInline) alphaInline.onclick=()=>navigate('alpha');
 }
 function addDaily(root){
   // From section 1 down this is real HTML. The approved header/hero image above stays untouched.
