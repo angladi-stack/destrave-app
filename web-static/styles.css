@@ -155,3 +155,14 @@ body{overflow-x:hidden}
 /* Logo cleanup: preserve only the original gold artwork visually; old crop background is blended into the new brown rail. */
 .sidebar-brand{background:#633722!important;border:0!important}
 .sidebar-brand-original{inset:7px 8px 8px!important;background-color:#633722!important;background-blend-mode:lighten!important;background-size:657.9% auto!important;background-position:left top!important;border:0!important;outline:0!important;box-shadow:none!important}
+
+/* Contents top is now fully functional: create, search, filters, profile and cards. */
+.rebuilt-contents{padding-bottom:30px}.rebuilt-contents .rebuilt-head{min-height:92px}
+.contents-create{width:100%;min-height:58px;border:0;border-radius:14px;background:linear-gradient(100deg,#f8d98f,#eda94c);color:#281b13;font-size:16px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px}.contents-create span{margin-left:auto;padding-right:14px;font-size:28px}
+.contents-search{height:54px;margin:11px 0;display:flex;align-items:center;gap:9px;border:1px solid #e3ddd7;border-radius:14px;background:#fff;padding:0 14px}.contents-search span{font-size:28px;color:#5e5870}.contents-search input{width:100%;height:100%;border:0;outline:0;background:transparent;font-size:14px;color:#211811}
+.contents-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}.contents-tabs button{height:40px;border:1px solid #e2dcd5;border-radius:20px;background:#fff;color:#625b6e}.contents-tabs button.active{background:#f4c66e;color:#2d2119;border-color:#f0bd5b;font-weight:800}
+.contents-real-list{padding:14px}.contents-real-list>h2{font-size:28px}.contents-items{display:grid;gap:10px}.content-card.real{display:block;width:100%;border:1px solid #ddd4ca;border-radius:14px;background:#fff;padding:14px;text-align:left;color:#211811}.content-card.real strong,.content-card.real span,.content-card.real small{display:block}.content-card.real strong{font-size:15px;line-height:1.25}.content-card.real span{margin-top:6px;color:#756d79;font-size:12px}.content-card.real small{margin-top:7px;color:#9a6c2b}.contents-empty{padding:24px 10px;text-align:center}.contents-empty strong,.contents-empty span{display:block}.contents-empty span{margin-top:6px;color:#766d67}
+
+/* Remove the stray mini home tile directly under the D/logo; navigation starts cleanly below the brand. */
+.sidebar-brand::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:14px;background:#633722;z-index:5}
+.sidebar-real-item:first-of-type{margin-top:10px!important}
