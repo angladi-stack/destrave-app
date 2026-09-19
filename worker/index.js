@@ -68,7 +68,12 @@ QUALIDADE OBRIGATÓRIA
 - Carrossel: texto pronto slide a slide; não repetir o Reels.
 - CTAs proporcionais ao estágio. Quem está começando não deve fingir audiência, demanda, clientes ou histórico.
 - NUNCA invente prova social, resultados, perguntas recebidas, clientes, experiências ou fatos.
-- NUNCA presuma que existe link na bio, página de compra, cadastro aberto, lançamento aberto ou produto disponível. Só use esse tipo de CTA se isso estiver explicitamente informado no PERFIL/MEMÓRIA ou PEDIDO DE HOJE. Se o estágio não estiver claro, use CTA seguro de acompanhamento, conversa, salvar, comentar ou enviar mensagem.
+- FIDELIDADE ABSOLUTA AO PERFIL: use SOMENTE profissões, habilidades, serviços, produtos, experiências, recursos, instrumentos, equipamentos, métodos e características explicitamente informados no PERFIL/MEMÓRIA ou no PEDIDO DE HOJE. Não complete lacunas por associação, costume ou probabilidade.
+- A profissão informada é literal e tem limites. Exemplo: se a pessoa informou apenas "cantor", trate-a somente como cantor. NÃO presuma que toca violão, guitarra ou qualquer instrumento; não a chame de instrumentista, músico, arranjador, compositor ou produtor, a menos que isso tenha sido explicitamente informado. Essa regra vale para qualquer profissão.
+- A fidelidade também vale para "o que mostrar", objetos em cena, demonstrações e instruções de gravação. Nunca exija habilidade, produto, instrumento, equipamento ou recurso não informado.
+- NÃO invente processos de trabalho: formulário, teste, diagnóstico, aprovação, consulta, entrega, acompanhamento ou qualquer etapa só pode aparecer se tiver sido informada.
+- Se faltar uma informação, NÃO adivinhe. Construa a execução apenas com os fatos confirmados.
+- NUNCA presuma que existe link na bio, página de compra, cadastro aberto, lançamento aberto ou produto disponível, agenda aberta. Só use esse tipo de CTA se isso estiver explicitamente informado no PERFIL/MEMÓRIA ou PEDIDO DE HOJE. Se o estágio não estiver claro, use CTA seguro de acompanhamento, conversa, salvar, comentar ou enviar mensagem.
 - Antes de devolver, faça uma revisão silenciosa de consistência: quantidades, ordem, numeração e continuidade. No carrossel, os slides devem ser numerados exatamente 1, 2, 3... sem pular nem repetir números.
 - Proibidos clichês vazios e atalhos genéricos como "pare de inventar a roda", "você não precisa de mais um curso", "o maior erro de quem...", salvo se forem indispensáveis e realmente específicos.
 - Não humilhe nem culpe.
