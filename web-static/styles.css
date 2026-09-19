@@ -226,3 +226,38 @@ body{overflow-x:hidden}
   overflow:hidden!important;
 }
 .sidebar-real-item:first-of-type{margin-top:0!important}
+
+
+/* 2026-09-18 — Home screenshot cleanup.
+   Cover the baked feature labels and keep only the functional rebuilt pair. */
+.home-below-hero{
+  top:45.8%!important;
+  height:7.6%!important;
+  padding:7px 12px!important;
+  background:#fbfaf7!important;
+  z-index:60!important;
+}
+.home-real-middle{
+  top:53.4%!important;
+  height:46.6%!important;
+  z-index:59!important;
+  padding-top:8px!important;
+  background:#fbfaf7!important;
+}
+.home-feature-grid{display:none!important}
+
+/* Remove the pale vertical seam beside the brand/left rail. */
+.sidebar-real{
+  border-right:0!important;
+  box-shadow:none!important;
+}
+.sidebar-brand{
+  border-right:0!important;
+  outline:0!important;
+}
+.sidebar-brand-original{
+  right:0!important;
+  border-right:0!important;
+  box-shadow:none!important;
+}
+.screen::before,.screen::after{pointer-events:none}
