@@ -494,3 +494,18 @@ body{overflow-x:hidden}
 }
 .sidebar-brand-original::before,
 .sidebar-brand-original::after{content:none!important;display:none!important;}
+
+
+/* 2026-09-19 — official Destrave logo, final sidebar sizing */
+.sidebar-brand-original{
+  background-image:url('/destrave-logo.png')!important;
+  background-repeat:no-repeat!important;
+  background-position:center center!important;
+  background-size:74px auto!important;
+  background-color:transparent!important;
+}
+.sidebar-brand-original::before,
+.sidebar-brand-original::after{
+  content:none!important;
+  display:none!important;
+}
