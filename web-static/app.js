@@ -158,7 +158,11 @@ function addHome(root){
   };
   root.appendChild(panel);
 }
+function pendingExecution(){return contents.find(x=>x&&x.plan&&!x.plan.needsInput&&!x.executionFeedback)}
+async function saveExecutionFeedback(item,value){const target=contents.find(x=>String(x.id)===String(item.id))||item;target.executionFeedback=value;target.executionFeedbackAt=new Date().toISOString();await syncToCloud();showToast('Resposta registrada ✦')}
+function executionGate(item,onDone){const page=document.createElement('div');page.className='plan-page movement-page';const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Antes de continuar…</h1><p>O Destrave precisa saber o que aconteceu com seu último movimento.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);const body=document.createElement('main');body.className='plan-main movement-main';const card=document.createElement('section');card.className='plan-hero';card.innerHTML='<small>SEU ÚLTIMO MOVIMENTO</small><h2></h2><p>Como foi com esse conteúdo?</p>';card.querySelector('h2').textContent=cleanText(item.title||'Seu conteúdo anterior');body.append(card);[['Fiz','Fiz'],['Fiz uma parte','Fiz uma parte'],['Hoje não consegui','Hoje não consegui']].forEach(([label,value])=>{const b=document.createElement('button');b.type='button';b.className='premium-primary';b.textContent=label;b.onclick=async()=>{await saveExecutionFeedback(item,value);onDone()};body.append(b)});page.append(body);app.replaceChildren(page);window.scrollTo(0,0)}
 function addDaily(root){
+  const pending=pendingExecution();if(pending){executionGate(pending,()=>navigate('daily'));return}
   premiumHeader(root);
   const daily=readJSON('destrave-daily',{});
   const panel=document.createElement('main');panel.className='premium-page premium-daily';
@@ -174,7 +178,7 @@ function addDaily(root){
       const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
       const data=await r.json();if(!data.ok)throw new Error('generation_failed');
-      const generated={id:Date.now(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
+      const generated={id:Date.now(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
       contents.unshift(generated);await syncToCloud();stop();showResult(generated);
     }catch(e){stop();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
   };
@@ -331,6 +335,7 @@ function showResult(item){
   if(p.quickVersion){const quick=document.createElement('section');quick.className='plan-check movement-extra';quick.innerHTML='<h3>✦ Se hoje estiver corrido</h3><p></p>';quick.querySelector('p').textContent=cleanText(p.quickVersion);body.append(quick)}
   if(p.motivation){const motivation=document.createElement('section');motivation.className='plan-check movement-ready';motivation.innerHTML='<h3>✦ Antes de ir</h3><p></p>';motivation.querySelector('p').textContent=cleanText(p.motivation);body.append(motivation)}
 
+  const feedback=document.createElement('section');feedback.className='plan-check movement-ready';feedback.innerHTML='<h3>✦ Registrar como foi hoje</h3><p>Marque quando souber como foi. Isso ajuda o Destrave a decidir seu próximo movimento.</p><div class="execution-feedback"></div>';const feedbackBox=feedback.querySelector('.execution-feedback');[['Fiz','Fiz'],['Fiz uma parte','Fiz uma parte'],['Hoje não consegui','Hoje não consegui']].forEach(([label,value])=>{const b=document.createElement('button');b.type='button';b.className='plan-copy'+(item.executionFeedback===value?' selected':'');b.textContent=label;b.onclick=async()=>{await saveExecutionFeedback(item,value);feedbackBox.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};feedbackBox.append(b)});body.append(feedback);
   const actions=document.createElement('div');actions.className='plan-actions';
   actions.append(primary('✦ SALVAR MEU CONTEÚDO',async()=>{await syncToCloud();showToast('Conteúdo salvo ✦')}),primary('↻ CRIAR OUTRA VERSÃO',()=>regenerate(item)));
   body.append(actions);page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
