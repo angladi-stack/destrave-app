@@ -1,12 +1,12 @@
 const screens = {
-  login: { asset: 1 }, home: { asset: 2 }, daily: { asset: 3 },
-  contents: { asset: 5 }, work: { asset: 6 }, profile: { asset: 7 }, alpha: { asset: 8 }
+  login:{asset:1}, home:{asset:2}, daily:{asset:3}, contents:{asset:5},
+  direction:{asset:4}, saved:{asset:4}, work:{asset:6}, profile:{asset:7}, alpha:{asset:8}
 };
 
 const app = document.getElementById('app');
 const toast = document.getElementById('toast');
 let current = localStorage.getItem('destrave-session') ? 'home' : 'login';
-const isConfigured=()=>Boolean(business.name&&business.activity&&((Array.isArray(business.mainGoal)&&business.mainGoal.length)||business.objective));
+const isConfigured=()=>Boolean(business.name&&business.offer&&business.audience&&business.digitalStage&&((Array.isArray(business.mainGoal)&&business.mainGoal.length)||business.objective));
 const readJSON=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))||fallback}catch{return fallback}};
 const writeJSON=(key,value)=>localStorage.setItem(key,JSON.stringify(value));
 let business=readJSON('destrave-business',{});
@@ -73,26 +73,16 @@ function field(label,key,placeholder='Nenhum dado cadastrado'){
 
 function primary(text,onClick){const b=document.createElement('button');b.className='primary';b.type='button';b.textContent=text;b.addEventListener('click',onClick);return b}
 
-function addSidebar(root){
-  // Rebuilt navigation: logo at the top, menu below it.
-  const nav=document.createElement('nav');nav.className='sidebar-real';nav.setAttribute('aria-label','Navegação principal');
-  const brand=document.createElement('div');brand.className='sidebar-brand';
-  const brandLogo=document.createElement('div');brandLogo.className='sidebar-brand-original';brandLogo.setAttribute('aria-label','Destrave by Angladi');
-  brand.appendChild(brandLogo);nav.appendChild(brand);
-  const items=[
-    ['⌂','Início','home'],
-    ['▣','Conteúdo','contents'],
-    ['◇','Meu trabalho','work'],
-    ['♙','Perfil','profile'],
-    ['✦','Alpha','alpha']
-  ];
-  items.forEach(([icon,label,target])=>{
-    const b=document.createElement('button');b.type='button';b.className='sidebar-real-item'+(current===target?' active':'');
-    b.innerHTML='<span class="sidebar-real-icon" aria-hidden="true"></span><span class="sidebar-real-label"></span>';
-    b.querySelector('.sidebar-real-icon').textContent=icon;b.querySelector('.sidebar-real-label').textContent=label;
-    b.setAttribute('aria-label',label);b.onclick=()=>navigate(target);nav.appendChild(b);
-  });
+function addBottomNav(root){
+  const nav=document.createElement('nav');nav.className='premium-bottom-nav';nav.setAttribute('aria-label','Navegação principal');
+  const items=[['⌂','Início','home'],['▣','Conteúdo','contents'],['◇','Direção','direction'],['♡','Salvos','saved'],['◎','Meu trabalho','work']];
+  items.forEach(([icon,label,target])=>{const b=document.createElement('button');b.type='button';b.className=current===target?'active':'';b.innerHTML='<span>'+icon+'</span><small>'+label+'</small>';b.onclick=()=>navigate(target);nav.appendChild(b)});
   root.appendChild(nav);
+}
+function premiumHeader(root){
+  const h=document.createElement('header');h.className='premium-top';
+  h.innerHTML='<div class="premium-wordmark"><b>DESTRAVE</b><small>BY ANGLADI</small><i></i></div><button class="premium-profile" aria-label="Abrir perfil">●</button>';
+  h.querySelector('.premium-profile').onclick=()=>navigate('profile');root.appendChild(h);
 }
 function addLogin(root){
   const email=document.createElement('input'); email.className='login-field'; email.type='email'; email.autocomplete='email'; email.placeholder='E-mail';
@@ -105,298 +95,91 @@ function addLogin(root){
 }
 
 function addHome(root){
-  const dailyMessages=[
-    "Hoje, faça o próximo movimento antes que a dúvida tente decidir por você.",
-    "Seu trabalho ganha força quando deixa de ficar escondido.",
-    "Uma ação simples publicada hoje vale mais do que um plano perfeito adiado.",
-    "Quando você sabe o que quer comunicar, criar fica mais leve.",
-    "Recomeçar também é movimento. Hoje, volte com o que você tem.",
-    "Constância não é fazer muito. É não abandonar o movimento.",
-    "Coragem digital também é publicar mesmo sem sentir que está perfeito.",
-    "Fale com uma pessoa de verdade, não com uma multidão imaginária.",
-    "Confiança se constrói quando as pessoas entendem o que você faz.",
-    "Antes de vender, deixe claro o valor que você entrega.",
-    "Pouco tempo ainda pode produzir um movimento importante.",
-    "Criatividade aparece mais fácil quando você começa a executar.",
-    "Ensinar algo útil sobre o que você faz também mostra sua autoridade.",
-    "Quem não conhece seu trabalho ainda precisa de uma chance de encontrá-lo.",
-    "Você não precisa de cem ideias. Precisa da próxima ideia certa.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Uma presença forte é construída em movimentos reais.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Continue construindo um dia de cada vez.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Transforme uma intenção em algo que possa ser visto hoje. A internet só consegue responder ao que você coloca em movimento.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Movimento gera material para o próximo movimento.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Você não precisa acelerar; precisa continuar.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Seu trabalho merece ocupar espaço com clareza.",
-    "Transforme uma intenção em algo que possa ser visto hoje. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Faça do jeito possível, mas faça com intenção.",
-    "Transforme uma intenção em algo que possa ser visto hoje. É assim que presença começa a virar construção.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Clareza e ação são uma combinação poderosa.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Transforme uma intenção em algo que possa ser visto hoje. Uma presença forte é construída em movimentos reais. ✦ Dia 28",
-    "Transforme uma intenção em algo que possa ser visto hoje. Continue construindo um dia de cada vez. ✦ Dia 29",
-    "Transforme uma intenção em algo que possa ser visto hoje. Seu próximo passo pode ser pequeno e ainda assim contar. ✦ Dia 30",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Clareza e ação são uma combinação poderosa.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Uma presença forte é construída em movimentos reais.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Continue construindo um dia de cada vez.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. A internet só consegue responder ao que você coloca em movimento.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Movimento gera material para o próximo movimento.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Você não precisa acelerar; precisa continuar.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Seu trabalho merece ocupar espaço com clareza.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Faça do jeito possível, mas faça com intenção.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. É assim que presença começa a virar construção.",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Clareza e ação são uma combinação poderosa. ✦ Dia 43",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Hoje, o objetivo é sair do pensamento e entrar em ação. ✦ Dia 44",
-    "Mostre um detalhe que ajude alguém a entender melhor seu trabalho. Uma presença forte é construída em movimentos reais. ✦ Dia 45",
-    "Faça simples o suficiente para conseguir publicar. Faça do jeito possível, mas faça com intenção.",
-    "Faça simples o suficiente para conseguir publicar. É assim que presença começa a virar construção.",
-    "Faça simples o suficiente para conseguir publicar. Clareza e ação são uma combinação poderosa.",
-    "Faça simples o suficiente para conseguir publicar. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Faça simples o suficiente para conseguir publicar. Uma presença forte é construída em movimentos reais.",
-    "Faça simples o suficiente para conseguir publicar. Continue construindo um dia de cada vez.",
-    "Faça simples o suficiente para conseguir publicar. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Faça simples o suficiente para conseguir publicar. A internet só consegue responder ao que você coloca em movimento.",
-    "Faça simples o suficiente para conseguir publicar. Movimento gera material para o próximo movimento.",
-    "Faça simples o suficiente para conseguir publicar. Você não precisa acelerar; precisa continuar.",
-    "Faça simples o suficiente para conseguir publicar. Seu trabalho merece ocupar espaço com clareza.",
-    "Faça simples o suficiente para conseguir publicar. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Faça simples o suficiente para conseguir publicar. Faça do jeito possível, mas faça com intenção. ✦ Dia 58",
-    "Faça simples o suficiente para conseguir publicar. É assim que presença começa a virar construção. ✦ Dia 59",
-    "Faça simples o suficiente para conseguir publicar. Clareza e ação são uma combinação poderosa. ✦ Dia 60",
-    "Use o que você já tem e coloque sua presença em movimento. Seu trabalho merece ocupar espaço com clareza.",
-    "Use o que você já tem e coloque sua presença em movimento. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Use o que você já tem e coloque sua presença em movimento. Faça do jeito possível, mas faça com intenção.",
-    "Use o que você já tem e coloque sua presença em movimento. É assim que presença começa a virar construção.",
-    "Use o que você já tem e coloque sua presença em movimento. Clareza e ação são uma combinação poderosa.",
-    "Use o que você já tem e coloque sua presença em movimento. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Use o que você já tem e coloque sua presença em movimento. Uma presença forte é construída em movimentos reais.",
-    "Use o que você já tem e coloque sua presença em movimento. Continue construindo um dia de cada vez.",
-    "Use o que você já tem e coloque sua presença em movimento. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Use o que você já tem e coloque sua presença em movimento. A internet só consegue responder ao que você coloca em movimento.",
-    "Use o que você já tem e coloque sua presença em movimento. Movimento gera material para o próximo movimento.",
-    "Use o que você já tem e coloque sua presença em movimento. Você não precisa acelerar; precisa continuar.",
-    "Use o que você já tem e coloque sua presença em movimento. Seu trabalho merece ocupar espaço com clareza. ✦ Dia 73",
-    "Use o que você já tem e coloque sua presença em movimento. O conteúdo de hoje é parte do caminho, não uma prova de perfeição. ✦ Dia 74",
-    "Use o que você já tem e coloque sua presença em movimento. Faça do jeito possível, mas faça com intenção. ✦ Dia 75",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Movimento gera material para o próximo movimento.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Você não precisa acelerar; precisa continuar.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Seu trabalho merece ocupar espaço com clareza.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Faça do jeito possível, mas faça com intenção.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. É assim que presença começa a virar construção.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Clareza e ação são uma combinação poderosa.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Uma presença forte é construída em movimentos reais.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Continue construindo um dia de cada vez.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. A internet só consegue responder ao que você coloca em movimento.",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Movimento gera material para o próximo movimento. ✦ Dia 88",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Você não precisa acelerar; precisa continuar. ✦ Dia 89",
-    "Não tente resolver o mês inteiro; resolva o conteúdo de hoje. Seu trabalho merece ocupar espaço com clareza. ✦ Dia 90",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. A internet só consegue responder ao que você coloca em movimento.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Movimento gera material para o próximo movimento.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Você não precisa acelerar; precisa continuar.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Seu trabalho merece ocupar espaço com clareza.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Faça do jeito possível, mas faça com intenção.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. É assim que presença começa a virar construção.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Clareza e ação são uma combinação poderosa.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Uma presença forte é construída em movimentos reais.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Continue construindo um dia de cada vez.",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Seu próximo passo pode ser pequeno e ainda assim contar. ✦ Dia 103",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. A internet só consegue responder ao que você coloca em movimento. ✦ Dia 104",
-    "Deixe a mensagem mais clara antes de tentar deixá-la mais bonita. Movimento gera material para o próximo movimento. ✦ Dia 105",
-    "Crie pensando no que a outra pessoa precisa perceber. Uma presença forte é construída em movimentos reais.",
-    "Crie pensando no que a outra pessoa precisa perceber. Continue construindo um dia de cada vez.",
-    "Crie pensando no que a outra pessoa precisa perceber. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Crie pensando no que a outra pessoa precisa perceber. A internet só consegue responder ao que você coloca em movimento.",
-    "Crie pensando no que a outra pessoa precisa perceber. Movimento gera material para o próximo movimento.",
-    "Crie pensando no que a outra pessoa precisa perceber. Você não precisa acelerar; precisa continuar.",
-    "Crie pensando no que a outra pessoa precisa perceber. Seu trabalho merece ocupar espaço com clareza.",
-    "Crie pensando no que a outra pessoa precisa perceber. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Crie pensando no que a outra pessoa precisa perceber. Faça do jeito possível, mas faça com intenção.",
-    "Crie pensando no que a outra pessoa precisa perceber. É assim que presença começa a virar construção.",
-    "Crie pensando no que a outra pessoa precisa perceber. Clareza e ação são uma combinação poderosa.",
-    "Crie pensando no que a outra pessoa precisa perceber. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Crie pensando no que a outra pessoa precisa perceber. Uma presença forte é construída em movimentos reais. ✦ Dia 118",
-    "Crie pensando no que a outra pessoa precisa perceber. Continue construindo um dia de cada vez. ✦ Dia 119",
-    "Crie pensando no que a outra pessoa precisa perceber. Seu próximo passo pode ser pequeno e ainda assim contar. ✦ Dia 120",
-    "Mostre processo, benefício ou transformação com verdade. Clareza e ação são uma combinação poderosa.",
-    "Mostre processo, benefício ou transformação com verdade. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Mostre processo, benefício ou transformação com verdade. Uma presença forte é construída em movimentos reais.",
-    "Mostre processo, benefício ou transformação com verdade. Continue construindo um dia de cada vez.",
-    "Mostre processo, benefício ou transformação com verdade. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Mostre processo, benefício ou transformação com verdade. A internet só consegue responder ao que você coloca em movimento.",
-    "Mostre processo, benefício ou transformação com verdade. Movimento gera material para o próximo movimento.",
-    "Mostre processo, benefício ou transformação com verdade. Você não precisa acelerar; precisa continuar.",
-    "Mostre processo, benefício ou transformação com verdade. Seu trabalho merece ocupar espaço com clareza.",
-    "Mostre processo, benefício ou transformação com verdade. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Mostre processo, benefício ou transformação com verdade. Faça do jeito possível, mas faça com intenção.",
-    "Mostre processo, benefício ou transformação com verdade. É assim que presença começa a virar construção.",
-    "Mostre processo, benefício ou transformação com verdade. Clareza e ação são uma combinação poderosa. ✦ Dia 133",
-    "Mostre processo, benefício ou transformação com verdade. Hoje, o objetivo é sair do pensamento e entrar em ação. ✦ Dia 134",
-    "Mostre processo, benefício ou transformação com verdade. Uma presença forte é construída em movimentos reais. ✦ Dia 135",
-    "Termine o que começou antes de procurar uma nova ideia. Faça do jeito possível, mas faça com intenção.",
-    "Termine o que começou antes de procurar uma nova ideia. É assim que presença começa a virar construção.",
-    "Termine o que começou antes de procurar uma nova ideia. Clareza e ação são uma combinação poderosa.",
-    "Termine o que começou antes de procurar uma nova ideia. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Termine o que começou antes de procurar uma nova ideia. Uma presença forte é construída em movimentos reais.",
-    "Termine o que começou antes de procurar uma nova ideia. Continue construindo um dia de cada vez.",
-    "Termine o que começou antes de procurar uma nova ideia. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Termine o que começou antes de procurar uma nova ideia. A internet só consegue responder ao que você coloca em movimento.",
-    "Termine o que começou antes de procurar uma nova ideia. Movimento gera material para o próximo movimento.",
-    "Termine o que começou antes de procurar uma nova ideia. Você não precisa acelerar; precisa continuar.",
-    "Termine o que começou antes de procurar uma nova ideia. Seu trabalho merece ocupar espaço com clareza.",
-    "Termine o que começou antes de procurar uma nova ideia. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Termine o que começou antes de procurar uma nova ideia. Faça do jeito possível, mas faça com intenção. ✦ Dia 148",
-    "Termine o que começou antes de procurar uma nova ideia. É assim que presença começa a virar construção. ✦ Dia 149",
-    "Termine o que começou antes de procurar uma nova ideia. Clareza e ação são uma combinação poderosa. ✦ Dia 150",
-    "Faça caber na sua rotina sem desaparecer da internet. Seu trabalho merece ocupar espaço com clareza.",
-    "Faça caber na sua rotina sem desaparecer da internet. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Faça caber na sua rotina sem desaparecer da internet. Faça do jeito possível, mas faça com intenção.",
-    "Faça caber na sua rotina sem desaparecer da internet. É assim que presença começa a virar construção.",
-    "Faça caber na sua rotina sem desaparecer da internet. Clareza e ação são uma combinação poderosa.",
-    "Faça caber na sua rotina sem desaparecer da internet. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Faça caber na sua rotina sem desaparecer da internet. Uma presença forte é construída em movimentos reais.",
-    "Faça caber na sua rotina sem desaparecer da internet. Continue construindo um dia de cada vez.",
-    "Faça caber na sua rotina sem desaparecer da internet. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Faça caber na sua rotina sem desaparecer da internet. A internet só consegue responder ao que você coloca em movimento.",
-    "Faça caber na sua rotina sem desaparecer da internet. Movimento gera material para o próximo movimento.",
-    "Faça caber na sua rotina sem desaparecer da internet. Você não precisa acelerar; precisa continuar.",
-    "Faça caber na sua rotina sem desaparecer da internet. Seu trabalho merece ocupar espaço com clareza. ✦ Dia 163",
-    "Faça caber na sua rotina sem desaparecer da internet. O conteúdo de hoje é parte do caminho, não uma prova de perfeição. ✦ Dia 164",
-    "Faça caber na sua rotina sem desaparecer da internet. Faça do jeito possível, mas faça com intenção. ✦ Dia 165",
-    "Troque excesso de planejamento por uma execução possível. Movimento gera material para o próximo movimento.",
-    "Troque excesso de planejamento por uma execução possível. Você não precisa acelerar; precisa continuar.",
-    "Troque excesso de planejamento por uma execução possível. Seu trabalho merece ocupar espaço com clareza.",
-    "Troque excesso de planejamento por uma execução possível. O conteúdo de hoje é parte do caminho, não uma prova de perfeição.",
-    "Troque excesso de planejamento por uma execução possível. Faça do jeito possível, mas faça com intenção.",
-    "Troque excesso de planejamento por uma execução possível. É assim que presença começa a virar construção.",
-    "Troque excesso de planejamento por uma execução possível. Clareza e ação são uma combinação poderosa.",
-    "Troque excesso de planejamento por uma execução possível. Hoje, o objetivo é sair do pensamento e entrar em ação.",
-    "Troque excesso de planejamento por uma execução possível. Uma presença forte é construída em movimentos reais.",
-    "Troque excesso de planejamento por uma execução possível. Continue construindo um dia de cada vez.",
-    "Troque excesso de planejamento por uma execução possível. Seu próximo passo pode ser pequeno e ainda assim contar.",
-    "Troque excesso de planejamento por uma execução possível. A internet só consegue responder ao que você coloca em movimento.",
-    "Troque excesso de planejamento por uma execução possível. Movimento gera material para o próximo movimento. ✦ Dia 178",
-    "Troque excesso de planejamento por uma execução possível. Você não precisa acelerar; precisa continuar. ✦ Dia 179",
-    "Troque excesso de planejamento por uma execução possível. Seu trabalho merece ocupar espaço com clareza. ✦ Dia 180"
-];
-  const now=new Date();
-  const dayKey=Math.floor(new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime()/86400000);
-  const message=dailyMessages[((dayKey%dailyMessages.length)+dailyMessages.length)%dailyMessages.length];
-
-  const greeting=document.createElement('header');greeting.className='home-live-greeting';
-  const firstName=(business.name||'').trim().split(/\s+/)[0]||'você';
-  greeting.innerHTML='<div><h1></h1><p>Vamos criar o seu conteúdo de hoje.</p></div><button type="button" aria-label="Abrir perfil">●</button>';
-  greeting.querySelector('h1').textContent='Oi, '+firstName+' ✦';
-  greeting.querySelector('button').onclick=()=>navigate('profile');root.appendChild(greeting);
-
-  // Keep the approved top hero image. Everything white below it is real UI.
-  root.appendChild(button('20.6%','17%','80%','31.5%',()=>navigate('daily'),'Criar meu conteúdo do dia'));
-  const belowHero=document.createElement('section');belowHero.className='home-below-hero';
-  belowHero.innerHTML='<button type="button"><b>∞</b><span><small>Feito para você</small><strong>Entende o que você faz</strong></span></button><button type="button"><b>◎</b><span><small>Execução completa</small><strong>Pronto para gravar e publicar</strong></span></button>';
-  belowHero.querySelectorAll('button').forEach(b=>b.onclick=()=>navigate('daily'));root.appendChild(belowHero);
-
-  const middle=document.createElement('section');middle.className='home-real-middle';
-  middle.innerHTML=`
-    <div class="home-last-head"><h2>Últimos conteúdos</h2><button type="button">Ver todos ›</button></div>
-    <div class="home-latest-real"></div>
-    <div class="home-daily-message real"><small>✦ MENSAGEM DE HOJE</small><strong></strong></div>
-    <button type="button" class="home-alpha-inline"><span class="alpha-mark">✦</span><span><strong>Comunidade Alpha</strong><small>Comunidade dos Imparáveis &nbsp; • &nbsp; Em breve</small></span><i>›</i></button>
-  `;
-  middle.querySelector('.home-last-head button').onclick=()=>navigate('contents');
-  middle.querySelector('.home-daily-message strong').textContent=message;
-  const latest=middle.querySelector('.home-latest-real');
-  if(contents.length){
-    const item=contents[0],card=document.createElement('button');card.type='button';card.className='home-latest-card';
-    card.innerHTML='<div class="latest-thumb">▶</div><span><strong></strong><small></small><em>Pronto para usar</em></span><i>⋮</i>';
-    card.querySelector('span strong').textContent=item.title||'Seu conteúdo mais recente';
-    card.querySelector('span small').textContent=item.format||'Movimento do dia';
-    card.onclick=()=>showResult(item);latest.appendChild(card);
-  }else{
-    const empty=document.createElement('button');empty.type='button';empty.className='home-latest-card empty';empty.innerHTML='<span><strong>Nenhum conteúdo criado ainda</strong><small>Crie o primeiro conteúdo do seu dia.</small></span>';empty.onclick=()=>navigate('daily');latest.appendChild(empty);
-  }
-  root.appendChild(middle);
-
-  const alphaInline=middle.querySelector('.home-alpha-inline');if(alphaInline) alphaInline.onclick=()=>navigate('alpha');
+  premiumHeader(root);
+  const day=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/86400000);
+  const messages=[
+    'Você não precisa resolver tudo hoje. Precisa colocar uma coisa importante em movimento.',
+    'Seu trabalho não precisa aparecer perfeito. Precisa aparecer com clareza.',
+    'O próximo movimento certo vale mais do que dez ideias guardadas.',
+    'Hoje, faça o que cabe no seu dia sem abandonar o que você quer construir.',
+    'Recomeçar também conta. O importante é não deixar seu trabalho desaparecer.',
+    'Você não precisa saber o caminho inteiro. Só precisa saber qual é o próximo movimento.',
+    'A internet só consegue responder ao que você coloca em movimento.'
+  ];
+  const first=(business.name||'Imparável').trim().split(/\s+/)[0];
+  const daily=readJSON('destrave-daily',{});
+  const panel=document.createElement('main');panel.className='premium-page premium-home';
+  panel.innerHTML=`
+    <section class="home-intro"><p>Olá, <strong>${first}</strong>.</p><h1>Você não precisa saber o caminho inteiro. Só precisa saber qual é o próximo movimento.</h1></section>
+    <section class="glass-card daily-message"><small>MENSAGEM DE HOJE</small><p>${messages[day%messages.length]}</p></section>
+    <section class="next-movement"><small>SEU PRÓXIMO MOVIMENTO</small><h2>Como está seu dia hoje?</h2><p>Escolha o que cabe no seu dia. Você não precisa fazer tudo.</p>
+      <div class="daily-label">TEMPO</div><div class="premium-choice-grid">
+        <button data-group="time" data-value="Sem tempo"><b>◷</b><span>Sem tempo<small>Quero algo direto</small></span></button>
+        <button data-group="time" data-value="Tenho tempo"><b>✦</b><span>Tenho tempo<small>Posso fazer com calma</small></span></button>
+      </div>
+      <div class="daily-label">APARECER</div><div class="premium-choice-grid">
+        <button data-group="appearance" data-value="Posso aparecer"><b>◎</b><span>Posso aparecer<small>Estou disponível hoje</small></span></button>
+        <button data-group="appearance" data-value="Prefiro não aparecer"><b>◇</b><span>Prefiro não aparecer<small>Quero outra forma</small></span></button>
+      </div>
+      <button class="premium-primary home-generate">VER MEU CONTEÚDO DO DIA →</button>
+    </section>`;
+  panel.querySelectorAll('[data-group]').forEach(b=>{
+    if(daily[b.dataset.group]===b.dataset.value)b.classList.add('selected');
+    b.onclick=()=>{daily[b.dataset.group]=b.dataset.value;writeJSON('destrave-daily',daily);panel.querySelectorAll('[data-group="'+b.dataset.group+'"]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}
+  });
+  panel.querySelector('.home-generate').onclick=()=>navigate('daily');
+  root.appendChild(panel);
 }
 function addDaily(root){
-  // From section 1 down this is real HTML. The approved header/hero image above stays untouched.
-  const state={goal:'',topic:'',ways:[]};
-  const panel=document.createElement('section');panel.className='daily-real-panel';
-  panel.innerHTML=`
-    <div class="daily-box">
-      <h2>1. O que você quer conseguir hoje?</h2><p>Escolha 1 objetivo.</p>
-      <div class="daily-goals"></div>
-    </div>
-    <div class="daily-box">
-      <h2>2. O que você quer conseguir com esse conteúdo hoje?</h2>
-      <p>Conte do seu jeito. Quanto mais detalhes você der, mais personalizado fica.</p>
-      <div class="daily-topic-wrap"><input class="daily-real-topic" placeholder="Ex.: Sou cantor e quero apresentações em casamentos. Quero mostrar meu repertório romântico."></div>
-      <label class="daily-auto"><input type="checkbox"> Não sei. Escolha por mim.</label>
-    </div>
-    <div class="daily-box">
-      <h2>3. Como você quer fazer hoje?</h2><p>Escolha até 2 opções.</p>
-      <div class="daily-ways"></div>
-    </div>
-    <p class="daily-ready">Uma vez só. Tudo pronto.</p>
-  `;
-  const goals=['Vender','Alcançar pessoas','Passar confiança','Ensinar','Criar conexão','Escolha por mim'];
-  const goalsWrap=panel.querySelector('.daily-goals');
-  goals.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='daily-real-choice';b.textContent=v;b.onclick=()=>{state.goal=v;goalsWrap.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};goalsWrap.appendChild(b)});
-  const topic=panel.querySelector('.daily-real-topic');topic.oninput=()=>state.topic=topic.value;
-  panel.querySelector('.daily-auto input').onchange=e=>{if(e.target.checked){state.topic='';topic.value='';topic.disabled=true}else topic.disabled=false};
-  const ways=['Posso aparecer e falar','Posso mostrar sem falar','Não quero aparecer','Tenho pouco tempo'];
-  const waysWrap=panel.querySelector('.daily-ways');
-  ways.forEach(v=>{const b=document.createElement('button');b.type='button';b.className='daily-real-choice wide';b.textContent=v;b.onclick=()=>{const i=state.ways.indexOf(v);if(i>=0){state.ways.splice(i,1);b.classList.remove('selected')}else{if(state.ways.length>=2){const old=state.ways.shift();[...waysWrap.children].find(x=>x.textContent===old)?.classList.remove('selected')}state.ways.push(v);b.classList.add('selected')}};waysWrap.appendChild(b)});
-  const generate=async()=>{
-    if(!isConfigured()){showToast('Primeiro preciso conhecer você.');navigate('work');return}
-    const subject=state.topic.trim()||business.objective||business.activity||business.service||'meu trabalho';
-    const goal=state.goal||'Escolha por mim';
-    const requestedFormat=state.ways.length?state.ways.join(' + '):'Escolha por mim';
-    const stopGenerating=showGenerating();
+  premiumHeader(root);
+  const daily=readJSON('destrave-daily',{});
+  const panel=document.createElement('main');panel.className='premium-page premium-daily';
+  panel.innerHTML=`<section class="page-title"><small>CONTEÚDO DO DIA</small><h1>Seu próximo movimento.</h1><p>Uma direção central. Várias possibilidades de execução.</p></section>
+  <section class="glass-card"><h2>Hoje eu vou considerar</h2><div class="context-pill">◷ ${daily.time||'Seu tempo de hoje'}</div><div class="context-pill">◎ ${daily.appearance||'Como prefere aparecer'}</div><p class="soft">O Destrave usa seu trabalho, seu momento digital e seu histórico para decidir o que faz sentido agora.</p></section>
+  <button class="premium-primary generate-now">✦ CRIAR MEU CONTEÚDO DO DIA →</button>`;
+  panel.querySelector('.generate-now').onclick=async()=>{
+    if(!isConfigured()){showToast('Primeiro preciso conhecer melhor seu trabalho.');navigate('work');return}
+    const stop=showGenerating();
     try{
+      const goal=(Array.isArray(business.mainGoal)?business.mainGoal.join(', '):business.mainGoal)||business.objective||'Escolha por mim';
+      const subject=business.offer||business.activity||business.service||'meu trabalho';
+      const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
       const data=await r.json();if(!data.ok)throw new Error('generation_failed');
-      const generated={id:Date.now(),title:`${goal}: ${subject}`,format:data.format||'Movimento do dia',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};
-      contents.unshift(generated);await syncToCloud();stopGenerating();showResult(generated);
-    }catch(e){stopGenerating();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
+      const generated={id:Date.now(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
+      contents.unshift(generated);await syncToCloud();stop();showResult(generated);
+    }catch(e){stop();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
   };
-  const go=primary('✦ CRIAR MEU CONTEÚDO DO DIA  ›',generate);go.classList.add('daily-generate');
-  panel.appendChild(go);root.appendChild(panel);
+  root.appendChild(panel);
 }
 function addContents(root){
-  const panel=document.createElement('main');panel.className='rebuilt-page rebuilt-contents';
-  panel.innerHTML=`
-    <header class="rebuilt-head"><div><h1>Meus conteúdos</h1><p>Tudo o que já foi criado para você.</p></div><button class="round-profile contents-profile" type="button" aria-label="Abrir perfil">●</button></header>
-    <button class="contents-create" type="button">✦ &nbsp; + CRIAR CONTEÚDO DO DIA <span>›</span></button>
-    <div class="contents-search"><span>⌕</span><input type="search" placeholder="Buscar pelo assunto"></div>
-    <div class="contents-tabs"><button class="active" data-filter="all">Todos</button><button data-filter="saved">Salvos</button><button data-filter="published">Publicados</button></div>
-    <section class="rebuilt-card contents-real-list"><h2>Seus conteúdos</h2><div class="contents-items"></div></section>`;
-  panel.querySelector('.contents-profile').onclick=()=>navigate('profile');
-  panel.querySelector('.contents-create').onclick=()=>navigate('daily');
-  const input=panel.querySelector('.contents-search input'), items=panel.querySelector('.contents-items');
-  let filter='all';
-  const draw=()=>{
-    const q=input.value.trim().toLowerCase();items.replaceChildren();
-    const visible=contents.filter(item=>{
-      const matches=!q||((item.title||'')+' '+(item.format||'')).toLowerCase().includes(q);
-      const state=String(item.status||'').toLowerCase();
-      const byFilter=filter==='all'||(filter==='saved'&&(state==='salvo'||state==='saved'))||(filter==='published'&&(state==='publicado'||state==='published'));
-      return matches&&byFilter;
-    });
-    if(!visible.length){const empty=document.createElement('div');empty.className='contents-empty';empty.innerHTML='<strong>Nenhum conteúdo encontrado.</strong><span>Crie um conteúdo ou tente outra busca.</span>';items.appendChild(empty);return}
-    visible.forEach(item=>{const card=document.createElement('button');card.type='button';card.className='content-card real';card.innerHTML='<strong></strong><span></span><small></small>';card.querySelector('strong').textContent=item.title||'Conteúdo';card.querySelector('span').textContent=(item.format||'Movimento do dia')+' • '+(item.created||'');card.querySelector('small').textContent='Pronto para usar';card.onclick=()=>showResult(item);items.appendChild(card)});
-  };
-  input.oninput=draw;
-  panel.querySelectorAll('.contents-tabs button').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;panel.querySelectorAll('.contents-tabs button').forEach(x=>x.classList.toggle('active',x===b));draw()});
-  draw();root.appendChild(panel);
+  premiumHeader(root);
+  const panel=document.createElement('main');panel.className='premium-page premium-contents';
+  panel.innerHTML='<section class="page-title"><small>EXECUÇÃO</small><h1>Conteúdo.</h1><p>Escolha o que cabe no seu dia. Você não precisa fazer tudo.</p></section><button class="premium-primary create-content">+ CRIAR CONTEÚDO DO DIA →</button><section class="content-list"></section>';
+  panel.querySelector('.create-content').onclick=()=>navigate('daily');
+  const list=panel.querySelector('.content-list');
+  if(!contents.length)list.innerHTML='<div class="glass-card empty-state"><b>Seu primeiro movimento começa aqui.</b><p>Quando o Destrave criar seu conteúdo, ele ficará guardado aqui.</p></div>';
+  contents.forEach(item=>{const b=document.createElement('button');b.className='editorial-card';b.innerHTML='<small>'+cleanText(item.format||'CONTEÚDO DO DIA')+'</small><strong>'+cleanText(item.title||'Seu conteúdo')+'</strong><span>'+cleanText(item.created||'')+' →</span>';b.onclick=()=>showResult(item);list.appendChild(b)});
+  root.appendChild(panel);
+}
+function addDirection(root){
+  premiumHeader(root);
+  const panel=document.createElement('main');panel.className='premium-page premium-direction';
+  const stage=business.digitalStage||'Seu momento ainda será definido';
+  const goal=Array.isArray(business.mainGoal)?business.mainGoal.join(' · '):(business.mainGoal||business.objective||'Sua prioridade será definida');
+  panel.innerHTML=`<section class="page-title"><small>INTELIGÊNCIA DO DESTRAVE</small><h1>Direção.</h1><p>O raciocínio por trás do seu próximo movimento, sem aula e sem complicação.</p></section>
+  <section class="direction-stack"><article class="glass-card"><small>SEU MOMENTO</small><h2>${stage}</h2></article><article class="glass-card"><small>SUA PRIORIDADE</small><h2>${goal}</h2></article><article class="glass-card featured"><small>PRÓXIMO MOVIMENTO</small><h2>O Destrave cruza seu trabalho, seu dia e o que você já executou antes de criar a próxima direção.</h2></article></section>`;
+  root.appendChild(panel);
+}
+function addSaved(root){
+  premiumHeader(root);
+  const saved=contents.filter(x=>String(x.status||'').toLowerCase()==='salvo'||String(x.status||'').toLowerCase()==='saved');
+  const panel=document.createElement('main');panel.className='premium-page premium-saved';
+  panel.innerHTML='<section class="page-title"><small>SUA BIBLIOTECA</small><h1>Salvos.</h1><p>O que vale guardar continua com contexto.</p></section><section class="content-list"></section>';
+  const list=panel.querySelector('.content-list');
+  if(!saved.length)list.innerHTML='<div class="glass-card empty-state"><b>Ainda não há nada salvo.</b><p>Quando algo for importante para usar de novo, ele aparece aqui.</p></div>';
+  saved.forEach(item=>{const b=document.createElement('button');b.className='editorial-card';b.innerHTML='<small>SALVO</small><strong>'+cleanText(item.title||'Conteúdo')+'</strong><span>'+cleanText(item.created||'')+' →</span>';b.onclick=()=>showResult(item);list.appendChild(b)});
+  root.appendChild(panel);
 }
 
 function choiceField(label,key,options){
@@ -419,41 +202,39 @@ function multiChoiceField(label,key,options){
 }
 
 function addWork(root){
+  premiumHeader(root);
   const first=!isConfigured();
-  const panel=document.createElement('main');panel.className='rebuilt-page rebuilt-work';
-  panel.innerHTML=`
-    <header class="rebuilt-head"><div><h1>Meu trabalho</h1><p>Conte uma vez. O Destrave lembra para você.</p></div><button class="round-profile" type="button" aria-label="Abrir perfil">●</button></header>
-    <section class="memory-hero"><small>MEMÓRIA DO DESTRAVE</small><h2>Quanto mais ele conhece você, mais certeiro fica.</h2><p>Uso estas informações para criar conteúdos com a sua realidade, sem repetir perguntas.</p><span>✦ Memória ativa</span></section>
-    <section class="rebuilt-card work-form"><h2>${first?'Primeiro, quero conhecer você ✦':'Meu trabalho'}</h2><p>${first?'É rapidinho. Assim o Destrave entende o que faz sentido para você.':'Se alguma coisa mudar, atualize aqui.'}</p></section>`;
-  panel.querySelector('.round-profile').onclick=()=>navigate('profile');
-  const form=panel.querySelector('.work-form');
-
-  const activity=field('2. O que você faz ou o que faz parte da sua vida hoje?','activity','Ex.: sou manicure, sou mãe, trabalho de Uber, estou criando um projeto...');
-  const activityHint=document.createElement('small');activityHint.className='choice-hint';activityHint.textContent='Pode ser seu trabalho, profissão, negócio, projeto, rotina ou algo importante da sua vida.';activity.appendChild(activityHint);
-
-  form.append(
-    field('1. Como você se chama?','name','Seu nome'),
-    activity,
-    multiChoiceField('3. O que você quer conseguir na internet?','mainGoal',['Vender','Conseguir clientes','Mostrar o que faço','Ser mais conhecida(o)','Criar conexão','Crescer na internet','Começar a aparecer','Ainda estou descobrindo']),
-    choiceField('4. Como está sua vida na internet hoje?','digitalStage',['Estou começando do zero','Já comecei, mas parei','Apareço/posto de vez em quando','Já tenho uma presença ativa']),
-    choiceField('5. Como você se sente em aparecer?','appearance',['Gosto de aparecer','Quero aparecer, mas ainda tenho vergonha','Prefiro não aparecer','Tanto faz para mim'])
-  );
-
-  const free=document.createElement('label');free.className='form-field work-free-field';
-  free.innerHTML='<span>6. Agora me conta do seu jeito ✦</span><strong style="display:block;margin-top:6px">O que você gostaria de fazer na internet?</strong><small class="choice-hint" style="display:block;margin:8px 0 10px">Pode me contar o que você pensa em mostrar, compartilhar, divulgar ou construir. Não precisa explicar bonito nem ter tudo decidido. Escreva do seu jeito.</small>';
-  const area=document.createElement('textarea');area.rows=6;area.placeholder='Escreva livremente aqui...';area.value=business.freeContext||'';
-  area.addEventListener('input',()=>{business.freeContext=area.value});
-  free.appendChild(area);
-  const optional=document.createElement('small');optional.className='choice-hint';optional.textContent='Se ainda não souber direito, tudo bem. Conte apenas o que você já sabe. Este campo é opcional.';free.appendChild(optional);
-  form.appendChild(free);
-
-  form.appendChild(primary(first?'SALVAR E DESTRAVAR ✦':'SALVAR MINHAS INFORMAÇÕES',async()=>{
-    const goals=Array.isArray(business.mainGoal)?business.mainGoal:[];
-    if(!business.name||!business.activity||!goals.length){showToast('Só falta seu nome, o que faz parte da sua vida e o que você quer conseguir na internet.');return}
-    business.objective=goals.join(', ');
-    business.service=business.activity;business.business=business.business||business.activity;
-    await syncToCloud();showToast(first?'Agora eu conheço você. Vamos destravar ✦':'Informações atualizadas ✨');navigate('home');
-  }));
+  const panel=document.createElement('main');panel.className='premium-page premium-work';
+  panel.innerHTML=`<section class="page-title"><small>O QUE O DESTRAVE SABE SOBRE VOCÊ</small><h1>Meu trabalho.</h1><p>Preencha aos poucos. Quanto melhor eu conheço seu trabalho, mais precisa fica sua direção.</p></section><section class="work-progress glass-card"><b>Seu contexto</b><span></span><i><em></em></i></section><section class="work-fields"></section><button class="premium-primary save-work">SALVAR E VOLTAR AO INÍCIO →</button>`;
+  const fields=[
+    ['name','Seu nome','Como devo chamar você?','text'],
+    ['offer','O que você oferece ou está construindo?','Produto, serviço, trabalho ou projeto.','text'],
+    ['audience','Para quem?','Quem você quer alcançar.','text'],
+    ['digitalStage','Seu momento no digital','Onde você está agora.','stage'],
+    ['mainGoal','O que quer fazer acontecer agora?','Sua prioridade atual.','goal'],
+    ['difference','O que diferencia seu trabalho?','O que torna sua oferta particular.','text'],
+    ['objections','Dúvidas e objeções','O que costuma fazer seu cliente hesitar.','text'],
+    ['voice','Seu jeito de falar','Como o conteúdo deve soar.','voice'],
+    ['freeContext','Algo mais que eu preciso saber?','Espaço livre para contexto importante.','text']
+  ];
+  const options={
+    stage:['Ainda não comecei','Estou começando agora','Já publico, mas sem constância','Parei e quero voltar','Já publico e quero melhorar os resultados'],
+    goal:['Vender mais','Conseguir clientes','Divulgar meu trabalho','Construir autoridade','Voltar a aparecer','Criar constância','Lançar ou divulgar uma oferta'],
+    voice:['Natural e simples','Firme','Emocional','Elegante','Descontraída','Direta']
+  };
+  const wrap=panel.querySelector('.work-fields');
+  fields.forEach(([key,title,hint,type],idx)=>{
+    const box=document.createElement('details');box.className='work-field';
+    const val=business[key];const summary=Array.isArray(val)?val.join(' · '):(val||hint);
+    box.innerHTML='<summary><span class="field-number">'+String(idx+1).padStart(2,'0')+'</span><span><b>'+title+'</b><small>'+summary+'</small></span><i>›</i></summary><div class="field-editor"></div>';
+    const editor=box.querySelector('.field-editor');
+    if(type==='text'){const area=document.createElement('textarea');area.rows=key==='freeContext'?5:3;area.placeholder=hint;area.value=val||'';area.oninput=()=>{business[key]=area.value;writeJSON('destrave-business',business)};editor.appendChild(area)}
+    else{const multi=type!=='stage';const selected=Array.isArray(val)?val:(val?[val]:[]);options[type].forEach(o=>{const b=document.createElement('button');b.type='button';b.className='field-option'+(selected.includes(o)?' selected':'');b.textContent=o;b.onclick=()=>{if(multi){let a=Array.isArray(business[key])?[...business[key]]:[];a.includes(o)?a=a.filter(x=>x!==o):a.push(o);business[key]=a;b.classList.toggle('selected',a.includes(o))}else{business[key]=o;editor.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}writeJSON('destrave-business',business)}});editor.append(...editor.querySelectorAll(':scope > *'))}
+    wrap.appendChild(box);
+  });
+  const refresh=()=>{const done=fields.filter(([k])=>{const v=business[k];return Array.isArray(v)?v.length:String(v||'').trim()}).length;panel.querySelector('.work-progress span').textContent=done+' de '+fields.length+' preenchidos';panel.querySelector('.work-progress em').style.width=(done/fields.length*100)+'%'};
+  panel.querySelectorAll('textarea,.field-option').forEach(x=>x.addEventListener('input',refresh));panel.querySelectorAll('.field-option').forEach(x=>x.addEventListener('click',refresh));refresh();
+  panel.querySelector('.save-work').onclick=async()=>{business.activity=business.offer||business.activity;business.service=business.offer||business.service;business.objective=Array.isArray(business.mainGoal)?business.mainGoal.join(', '):(business.mainGoal||business.objective);await syncToCloud();showToast(first?'Agora eu conheço melhor você ✦':'Informações atualizadas ✦');navigate('home')};
   root.appendChild(panel);
 }
 function cleanText(v){return String(v||'').replace(/\\*\\*/g,'').replace(/^#+\\s*/gm,'').trim()}
@@ -540,50 +321,33 @@ function showLegacyResult(item){const page=document.createElement('div');page.cl
 async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
 
 function addProfile(root){
-  const panel=document.createElement('main');panel.className='rebuilt-page rebuilt-profile';
-  const name=business.name||'Seu nome', initial=(name.trim()[0]||'D').toUpperCase();
-  panel.innerHTML=`
-    <header class="rebuilt-head"><div><h1>Perfil</h1><p>Seus dados, acesso e preferências.</p></div></header>
-    <section class="profile-hero"><div class="avatar">${initial}</div><div class="profile-ident"><h2></h2><p class="profile-email">Dados da sua conta</p><span>✦ Acesso ativo</span></div><button class="edit-work" type="button">✎ Editar dados</button></section>
-    <section class="rebuilt-card"><h2>Meu acesso</h2><button class="setting-row plan-row" type="button"><b>♔</b><span><strong>Plano</strong><small>Destrave</small></span><em>Ativo</em></button><div class="setting-row static"><b>▣</b><span><strong>Acesso</strong><small>Seus conteúdos e memória ficam vinculados ao seu perfil.</small></span></div></section>
-    <section class="rebuilt-card"><h2>Preferências</h2><label class="setting-row"><b>♧</b><span><strong>Lembrete diário</strong><small>Receber um impulso para executar</small></span><input class="pref-toggle" data-key="dailyReminder" type="checkbox"></label><label class="setting-row"><b>✉</b><span><strong>Novidades do Destrave</strong><small>Atualizações e novos recursos</small></span><input class="pref-toggle" data-key="news" type="checkbox"></label></section>
-    <section class="rebuilt-card"><h2>Segurança e ajuda</h2><button class="setting-row action-password" type="button"><b>♙</b><span><strong>Alterar minha senha</strong><small>Atualize sua senha de acesso</small></span><i>›</i></button><button class="setting-row action-forgot" type="button"><b>?</b><span><strong>Esqueci minha senha</strong><small>Recupere seu acesso</small></span><i>›</i></button><button class="setting-row action-support" type="button"><b>◯</b><span><strong>Falar com o suporte</strong><small>Atendimento e ajuda</small></span><i>›</i></button></section>
-    <button class="profile-logout" type="button">SAIR DA MINHA CONTA</button>`;
-  panel.querySelector('.profile-ident h2').textContent=name;
-  panel.querySelector('.edit-work').onclick=()=>navigate('work');
-  const prefs=readJSON('destrave-preferences',{dailyReminder:true,news:true});
-  panel.querySelectorAll('.pref-toggle').forEach(t=>{t.checked=prefs[t.dataset.key]!==false;t.onchange=()=>{prefs[t.dataset.key]=t.checked;writeJSON('destrave-preferences',prefs);showToast('Preferência atualizada ✦')}});
-  panel.querySelector('.plan-row').onclick=()=>showToast('Seu acesso ao Destrave está ativo ✦');
-  panel.querySelector('.action-password').onclick=()=>showToast('Alteração de senha será conectada ao acesso da conta.');
-  panel.querySelector('.action-forgot').onclick=()=>showToast('Recuperação de senha será conectada ao acesso da conta.');
-  panel.querySelector('.action-support').onclick=()=>{window.location.href='https://wa.me/5573982083851?text='+encodeURIComponent('Olá! Preciso de ajuda com o Destrave.');};
-  panel.querySelector('.profile-logout').onclick=()=>{localStorage.removeItem('destrave-session');navigate('login')};
-  root.appendChild(panel);
+  premiumHeader(root);
+  const panel=document.createElement('main');panel.className='premium-page premium-profile-page';
+  const name=business.name||'Imparável';
+  panel.innerHTML=`<section class="page-title"><small>SUA EXPERIÊNCIA</small><h1>Perfil.</h1><p>Conta, preferências, ajuda e segurança.</p></section><section class="profile-card glass-card"><div class="profile-avatar">${(name[0]||'D').toUpperCase()}</div><div><h2>${name}</h2><p>Acesso Destrave</p></div></section><section class="settings-list"><button onclick="void(0)" class="setting-premium edit-work">◎ <span><b>Meu trabalho</b><small>Atualizar o que o Destrave sabe sobre você</small></span>›</button><button class="setting-premium support">? <span><b>Ajuda e suporte</b><small>Falar com o suporte</small></span>›</button><button class="setting-premium alpha-link">✦ <span><b>Alpha</b><small>Comunidade dos Imparáveis · Em breve</small></span>›</button></section><button class="logout-premium">SAIR DA MINHA CONTA</button>`;
+  panel.querySelector('.edit-work').onclick=()=>navigate('work');panel.querySelector('.alpha-link').onclick=()=>navigate('alpha');panel.querySelector('.support').onclick=()=>window.location.href='https://wa.me/5573982083851?text='+encodeURIComponent('Olá! Preciso de ajuda com o Destrave.');panel.querySelector('.logout-premium').onclick=()=>{localStorage.removeItem('destrave-session');navigate('login')};root.appendChild(panel);
 }
 function addAlpha(root){
-  const header=document.createElement('div');
-  header.className='alpha-clean-header';
-  header.innerHTML='<strong>Alpha</strong><span>A comunidade dos Imparáveis.</span>';
-  root.appendChild(header);
-  root.appendChild(button('63%','20%','74%','6%',()=>showToast('Você será avisada assim que a Comunidade Alpha abrir ✨'),'Quero ser avisado'));
+  premiumHeader(root);const panel=document.createElement('main');panel.className='premium-page premium-alpha';panel.innerHTML='<section class="page-title"><small>EM BREVE</small><h1>Alpha.</h1><p>A comunidade dos Imparáveis.</p></section><section class="glass-card alpha-card"><b>Este espaço está sendo preparado.</b><p>Sem inventar função só para preencher tela. Quando a Alpha abrir, ela terá um propósito claro dentro do Destrave.</p></section>';root.appendChild(panel);
 }
 
 function render(){
   const data=screens[current]||screens.home;
-  const root=document.createElement('section'); root.className='screen';
-  const image=document.createElement('img'); image.className='screen-image'; image.alt=data.asset===1?'Login Destrave':`Tela ${current}`;
-  image.src=`/assets/reference/asset_${data.asset}.jpg`;
-  root.appendChild(image);
-  if(current==='login') { addLogin(root); } else {
-    addSidebar(root);
-    if(current==='home') addHome(root);
-    if(current==='daily') addDaily(root);
-    if(current==='contents') addContents(root);
-    if(current==='work') addWork(root);
-    if(current==='profile') addProfile(root);
-    if(current==='alpha') addAlpha(root);
+  const root=document.createElement('section');root.className='screen'+(current==='login'?'':' premium-screen premium-bg-'+current);
+  if(current==='login'){
+    const image=document.createElement('img');image.className='screen-image';image.alt='Login Destrave';image.src='/assets/reference/asset_1.jpg';root.appendChild(image);addLogin(root);
+  }else{
+    if(current==='home')addHome(root);
+    if(current==='daily')addDaily(root);
+    if(current==='contents')addContents(root);
+    if(current==='direction')addDirection(root);
+    if(current==='saved')addSaved(root);
+    if(current==='work')addWork(root);
+    if(current==='profile')addProfile(root);
+    if(current==='alpha')addAlpha(root);
+    addBottomNav(root);
   }
-  app.replaceChildren(root);
+  app.replaceChildren(root);window.scrollTo(0,0);
 }
 
 history.replaceState({destraveScreen:current},'',location.href);
