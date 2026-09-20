@@ -68,7 +68,7 @@ function button(top,left,width,height,onClick,label=''){
 }
 
 function navigate(name,fromHistory=false){
-  if(name!=='work'&&name!=='login'&&localStorage.getItem('destrave-session')&&!isConfigured()) name='work';
+  // Premium onboarding is progressive: missing profile fields never block navigation.
   if(!fromHistory && name!==current) history.pushState({destraveScreen:name},'',location.href);
   current=name; window.scrollTo(0,0); render();
 }
