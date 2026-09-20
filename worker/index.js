@@ -31,7 +31,7 @@ export default {
       try {
         const clientId = request.headers.get("x-destrave-client");
         if (!clientId) return json({ok:false,error:"Cliente não identificado"},{status:400});
-        if (!env.GEMINI_API_KEY) return json({ok:false,error:"GEMINI_API_KEY não configurada"},{status:503});
+        if (!env.GROQ_API_KEY && !env.GEMINI_API_KEY && !env.AI) return json({ok:false,error:"Nenhum motor de IA está configurado."},{status:503});
         await ensureStateTable(env);
         const row = await env.DB.prepare("SELECT business_json, contents_json FROM client_state WHERE client_id = ?").bind(clientId).first();
         const business = row ? JSON.parse(row.business_json || "{}") : {};
