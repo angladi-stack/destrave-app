@@ -21,6 +21,20 @@ async function syncFromCloud(){
     if(data.ok){
       business=data.business||{};
       contents=Array.isArray(data.contents)?data.contents:[];
+      // One-time migration: old test/onboarding data must not masquerade as the new Premium profile.
+      const premiumVersion=localStorage.getItem('destrave-premium-profile-version');
+      if(!premiumVersion){
+        const isLegacy=business && Object.keys(business).length && (!business.offer || !business.audience || !business.digitalStage || !business.mainGoal);
+        if(isLegacy){
+          business={};
+          localStorage.removeItem('destrave-daily');
+          localStorage.setItem('destrave-premium-profile-version','2');
+          writeJSON('destrave-business',business);
+          await fetch('/api/state',{method:'PUT',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({business,contents})});
+        }else{
+          localStorage.setItem('destrave-premium-profile-version','2');
+        }
+      }
       writeJSON('destrave-business',business);writeJSON('destrave-contents',contents);
       return true;
     }
