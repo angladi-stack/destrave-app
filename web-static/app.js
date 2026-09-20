@@ -342,7 +342,11 @@ function addProfile(root){
   panel.querySelector('.edit-work').onclick=()=>navigate('work');panel.querySelector('.alpha-link').onclick=()=>navigate('alpha');panel.querySelector('.support').onclick=()=>window.location.href='https://wa.me/5573982083851?text='+encodeURIComponent('Olá! Preciso de ajuda com o Destrave.');panel.querySelector('.logout-premium').onclick=()=>{localStorage.removeItem('destrave-session');navigate('login')};root.appendChild(panel);
 }
 function addAlpha(root){
-  premiumHeader(root);const panel=document.createElement('main');panel.className='premium-page premium-alpha';panel.innerHTML='<section class="page-title"><small>EM BREVE</small><h1>Alpha.</h1><p>A comunidade dos Imparáveis.</p></section><section class="glass-card alpha-card"><b>Este espaço está sendo preparado.</b><p>Sem inventar função só para preencher tela. Quando a Alpha abrir, ela terá um propósito claro dentro do Destrave.</p></section>';root.appendChild(panel);
+  premiumHeader(root);
+  const panel=document.createElement('main');
+  panel.className='premium-page premium-alpha';
+  panel.innerHTML='<section class="page-title"><small>EM BREVE</small><h1>Alpha.</h1><p>A comunidade dos Imparáveis.</p></section><section class="glass-card alpha-card"><b>Este espaço está sendo preparado.</b><p>A Alpha está chegando para ser um ponto de encontro de pessoas que decidiram continuar em movimento.</p><i></i><p>Em breve, você verá tudo o que estamos preparando aqui dentro.</p></section><section class="alpha-signature"><b>ALPHA <span>•</span> BY ANGLADI</b><i></i><p>Um novo espaço para quem decidiu continuar em movimento.</p></section>';
+  root.appendChild(panel);
 }
 
 function render(){
