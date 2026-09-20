@@ -246,16 +246,21 @@ RETORNE SOMENTE JSON VÁLIDO:
         let modelUsed="";
         let lastError="";
 
-        // Motor 1: Gemini. Faz uma única tentativa para não desperdiçar a cota gratuita.
-        if (false && env.GEMINI_API_KEY) {
+        // Motor 1: Gemini. Faz uma única tentativa para não desperdiçar a cota.
+        // Se a chave estiver ausente, inválida, sem cota ou o serviço falhar, o fluxo segue para a Groq.
+        if (env.GEMINI_API_KEY) {
           try {
-            const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
-            const geminiBody=JSON.stringify({contents:[{parts:[{text:motherPrompt}]}],generationConfig:{temperature:0.82,maxOutputTokens:7000,responseMimeType:"application/json"}});
+            const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent";
+            const geminiBody=JSON.stringify({
+              contents:[{parts:[{text:motherPrompt}]}],
+              generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json"}
+            });
             const gr=await fetch(geminiUrl,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:geminiBody});
             const gd=await gr.json();
             if (gr.ok) {
               textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-              if (textOut) modelUsed="gemini-3.6-flash";
+              if (textOut) modelUsed="gemini-3.8-flash";
+              else lastError="Gemini respondeu sem conteúdo";
             } else {
               lastError=gd?.error?.message || "Gemini indisponível";
             }
