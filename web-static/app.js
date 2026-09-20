@@ -139,9 +139,23 @@ function addHome(root){
     </section>`;
   panel.querySelectorAll('[data-group]').forEach(b=>{
     if(daily[b.dataset.group]===b.dataset.value)b.classList.add('selected');
-    b.onclick=()=>{daily[b.dataset.group]=b.dataset.value;writeJSON('destrave-daily',daily);panel.querySelectorAll('[data-group="'+b.dataset.group+'"]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}
+    b.onclick=()=>{
+      daily[b.dataset.group]=b.dataset.value;
+      writeJSON('destrave-daily',daily);
+      panel.querySelectorAll('[data-group="'+b.dataset.group+'"]').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected');
+    };
   });
-  panel.querySelector('.home-generate').onclick=()=>navigate('daily');
+  panel.querySelector('.home-generate').onclick=()=>{
+    // Re-read the current selections from the buttons immediately before
+    // opening the summary. This prevents stale/default values from appearing.
+    const latest={};
+    panel.querySelectorAll('[data-group].selected').forEach(b=>{latest[b.dataset.group]=b.dataset.value;});
+    if(latest.time) daily.time=latest.time;
+    if(latest.appearance) daily.appearance=latest.appearance;
+    writeJSON('destrave-daily',daily);
+    navigate('daily');
+  };
   root.appendChild(panel);
 }
 function addDaily(root){
