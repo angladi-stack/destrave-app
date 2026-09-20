@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f6efe3"><title>Destrave — Premium V2</title><link rel="stylesheet" href="/premium-v2.css"></head>
+<body><main class="shell">
+<header class="top"><button class="menu" aria-label="Menu">☰</button><div class="brand">DESTRAVE<small>by Angladi</small></div><button class="profile" aria-label="Perfil">◉</button></header>
+<section class="hero"><div class="hero-copy"><p class="eyebrow">SEU DIA COMEÇA AQUI</p><h1>Olá!</h1><p>Você não precisa resolver tudo hoje.<br>Só precisa continuar se movimentando.</p></div><div class="sun" aria-hidden="true"></div></section>
+<section class="movement"><span>SEU PRÓXIMO MOVIMENTO</span><h2>Uma direção pensada para o seu momento.</h2><p>O Destrave usa o que já sabe sobre você para preparar o próximo passo.</p><button>Ver meu movimento <b>→</b></button></section>
+<section class="choice"><div><p class="eyebrow">ESCOLHA O QUE CABE HOJE</p><h3>Seu dia, seu ritmo.</h3></div><div class="choice-grid"><button><i>⚡</i><strong>Estou sem tempo</strong><small>Quero algo mais direto</small></button><button><i>◷</i><strong>Tenho mais tempo</strong><small>Posso fazer com calma</small></button><button><i>◉</i><strong>Posso aparecer</strong><small>Estou disponível hoje</small></button><button><i>◇</i><strong>Prefiro não aparecer</strong><small>Quero outra forma</small></button></div></section>
+<section class="quote"><span>✦</span><p>O movimento de hoje não precisa ser enorme. Precisa ser possível.</p></section>
+</main>
+<nav class="bottom"><button class="active"><i>⌂</i><span>Início</span></button><button><i>▣</i><span>Conteúdo</span></button><button><i>↗</i><span>Direção</span></button><button><i>♡</i><span>Salvos</span></button><button><i>▤</i><span>Meu trabalho</span></button></nav>
+<script>document.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{if(b.closest('.choice-grid')){document.querySelectorAll('.choice-grid button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')}}));</script>
+</body></html>
