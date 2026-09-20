@@ -831,3 +831,27 @@ body{overflow-x:hidden}
   line-height:1.5;
   color:#625248;
 }
+
+
+/* Readability pass — small labels, 2026-09-20.
+   Keep approved layout/images; only strengthen small interface text. */
+.premium-page .page-title > small,
+.premium-home .daily-message > small,
+.premium-home .next-movement > small,
+.premium-home .daily-label,
+.premium-work .page-title > small,
+.premium-direction .page-title > small,
+.premium-saved .page-title > small,
+.premium-contents .page-title > small,
+.premium-daily .page-title > small{
+  color:#24170f !important;
+  font-weight:900 !important;
+  opacity:1 !important;
+  text-shadow:0 1px 0 rgba(255,250,242,.62);
+}
+.premium-home .next-movement > p,
+.premium-page .page-title > p{
+  color:#40372f !important;
+  opacity:1 !important;
+  font-weight:500 !important;
+}
