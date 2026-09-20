@@ -251,7 +251,7 @@ RETORNE SOMENTE JSON VÁLIDO:
         }
 
         // Motor 2: Groq. Só é chamado se o Gemini não entregar conteúdo.
-        if (false && !textOut && env.GROQ_API_KEY) {
+        if (!textOut && env.GROQ_API_KEY) {
           try {
             const groqBody=JSON.stringify({
               model:"openai/gpt-oss-120b",
