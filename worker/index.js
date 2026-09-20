@@ -43,7 +43,7 @@ export default {
         if (!business.name || !(business.activity || business.service) || !business.objective) {
           return json({ok:false,error:"Complete primeiro o cadastro do Destrave."},{status:400});
         }
-        const recent = history.slice(0,8).map(x=>({title:x.title,format:x.format,text:String(x.text||"").slice(0,1200)}));
+        const recent = history.slice(0,8).map(x=>({title:x.title,format:x.format,executionFeedback:x.executionFeedback||"Não informado",executionFeedbackAt:x.executionFeedbackAt||"",text:String(x.text||"").slice(0,1200)}));
         const redo = Boolean(body.redo);
         const factVault = {
           name: business.name || "",
@@ -51,6 +51,10 @@ export default {
           objective: business.objective || "",
           mainGoal: Array.isArray(business.mainGoal) ? business.mainGoal.join(", ") : (business.mainGoal || ""),
           digitalStage: business.digitalStage || business.stage || "",
+          audience: business.audience || "",
+          difference: business.difference || "",
+          objections: business.objections || "",
+          voice: Array.isArray(business.voice) ? business.voice.join(", ") : (business.voice || ""),
           appearance: business.appearance || business.appearancePreference || "",
           freeContext: business.freeContext || "",
           goalToday: goal,
@@ -107,6 +111,17 @@ Refazer: ${redo}
 
 HISTÓRICO RECENTE
 ${JSON.stringify(recent)}
+
+LÓGICA DE PROGRESSÃO
+Seu trabalho não é apenas criar conteúdo: é decidir o PRÓXIMO MOVIMENTO adequado.
+Raciocine nesta ordem: pessoa → oferta/projeto → público → momento digital → prioridade atual → histórico de execução → condição de hoje → próximo movimento → conteúdo.
+A profissão é contexto, nunca o motor automático da estratégia.
+Dê peso especial a audience, digitalStage, mainGoal/objective, difference, objections, voice e freeContext.
+O campo executionFeedback é a verdade sobre execução: "Fiz" confirma execução; "Fiz uma parte" confirma execução parcial; "Hoje não consegui" confirma não execução; "Não informado" não permite inferência.
+Se fez, avance de forma coerente em vez de repetir mecanicamente.
+Se fez uma parte, decida se vale concluir/continuar ou mudar, sem presumir qual parte foi feita.
+Se não conseguiu, adapte o próximo movimento à condição atual sem culpa, punição ou repetição automática.
+Autonomia NÃO significa retirar direção: continue oferecendo direção contextual enquanto a pessoa usar o Destrave.
 
 VERDADE
 Use somente fatos confirmados no perfil, pedido e histórico.
@@ -190,8 +205,7 @@ Antes de responder, confira:
 11. Há placeholder para a pessoa completar? Se sim, reescreva pronto ou faça micropergunta factual.
 12. A condição de execução virou a própria estratégia? Se sim, corrija.
 13. Alguma frase promete ou garante efeito comercial? Se sim, torne-a proporcional e verdadeira.
-14. O ângulo passaria no teste "uma IA comum daria isso para qualquer pessoa desta profissão"? Se sim, aprofunde.
-Se falhar, refaça internamente.
+14. O ângulo passaria no teste "uma IA comum daria isso para qualquer pessoa desta profissão"? Se sim, aprofunde.\n15. A direção nasceu do momento, objetivo, público, contexto e histórico de EXECUÇÃO — e não apenas da profissão?\n16. Se existe executionFeedback, ele foi respeitado sem inventar o que a pessoa fez?\n17. O próximo movimento representa progressão contextual, sem retirar direção da pessoa?\nSe falhar, refaça internamente.
 
 Se needsInput=true, retorne a pergunta e mantenha os blocos de conteúdo vazios.
 
@@ -323,7 +337,7 @@ Reprove conteúdo genérico, marketinguês, decisões estratégicas devolvidas �
 Tolerância zero: remova fatos não confirmados como link na bio, agenda aberta, disponibilidade, produto pronto hoje, sabores, datas, entrega, promoção, preço, botão/link, estoque ou resultados. Remova placeholders. Se um dado for indispensável, needsInput=true com uma única pergunta factual.
 Condição de execução muda COMO fazer, não deve virar a estratégia inteira. Reprove ângulo óbvio que uma IA comum entregaria quase igual a qualquer pessoa da mesma profissão.
 Reprove causalidade comercial não comprovada ("gera encomendas", "vai vender", "cria desejo instantâneo", "vende por você").
-GERADO NÃO É EXECUTADO: histórico anterior não prova publicação ou ação.
+GERADO NÃO É EXECUTADO: histórico anterior não prova publicação ou ação. Use executionFeedback como fonte explícita: Fiz=executado; Fiz uma parte=parcial; Hoje não consegui=não executado; Não informado=desconhecido.\nA direção deve nascer de pessoa + oferta + público + momento digital + objetivo + histórico de execução + condição atual. Profissão é contexto, não estratégia automática. Preserve a direção contínua: autonomia não significa deixar a pessoa sem próximo movimento.
 Fale diretamente com "você".
 A pessoa recebe todas as possibilidades, mas nunca deve ser tratada como obrigada a executar todas.
 Se faltar um fato indispensável, needsInput=true com UMA pergunta factual e blocos vazios.
