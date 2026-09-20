@@ -738,3 +738,39 @@ body{overflow-x:hidden}
 .premium-bg-home,.premium-bg-contents,.premium-bg-direction,.premium-bg-saved,.premium-bg-work,.premium-bg-profile,.premium-bg-alpha,.premium-bg-daily{
   background-color:#f5eee2;
 }
+
+
+/* Meu Trabalho — legibility refinement approved 2026-09-20.
+   No layout/image changes: stronger contrast and slightly larger supporting copy only. */
+.premium-bg-work .page-title > small{
+  color:#7a481f !important;
+  font-size:10px !important;
+  font-weight:900 !important;
+  text-shadow:0 1px 0 rgba(255,248,238,.55);
+}
+.premium-bg-work .page-title > p{
+  color:#55483f !important;
+  font-size:15px !important;
+  line-height:1.52 !important;
+  font-weight:500 !important;
+  text-shadow:0 1px 0 rgba(255,250,242,.5);
+}
+.premium-bg-work .work-progress span{
+  color:#5f5045 !important;
+  font-size:10px !important;
+  font-weight:600 !important;
+}
+.premium-bg-work .work-field summary small{
+  color:#5b4d43 !important;
+  font-size:10px !important;
+  line-height:1.42 !important;
+  font-weight:500 !important;
+}
+.premium-bg-work .field-number{
+  color:#8a5727 !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+}
+.premium-bg-work .work-field summary b{
+  color:#24150e !important;
+}
