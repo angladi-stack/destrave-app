@@ -774,3 +774,60 @@ body{overflow-x:hidden}
 .premium-bg-work .work-field summary b{
   color:#24150e !important;
 }
+
+
+/* Alpha — final composition refinement 2026-09-20.
+   Keep the existing scenic asset; preserve its natural aspect ratio and complete the lower area. */
+.premium-bg-alpha{
+  background-size:auto 1000px !important;
+  background-position:center top !important;
+  background-repeat:no-repeat !important;
+}
+.premium-alpha .alpha-card{
+  margin-top:10px;
+  padding:32px 24px 28px;
+}
+.premium-alpha .alpha-card b{
+  display:block;
+  font-size:20px;
+  line-height:1.22;
+}
+.premium-alpha .alpha-card p{
+  margin:15px auto 0;
+  max-width:360px;
+  font-size:13px;
+  line-height:1.55;
+  color:#625248;
+}
+.premium-alpha .alpha-card i{
+  display:block;
+  width:42px;
+  height:1px;
+  margin:19px auto 0;
+  background:#a56e30;
+}
+.alpha-signature{
+  text-align:center;
+  padding:34px 18px 18px;
+  color:#4a2a18;
+}
+.alpha-signature b{
+  display:block;
+  font:600 11px/1.2 Georgia,"Times New Roman",serif;
+  letter-spacing:4px;
+}
+.alpha-signature b span{padding:0 5px;color:#a56e30}
+.alpha-signature i{
+  display:block;
+  width:40px;
+  height:1px;
+  margin:14px auto;
+  background:#a56e30;
+}
+.alpha-signature p{
+  max-width:320px;
+  margin:0 auto;
+  font-size:12px;
+  line-height:1.5;
+  color:#625248;
+}
