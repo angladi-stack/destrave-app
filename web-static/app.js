@@ -187,24 +187,28 @@ b.addEventListener('click',answer);
 b.addEventListener('touchend',(e)=>{e.preventDefault();answer()},{passive:false});
 body.append(b)});page.append(body);return page}
 function focusChoicesFromProfile(){
-  const raw=[business.offer,business.activity,business.service,business.freeContext].filter(Boolean).join('\n');
-  const cleaned=raw.replace(/\b(e|tamb[eé]m|al[eé]m de|trabalho com|fa[cç]o|ofere[cç]o|vendo|presto)\b/gi,',');
-  const parts=cleaned.split(/\n|;|,|\||\/|\s+ou\s+/i).map(x=>x.trim()).filter(x=>x.length>2);
-  const unique=[];
-  for(const part of parts){
-    const key=normalizeWorkValue(part);
-    if(!unique.some(x=>normalizeWorkValue(x)===key)) unique.push(part);
-    if(unique.length>=6) break;
-  }
-  return unique.length?unique:[business.offer||business.activity||business.service||'Meu trabalho'];
+  // Fallback conservador: nunca transforme freeContext/diferenciais em frentes.
+  // A frente principal vem somente do campo explícito de oferta/serviço.
+  const primary=String(business.offer||business.activity||business.service||'').trim();
+  return primary?[primary]:[];
 }
-function focusPicker(onSelect){
+async function detectRealFocusChoices(){
+  const fallback=focusChoicesFromProfile();
+  try{
+    const res=await apiFetch('/api/focus-options',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({business})});
+    if(!res.ok) return fallback;
+    const data=await res.json();
+    const fronts=Array.isArray(data.fronts)?data.fronts.map(x=>typeof x==='string'?x:x&&x.label).filter(Boolean):[];
+    return fronts.length?fronts:fallback;
+  }catch(e){return fallback}
+}
+async function focusPicker(onSelect){
   const page=document.createElement('div');page.className='plan-page movement-page';
   const top=document.createElement('header');top.className='plan-top';
   top.innerHTML='<button class="plan-back">‹</button><div><h1>O que vamos movimentar hoje?</h1><p>Escolha uma frente do seu trabalho. O conteúdo inteiro vai seguir somente esse foco.</p></div>';
   top.querySelector('button').onclick=()=>navigate('home');page.append(top);
   const body=document.createElement('main');body.className='plan-main movement-main';
-  const options=focusChoicesFromProfile();
+  const options=await detectRealFocusChoices();
   options.forEach((value,index)=>{const b=document.createElement('button');b.type='button';b.className='premium-primary focus-choice-btn';b.textContent=value;const choose=()=>onSelect(value);b.addEventListener('click',choose);b.addEventListener('touchend',(e)=>{e.preventDefault();choose()},{passive:false});body.append(b)});
   const other=document.createElement('button');other.type='button';other.className='premium-primary focus-choice-btn';other.textContent='Outra coisa';other.onclick=()=>{
     const card=document.createElement('section');card.className='glass-card';
