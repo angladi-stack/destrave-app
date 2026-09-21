@@ -272,9 +272,9 @@ RETORNE SOMENTE JSON VÁLIDO:
               headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
               body:JSON.stringify({
                 contents:[{parts:[{text:motherPrompt}]}],
-                generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json"}
+                generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}
               }),
-              signal:AbortSignal.timeout(22000)
+              signal:AbortSignal.timeout(55000)
             });
             const raw=await gr.text();
             let gd={}; try{gd=JSON.parse(raw)}catch{}
@@ -305,7 +305,7 @@ RETORNE SOMENTE JSON VÁLIDO:
                   reasoning_effort:"low",
                   response_format:{type:"json_object"}
                 }),
-                signal:AbortSignal.timeout(22000)
+                signal:AbortSignal.timeout(55000)
               });
               const raw=await rr.text();
               let rd={}; try{rd=JSON.parse(raw)}catch{}
@@ -330,7 +330,7 @@ RETORNE SOMENTE JSON VÁLIDO:
                 max_tokens:7000,
                 temperature:0.82
               }),
-              new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 22s")),22000))
+              new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 55s")),55000))
             ]);
             const cloudflareText=String(cr?.response ?? cr?.choices?.[0]?.message?.content ?? "").trim();
             if(cloudflareText){textOut=cloudflareText;modelUsed="cloudflare/gemma-4-26b-a4b-it"}
