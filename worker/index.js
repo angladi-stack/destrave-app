@@ -84,6 +84,7 @@ export default {
           : [];
         const recent = relevantHistory.slice(0,8).map(x=>({title:x.title,format:x.format,executionFeedback:x.executionFeedback||"Não informado",executionFeedbackAt:x.executionFeedbackAt||"",text:String(x.text||"").slice(0,1200)}));
         const redo = Boolean(body.redo);
+        const focusNorm = selectedFocus.toLowerCase().replace(/\s+/g," ").trim();
         const factVault = {
           name: business.name || "",
           activity: business.activity || business.service || "",
@@ -136,8 +137,18 @@ export default {
           for (const rule of forbiddenAssumptions) {
             if (rule.re.test(serialized) && !rule.allow.test(knownFactText)) violations.push("fato operacional não confirmado: "+String(rule.re));
           }
+          // Isolamento semântico: nomes explícitos de outras frentes do cadastro não podem vazar.
+          const possibleOther=[business.offer,business.activity,business.service]
+            .flatMap(v=>Array.isArray(v)?v:[v])
+            .filter(Boolean)
+            .map(v=>String(v).trim())
+            .filter(v=>v && normalizeComparable(v)!==normalizeComparable(selectedFocus));
+          for(const other of possibleOther){
+            if(other.length>=4 && serialized.toLowerCase().includes(other.toLowerCase())) violations.push("mistura de foco: "+other);
+          }
           return [...new Set(violations)];
         }
+        function normalizeComparable(v){return String(v||"").toLowerCase().replace(/[^a-z0-9áàâãéèêíïóôõöúçñ ]/gi," ").replace(/\s+/g," ").trim()}
         const motherPrompt = `Você é o CÉREBRO OFICIAL DO DESTRAVE by Angladi.
 
 ESSÊNCIA
@@ -191,7 +202,7 @@ Se faltar um fato indispensável que somente a pessoa sabe, use needsInput=true 
 
 DIREÇÃO CENTRAL
 Antes de escrever, escolha silenciosamente UMA direção estratégica coerente para hoje.
-Toda a entrega deve nascer dessa mesma direção.\nO FOCO ÚNICO DE HOJE tem prioridade sobre outras ofertas/serviços do perfil. Stories, Reels, Feed e WhatsApp devem permanecer nesse mesmo foco.
+Toda a entrega deve nascer dessa mesma direção.\nO FOCO ÚNICO DE HOJE é uma fronteira rígida, não apenas prioridade. Stories, Reels, Feed e WhatsApp devem permanecer nesse mesmo foco. Nenhuma outra oferta, atividade, serviço ou curso do perfil pode aparecer no conteúdo final.
 Reels, Stories, Feed e Status/WhatsApp NÃO são quatro ideias aleatórias. São quatro maneiras independentes e coerentes de executar a mesma direção.
 Cada peça precisa funcionar sozinha: a pessoa pode fazer apenas Reels, apenas Stories, apenas Feed ou apenas Status.
 Nunca diga que ela precisa fazer tudo.
