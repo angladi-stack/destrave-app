@@ -192,7 +192,7 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           objections:business.objections||"",
           focusFacts: focusIsDifferential
             ? {difference:business.difference||"", evidence:business.freeContext||""}
-            : {offer:selectedFocus}
+            : {offer:selectedFocus, details:business.offerDetails||""}
         };
         const motherPrompt = `Você cria o Conteúdo do Dia do Destrave.
 
@@ -212,7 +212,7 @@ REGRAS INEGOCIÁVEIS
 - Nada de "mostre seu diferencial", "fale dos benefícios" ou outra ordem abstrata. Diga exatamente o que gravar/mostrar e escreva a fala/texto pronto.
 - Não use "swipe up". Para contato, use linguagem simples como "me chama no direct" somente quando apropriado.
 - Reels, Stories, Feed e WhatsApp compartilham a mesma direção, mas cada um funciona sozinho.
-- Se faltam detalhes sobre a oferta, NÃO invente. Escolha um ângulo verdadeiro que funcione com o que sabemos.
+- Se faltam detalhes sobre a oferta, NÃO invente. Se ainda for possível criar algo específico e valioso, faça. Se a falta impedir um conteúdo digno de produto pago, use needsInput=true e faça UMA pergunta factual curta que aumente muito a qualidade (por exemplo, o que a pessoa aprende/recebe nessa oferta). Não faça pergunta de marketing nem pergunte algo que já está no contexto.
 - A entrega precisa ser específica o bastante para valer um produto pago e simples o bastante para uma iniciante executar sem pensar "tá, mas como eu faço isso?".
 
 RETORNE SOMENTE JSON:
