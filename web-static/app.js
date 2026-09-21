@@ -206,14 +206,8 @@ function addDaily(root){
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat}),signal:controller.signal});
       clearTimeout(timeout);
       const data=await r.json();if(!data.ok){
-        const diagnostic={status:r.status,code:data.code||'SEM_CODIGO',error:data.error||'',details:data.details||[],model:data.model||'',message:data.message||''};
-        try{localStorage.setItem('destrave_last_generation_error',JSON.stringify({at:new Date().toISOString(),...diagnostic}))}catch(_){}
         stop();
-        const oldDiag=document.getElementById('destrave-debug-panel');if(oldDiag)oldDiag.remove();
-        const debug=document.createElement('div');debug.id='destrave-debug-panel';
-        debug.style.cssText='position:fixed;z-index:99999;left:12px;right:12px;bottom:18px;max-height:48vh;overflow:auto;background:#1f120d;color:#fff4dc;border:2px solid #d7a94b;border-radius:18px;padding:16px;font:13px/1.45 monospace;box-shadow:0 12px 40px #0008';
-        debug.innerHTML='<div style="font-family:Arial,sans-serif;font-weight:800;font-size:16px;margin-bottom:8px">DIAGNÓSTICO TEMPORÁRIO</div><div>HTTP: '+diagnostic.status+'</div><div>CÓDIGO: '+String(diagnostic.code)+'</div><div>ERRO: '+String(diagnostic.error||diagnostic.message||'sem mensagem')+'</div><div>MODELO: '+String(diagnostic.model||'não informado')+'</div><div style="margin-top:8px;white-space:pre-wrap;word-break:break-word">DETALHES: '+JSON.stringify(diagnostic.details)+'</div><button id="close-destrave-debug" style="margin-top:12px;padding:10px 14px;border:0;border-radius:10px;font-weight:800">FECHAR</button>';
-        document.body.appendChild(debug);debug.querySelector('#close-destrave-debug').onclick=()=>debug.remove();
+        showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦');
         return;
       }
       const generated={id:Date.now(),workContextId:currentWorkContextId(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
