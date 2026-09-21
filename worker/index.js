@@ -63,43 +63,34 @@ export default {
 
     if (url.pathname === "/api/focus-options" && request.method === "POST") {
       try {
-        const body=await request.json();
-        const business=body?.business||{};
-        const fallback=String(business.offer||business.activity||business.service||"").trim();
-        if(!fallback) return json({fronts:[]});
-        const prompt=`Leia este cadastro como uma pessoa, não como um separador de palavras.
-Sua tarefa é decidir quais BOTÕES de assunto fazem sentido em "O que vamos movimentar hoje?".
-
-CADASTRO:
-${JSON.stringify(business)}
-
-REGRAS:
-- "Frente" é algo que a pessoa realmente oferece, vende, constrói ou quer divulgar por si só: serviço, produto, curso, projeto, carreira etc.
-- Separe frentes quando exigem comunicação comercial diferente. Ex.: serviço de manicure e curso de manicure são duas frentes.
-- NÃO transforme detalhes em frentes: água, cappuccino, drinks, ambiente, materiais, horários, etapas, ferramentas, mimos e características ficam como contexto.
-- Se houver um diferencial real cadastrado, acrescente UM botão "Meus diferenciais". Não crie um botão para cada evidência do diferencial.
-- "Meus diferenciais" representa a IDEIA CENTRAL do que torna a experiência/trabalho diferente. Detalhes apenas sustentam essa ideia.
-- Não invente nenhuma oferta.
-- Use rótulos curtos, naturais e claros para leigos.
-- Máximo 5 botões.
-Retorne SOMENTE JSON: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
+        const body=await request.json(), business=body?.business||{};
+        const offer=String(business.offer||business.activity||business.service||"").trim();
+        if(!offer) return json({fronts:[]});
+        const prompt=`CADASTRO: ${JSON.stringify({offer,difference:business.difference||"",freeContext:business.freeContext||""})}
+Separe SOMENTE os assuntos que a pessoa poderia escolher divulgar hoje.
+1) Separe ofertas diferentes mesmo na mesma frase (ex.: serviço de manicure + curso VIP = dois botões).
+2) Se difference estiver preenchido, inclua "Meus diferenciais".
+3) Água, café, cappuccino, drinks, ambiente, mimo, ferramenta, horário e detalhes NÃO são botões.
+4) Não copie a frase inteira do cadastro como botão se ela contém mais de uma oferta.
+5) Não invente.
+Rótulos curtos, linguagem comum, máximo 5.
+JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
         let textOut="";
-        if(env.GEMINI_API_KEY){
-          try{
-            const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:500,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}}),signal:AbortSignal.timeout(20000)});
-            const d=await r.json(); if(r.ok) textOut=(d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-          }catch(_){}
+        const parse=(t)=>{try{return JSON.parse(String(t||"").replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim())}catch{return {}}};
+        if(env.GEMINI_API_KEY){try{const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:700,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"medium"}}}),signal:AbortSignal.timeout(25000)});const d=await r.json();if(r.ok)textOut=(d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("")}catch(_){}}
+        if(!textOut&&env.GROQ_API_KEY){try{const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"system",content:"Separe ofertas por significado. Somente JSON."},{role:"user",content:prompt}],temperature:0,max_completion_tokens:700,response_format:{type:"json_object"}}),signal:AbortSignal.timeout(25000)});const d=await r.json();if(r.ok)textOut=String(d.choices?.[0]?.message?.content||"")}catch(_){}}
+        let fronts=Array.isArray(parse(textOut).fronts)?parse(textOut).fronts.filter(x=>x&&String(x.label||"").trim()).slice(0,5):[];
+        // Falha segura: nunca devolva a frase inteira misturando várias ofertas.
+        if(!fronts.length){
+          fronts=[];
+          if(/curso|mentoria|aula|treinamento/i.test(offer)){const m=offer.match(/(?:curso|mentoria|aula|treinamento)[^,;.]*$/i);if(m)fronts.push({label:m[0].trim(),kind:"offer"})}
+          const service=offer.replace(/\s+e\s+(?:curso|mentoria|aula|treinamento).*$/i,"").replace(/^ofere[cç]o\s+/i,"").trim();
+          if(service&&service!==offer)fronts.unshift({label:service,kind:"offer"});
+          if(!fronts.length)fronts=[{label:"Meu trabalho",kind:"offer"}];
+          if(String(business.difference||"").trim())fronts.push({label:"Meus diferenciais",kind:"differential"});
         }
-        if(!textOut && env.GROQ_API_KEY){
-          try{
-            const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:JSON.stringify({model:"openai/gpt-oss-20b",messages:[{role:"system",content:"Classifique semanticamente. Somente JSON válido."},{role:"user",content:prompt}],temperature:0.1,max_completion_tokens:500,reasoning_effort:"low",response_format:{type:"json_object"}}),signal:AbortSignal.timeout(20000)});
-            const d=await r.json(); if(r.ok) textOut=String(d.choices?.[0]?.message?.content||"").trim();
-          }catch(_){}
-        }
-        let parsed={}; try{parsed=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim())}catch(_){}
-        const fronts=Array.isArray(parsed.fronts)?parsed.fronts.filter(x=>x&&String(x.label||"").trim()).slice(0,5):[];
-        return json({fronts:fronts.length?fronts:[{label:fallback,kind:"offer"}]});
-      } catch(e) { return json({fronts:[],error:String(e?.message||e)},{status:500}); }
+        return json({fronts});
+      } catch(e){return json({fronts:[{label:"Meu trabalho",kind:"offer"}],error:String(e?.message||e)});}
     }
 
     if (url.pathname === "/api/generate" && request.method === "POST") {
@@ -190,175 +181,42 @@ Retorne SOMENTE JSON: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           return [...new Set(violations)];
         }
         function normalizeComparable(v){return String(v||"").toLowerCase().replace(/[^a-z0-9áàâãéèêíïóôõöúçñ ]/gi," ").replace(/\s+/g," ").trim()}
-        const motherPrompt = `Você é o CÉREBRO OFICIAL DO DESTRAVE by Angladi.
+        const focusIsDifferential=/diferencia/i.test(selectedFocus);
+        const cleanContext={
+          name:business.name||"",
+          focus:selectedFocus,
+          goal,
+          audience:business.audience||"",
+          digitalStage:business.digitalStage||"",
+          voice:Array.isArray(business.voice)?business.voice.join(", "):(business.voice||""),
+          objections:business.objections||"",
+          focusFacts: focusIsDifferential
+            ? {difference:business.difference||"", evidence:business.freeContext||""}
+            : {offer:selectedFocus}
+        };
+        const motherPrompt = `Você cria o Conteúdo do Dia do Destrave.
 
-ESSÊNCIA
-O Destrave existe para pessoas que têm algo para vender, oferecer ou construir profissionalmente e precisam se movimentar na internet sem gastar a pouca energia do dia decidindo conteúdo.
-O DESTRAVE PENSA O CONTEÚDO. A PESSOA ESCOLHE O QUE CONSEGUE EXECUTAR.
-SIMPLES PARA QUEM USA. INTELIGENTE POR TRÁS.
-O Conteúdo do Dia é um CARDÁPIO COMPLETO DE EXECUÇÃO, não uma lista de obrigações.
+CONTEXTO PERMITIDO:
+${JSON.stringify(cleanContext)}
+HISTÓRICO PARA EVITAR REPETIÇÃO:
+${JSON.stringify(recent.slice(0,4))}
 
-COFRE DE FATOS — AUTORIDADE MÁXIMA
-${confirmedFactLines || "- Nenhum fato adicional confirmado."}
+MISSÃO
+Crie UM pacote sobre o foco "${selectedFocus}". Não fale de nenhuma outra frente do cadastro.
+A pessoa pode não entender marketing: entregue execução literal, não conselho.
 
-PERFIL COMPLETO
-${JSON.stringify(business)}
+REGRAS INEGOCIÁVEIS
+- Use somente fatos do CONTEXTO PERMITIDO. Não invente técnica, estilo, preço, duração, resultado, cliente, depoimento, agenda, link, promoção, característica ou cena específica não confirmada.
+- Se o foco é curso, fale do curso. Não use cenas/detalhes do atendimento profissional só porque aparecem em outro lugar do cadastro.
+- Se o foco é "Meus diferenciais", comunique primeiro a IDEIA CENTRAL de difference. evidence serve apenas para ilustrar essa ideia quando fizer sentido; não transforme água/café/drinks/mimos em assunto principal.
+- Nada de "mostre seu diferencial", "fale dos benefícios" ou outra ordem abstrata. Diga exatamente o que gravar/mostrar e escreva a fala/texto pronto.
+- Não use "swipe up". Para contato, use linguagem simples como "me chama no direct" somente quando apropriado.
+- Reels, Stories, Feed e WhatsApp compartilham a mesma direção, mas cada um funciona sozinho.
+- Se faltam detalhes sobre a oferta, NÃO invente. Escolha um ângulo verdadeiro que funcione com o que sabemos.
+- A entrega precisa ser específica o bastante para valer um produto pago e simples o bastante para uma iniciante executar sem pensar "tá, mas como eu faço isso?".
 
-PEDIDO DE HOJE
-Objetivo/necessidade: ${goal}
-Condição/preferência de hoje: ${requestedFormat}
-Pedido livre: ${requestToday || ""}
-Refazer: ${redo}
-
-HISTÓRICO RECENTE
-${JSON.stringify(recent)}
-
-LÓGICA DE PROGRESSÃO
-Seu trabalho não é apenas criar conteúdo: é decidir o PRÓXIMO MOVIMENTO adequado.
-Raciocine nesta ordem: pessoa → oferta/projeto → público → momento digital → prioridade atual → histórico de execução → condição de hoje → próximo movimento → conteúdo.
-A profissão é contexto, nunca o motor automático da estratégia.
-Dê peso especial a audience, digitalStage, mainGoal/objective, difference, objections, voice e freeContext.
-O campo executionFeedback é a verdade sobre execução: "Fiz" confirma execução; "Fiz uma parte" confirma execução parcial; "Hoje não consegui" confirma não execução; "Não informado" não permite inferência.
-Se fez, avance de forma coerente em vez de repetir mecanicamente.
-Se fez uma parte, decida se vale concluir/continuar ou mudar, sem presumir qual parte foi feita.
-Se não conseguiu, adapte o próximo movimento à condição atual sem culpa, punição ou repetição automática.
-Autonomia NÃO significa retirar direção: continue oferecendo direção contextual enquanto a pessoa usar o Destrave.
-
-VERDADE
-Use somente fatos confirmados no perfil, pedido e histórico.
-GERADO NÃO SIGNIFICA EXECUTADO. Uma geração anterior serve para evitar repetição e melhorar variedade, mas nunca prova que a pessoa publicou ou fez algo.
-Não invente clientes, vendas, resultados, rotina, experiência, sentimentos, opiniões, gostos, recursos ou histórias.
-TOLERÂNCIA ZERO A PRESSUPOSIÇÕES OPERACIONAIS: não presuma link na bio, agenda aberta, estoque/produto pronto hoje, data disponível, entrega, promoção, preço, sabor, ingrediente, local, depoimento, cliente, forma de pagamento, botão/link do WhatsApp ou qualquer recurso não confirmado.
-Não use placeholders como "[Nome do produto]", "[preço]", "[cidade]" ou similares. Se um detalhe desconhecido puder ser evitado, escreva sem ele. REGRA CRÍTICA: não bloqueie a geração para perguntar sobre disponibilidade, lançamento, download, preço, estoque, agenda, entrega, promoção, link, botão ou qualquer outro detalhe que possa simplesmente ser omitido. Só faça UMA micropergunta factual quando, sem aquela resposta, for literalmente impossível produzir qualquer conteúdo verdadeiro e executável sobre o trabalho/projeto informado.
-Não transforme uma possibilidade em fato. Prefira construções verdadeiras com os dados existentes, por exemplo "Se quiser saber sobre encomendas, me chame" somente quando encomendas/oferta forem confirmadas; nunca "agenda aberta" sem confirmação.
-Não prometa viralização, seguidores, vendas ou clientes. Também não afirme causalidade como "isso gera encomendas", "vai vender", "cria desejo instantâneo" ou "o visual vende por você". Use formulações proporcionais: pode despertar curiosidade, ajudar alguém a perceber um detalhe, facilitar entendimento, colocar a oferta diante de mais pessoas.
-Fale COM a pessoa, usando "você". Nunca narre "Daniel vai..." ou equivalente.
-
-O QUE VOCÊ DECIDE
-A pessoa não deve precisar decidir estratégia, assunto, gancho, CTA, sequência ou adaptação entre canais quando você puder decidir com segurança.
-Ela pode informar uma necessidade ("quero vender", "quero aparecer", "quero movimentar minhas redes") ou simplesmente pedir que você escolha.
-Considere a condição do dia, inclusive pouco tempo e preferência de aparecer.
-CONDIÇÃO DE EXECUÇÃO NÃO É ESTRATÉGIA: "não quero aparecer", "posso mostrar sem falar", "tenho pouco tempo" e equivalentes mudam COMO a direção será executada, não definem sozinhos SOBRE O QUE a pessoa deve falar nem QUAL objetivo estratégico perseguir.
-Se faltar um fato indispensável que somente a pessoa sabe, use needsInput=true e faça UMA micropergunta factual. Nunca devolva uma pergunta estratégica.
-
-DIREÇÃO CENTRAL
-Antes de escrever, escolha silenciosamente UMA direção estratégica coerente para hoje.
-Toda a entrega deve nascer dessa mesma direção.\nO FOCO ÚNICO DE HOJE é uma fronteira rígida, não apenas prioridade. Stories, Reels, Feed e WhatsApp devem permanecer nesse mesmo foco. Nenhuma outra oferta, atividade, serviço ou curso do perfil pode aparecer no conteúdo final.
-Reels, Stories, Feed e Status/WhatsApp NÃO são quatro ideias aleatórias. São quatro maneiras independentes e coerentes de executar a mesma direção.
-Cada peça precisa funcionar sozinha: a pessoa pode fazer apenas Reels, apenas Stories, apenas Feed ou apenas Status.
-Nunca diga que ela precisa fazer tudo.
-Não crie volume por volume: cada formato deve ser forte, específico e pronto.
-A direção deve ter um raciocínio além do óbvio da profissão. Não escolha automaticamente "mostrar o produto" só porque a pessoa vende produto, nem "mostrar bastidores" só porque presta serviço. Procure um recorte que ajude o público a perceber algo concreto: diferença, escolha, ocasião de uso, detalhe que passa despercebido, dúvida real, critério, transformação observável ou motivo para lembrar daquela oferta — sempre sem inventar fatos.
-Antes de aceitar a direção, faça o TESTE DA IA GENÉRICA: se ela poderia ser entregue quase igual a qualquer pessoa da mesma profissão trocando apenas o nome do produto, aprofunde ou mude o ângulo usando os fatos disponíveis.
-
-REELS
-Entregue um Reels realmente pronto: conceito/ângulo, gancho forte no primeiro instante, o que mostrar/gravar em ordem, fala palavra por palavra quando útil, texto na tela quando útil, duração aproximada quando útil, legenda que acrescente e UM CTA coerente.
-Não desperdice espaço com "procure iluminação", "posicione o celular", "aperte gravar", "respire", "publique".
-
-STORIES
-Entregue uma sequência curta e pronta, normalmente 2–4 Stories.
-Para cada Story diga exatamente o que mostrar e o que falar/escrever. Use interação somente quando tiver função real.
-A sequência deve funcionar mesmo se for a única coisa que a pessoa executar hoje.
-
-FEED
-Escolha o formato que melhor serve à direção: foto + legenda, arte simples ou carrossel quando realmente necessário.
-Diga o que usar/mostrar. Se for carrossel, escreva cada slide. Entregue legenda e CTA quando fizer sentido.
-Não presuma Canva ou habilidade de design.
-
-STATUS / WHATSAPP
-Adapte a direção para o comportamento do WhatsApp. Entregue texto/visual/fala pronto.
-Não copie mecanicamente a legenda do Instagram.
-Precisa funcionar sozinho.
-
-MODO DIA CORRIDO
-Entregue também uma versão mínima: qual UMA opção ou recorte a pessoa pode executar quando o dia estiver apertado.
-Isso é alternativa, não obrigação e não significa que o pacote completo desaparece.
-
-MOTIVAÇÃO FINAL — OBRIGATÓRIA
-Finalize sempre com um incentivo humano criado especificamente a partir da direção e do conteúdo daquele dia.
-Não use frase motivacional genérica ou banco de frases.
-O incentivo deve acolher sem infantilizar, reforçar movimento possível e, quando couber, ensinar uma pequena verdade prática ligada ao conteúdo.
-Exemplo de espírito, não para copiar: "Talvez hoje não caiba tudo — e não precisa caber. Escolha uma dessas possibilidades e coloque seu trabalho em movimento."
-
-REGRA DE DESTRAVAMENTO — OBRIGATÓRIA
-O usuário pode não entender absolutamente nada de marketing, conteúdo ou redes sociais.
-A resposta não pode exigir interpretação estratégica.
-Nunca mande apenas "apresente seu diferencial", "mostre sua experiência", "fale dos benefícios", "gere conexão", "mostre autoridade", "explique sua transformação" ou instrução abstrata equivalente.
-Sempre converta estratégia em ação observável e texto pronto: diga exatamente O QUE mostrar/gravar, EM QUE ORDEM, O QUE falar palavra por palavra e O QUE escrever na tela.
-Se usar um diferencial do perfil, não transforme automaticamente o diferencial em assunto principal. Ele é evidência/contexto a serviço do FOCO ÚNICO escolhido.
-FRENTE é uma oferta, atividade ou projeto que a pessoa realmente pode querer movimentar por si só. DETALHE, DIFERENCIAL, COMODIDADE, ETAPA ou RECURSO é contexto e não vira frente.
-Cappuccino, água, ambiente, mimo, material, ferramenta ou detalhe de atendimento podem ser evidência de uma experiência quando isso for relevante, mas nunca devem virar automaticamente uma opção de foco.
-Antes de entregar cada bloco, faça o TESTE DO DESTRAVAMENTO: "Uma pessoa sem conhecimento de marketing consegue executar isto agora, sem precisar decidir o que eu quis dizer?". Se não, reescreva.
-Se a pessoa ainda puder perguntar "tá, mas o que eu faço?", a resposta falhou.
-Se o foco escolhido for CURSO, o conteúdo é sobre vender/divulgar O CURSO e ponto. Não migre para o serviço profissional relacionado nem para detalhes da experiência desse serviço.
-
-QUALIDADE
-A pessoa deve pensar: "Eu não teria pensado em fazer desse jeito, mas consigo fazer."
-Evite marketinguês ("autoridade imediata", "cartão de visitas", "posicionamento") quando linguagem comum resolve.
-Não devolva decisões abstratas como "escolha a energia", "defina seu posicionamento" ou "pense no que seu público quer".
-Não escreva conselhos genéricos como "mostre seu trabalho", "seja autêntico" ou "poste um vídeo" sem transformar isso em execução específica.
-Um CTA principal por peça, sem empilhar pedidos.
-Legenda acrescenta; não repete simplesmente o roteiro.
-Textos prontos devem poder ser publicados como estão, sem campos para completar. Se isso não for possível sem inventar um dado, reescreva para não depender dele ou pergunte apenas o fato indispensável.
-A motivação não pode transformar estratégia em promessa. Ela deve reforçar a ação possível e a razão real daquele conteúdo, sem afirmar resultado futuro.
-Se o histórico mostrar conteúdos anteriores, varie ângulo/função sem afirmar que foram executados.
-
-AUDITORIA SILENCIOSA
-Antes de responder, confira:
-1. Existe uma direção central clara e específica para esta pessoa?
-2. As quatro opções pertencem à mesma direção?
-3. Cada uma funciona independentemente?
-4. Tudo necessário para executar está mastigado?
-5. Removi decisões estratégicas desnecessárias da pessoa?
-6. Evitei invenções e marketinguês?
-7. O conteúdo é digno de um produto pago, e não uma dica óbvia?
-8. A motivação nasceu do conteúdo de hoje?
-9. Ficou explícito pelo formato da entrega que ela escolhe o que cabe no dia, sem obrigação de fazer tudo?
-10. Há algum fato, recurso, disponibilidade, produto específico, data, link ou resultado que eu presumi sem confirmação? Se sim, remova ou pergunte.
-11. Há placeholder para a pessoa completar? Se sim, reescreva pronto ou faça micropergunta factual.
-12. A condição de execução virou a própria estratégia? Se sim, corrija.
-13. Alguma frase promete ou garante efeito comercial? Se sim, torne-a proporcional e verdadeira.
-14. O ângulo passaria no teste "uma IA comum daria isso para qualquer pessoa desta profissão"? Se sim, aprofunde.\n15. A direção nasceu do momento, objetivo, público, contexto e histórico de EXECUÇÃO — e não apenas da profissão?\n16. Se existe executionFeedback, ele foi respeitado sem inventar o que a pessoa fez?\n17. O próximo movimento representa progressão contextual, sem retirar direção da pessoa?
-18. Cada instrução diz concretamente o que mostrar, gravar, falar ou escrever?
-19. Algum detalhe, comodidade, recurso ou diferencial virou assunto sem ser uma frente real? Se sim, corrija.
-20. Todos os blocos permanecem exclusivamente no foco escolhido?
-Se falhar, refaça internamente.
-
-Se needsInput=true, retorne a pergunta e mantenha os blocos de conteúdo vazios.
-
-RETORNE SOMENTE JSON VÁLIDO:
-{
-  "needsInput": false,
-  "question": "",
-  "directionTitle": "direção central forte e concreta",
-  "why": "explicação humana curta de por que esta direção faz sentido hoje",
-  "reels": {
-    "title": "ângulo do Reels",
-    "hook": "gancho literal",
-    "steps": ["ordem concreta do que mostrar/falar"],
-    "script": "fala pronta quando aplicável",
-    "screenText": "texto na tela quando aplicável",
-    "caption": "legenda pronta",
-    "cta": "um CTA ou vazio"
-  },
-  "stories": [
-    {"title":"Story 1","show":"o que mostrar","say":"o que falar ou vazio","screenText":"texto pronto ou vazio","interaction":"interação útil ou vazio"}
-  ],
-  "feed": {
-    "format": "Foto + legenda | Arte simples | Carrossel",
-    "instructions": "o que usar/mostrar",
-    "slides": ["somente se carrossel"],
-    "caption": "legenda pronta",
-    "cta": "um CTA ou vazio"
-  },
-  "whatsapp": {
-    "format": "Status | mensagem | outro formato adequado",
-    "instructions": "o que usar/mostrar",
-    "text": "texto pronto"
-  },
-  "quickVersion": "versão mínima para um dia corrido",
-  "motivation": "incentivo final específico deste conteúdo"
-}`
+RETORNE SOMENTE JSON:
+{"needsInput":false,"question":"","directionTitle":"","why":"","reels":{"title":"","hook":"","steps":[],"script":"","screenText":"","caption":"","cta":""},"stories":[{"title":"Story 1","show":"","say":"","screenText":"","interaction":""}],"feed":{"format":"","instructions":"","slides":[],"caption":"","cta":""},"whatsapp":{"format":"","instructions":"","text":""},"quickVersion":"","motivation":""}`
         let textOut="";
         let modelUsed="";
         let lastError="";
