@@ -301,7 +301,8 @@ function addWork(root){
   panel.innerHTML=`<section class="page-title"><small>O QUE O DESTRAVE SABE SOBRE VOCÊ</small><h1>Meu trabalho.</h1><p>Preencha aos poucos. Quanto melhor eu conheço seu trabalho, mais precisa fica sua direção.</p></section><section class="work-progress glass-card"><b>Seu contexto</b><span></span><i><em></em></i></section><section class="work-fields"></section><button class="premium-primary save-work">SALVAR E VOLTAR AO INÍCIO →</button>`;
   const fields=[
     ['name','Como posso chamar você?','Ex.: Rayane, pode me chamar de Ray.','text'],
-    ['offer','O que você faz ou vende?','Ex.: Faço unhas e também dou curso presencial.','text'],
+    ['offer','O que você faz ou vende?','Liste suas frentes. Ex.: faço unhas e também dou curso presencial.','text'],
+    ['offerDetails','O que a pessoa recebe ou aprende?','Conte o resultado ou o que está incluído. Ex.: no curso, o que a aluna aprende? No serviço, o que você entrega?','text'],
     ['audience','Para quem é o seu trabalho?','Ex.: mulheres que gostam de unhas naturais e elegantes.','text'],
     ['digitalStage','Como está sua presença na internet hoje?','Escolha a opção que mais parece com você.','stage'],
     ['mainGoal','O que você quer conquistar agora?','Pode escolher mais de uma opção.','goal'],
@@ -332,6 +333,7 @@ function addWork(root){
     const newContext=normalizeWorkValue(business.offer||business.activity||business.service);
     business.activity=business.offer||business.activity;
     business.service=business.offer||business.service;
+    business.offerDetails=business.offerDetails||"";
     business.objective=Array.isArray(business.mainGoal)?business.mainGoal.join(', '):(business.mainGoal||business.objective);
     if(newContext && newContext!==previousContext){
       business.workContextId=newContext;
