@@ -239,6 +239,18 @@ Não use frase motivacional genérica ou banco de frases.
 O incentivo deve acolher sem infantilizar, reforçar movimento possível e, quando couber, ensinar uma pequena verdade prática ligada ao conteúdo.
 Exemplo de espírito, não para copiar: "Talvez hoje não caiba tudo — e não precisa caber. Escolha uma dessas possibilidades e coloque seu trabalho em movimento."
 
+REGRA DE DESTRAVAMENTO — OBRIGATÓRIA
+O usuário pode não entender absolutamente nada de marketing, conteúdo ou redes sociais.
+A resposta não pode exigir interpretação estratégica.
+Nunca mande apenas "apresente seu diferencial", "mostre sua experiência", "fale dos benefícios", "gere conexão", "mostre autoridade", "explique sua transformação" ou instrução abstrata equivalente.
+Sempre converta estratégia em ação observável e texto pronto: diga exatamente O QUE mostrar/gravar, EM QUE ORDEM, O QUE falar palavra por palavra e O QUE escrever na tela.
+Se usar um diferencial do perfil, não transforme automaticamente o diferencial em assunto principal. Ele é evidência/contexto a serviço do FOCO ÚNICO escolhido.
+FRENTE é uma oferta, atividade ou projeto que a pessoa realmente pode querer movimentar por si só. DETALHE, DIFERENCIAL, COMODIDADE, ETAPA ou RECURSO é contexto e não vira frente.
+Cappuccino, água, ambiente, mimo, material, ferramenta ou detalhe de atendimento podem ser evidência de uma experiência quando isso for relevante, mas nunca devem virar automaticamente uma opção de foco.
+Antes de entregar cada bloco, faça o TESTE DO DESTRAVAMENTO: "Uma pessoa sem conhecimento de marketing consegue executar isto agora, sem precisar decidir o que eu quis dizer?". Se não, reescreva.
+Se a pessoa ainda puder perguntar "tá, mas o que eu faço?", a resposta falhou.
+Se o foco escolhido for CURSO, o conteúdo é sobre vender/divulgar O CURSO e ponto. Não migre para o serviço profissional relacionado nem para detalhes da experiência desse serviço.
+
 QUALIDADE
 A pessoa deve pensar: "Eu não teria pensado em fazer desse jeito, mas consigo fazer."
 Evite marketinguês ("autoridade imediata", "cartão de visitas", "posicionamento") quando linguagem comum resolve.
@@ -265,7 +277,11 @@ Antes de responder, confira:
 11. Há placeholder para a pessoa completar? Se sim, reescreva pronto ou faça micropergunta factual.
 12. A condição de execução virou a própria estratégia? Se sim, corrija.
 13. Alguma frase promete ou garante efeito comercial? Se sim, torne-a proporcional e verdadeira.
-14. O ângulo passaria no teste "uma IA comum daria isso para qualquer pessoa desta profissão"? Se sim, aprofunde.\n15. A direção nasceu do momento, objetivo, público, contexto e histórico de EXECUÇÃO — e não apenas da profissão?\n16. Se existe executionFeedback, ele foi respeitado sem inventar o que a pessoa fez?\n17. O próximo movimento representa progressão contextual, sem retirar direção da pessoa?\nSe falhar, refaça internamente.
+14. O ângulo passaria no teste "uma IA comum daria isso para qualquer pessoa desta profissão"? Se sim, aprofunde.\n15. A direção nasceu do momento, objetivo, público, contexto e histórico de EXECUÇÃO — e não apenas da profissão?\n16. Se existe executionFeedback, ele foi respeitado sem inventar o que a pessoa fez?\n17. O próximo movimento representa progressão contextual, sem retirar direção da pessoa?
+18. Cada instrução diz concretamente o que mostrar, gravar, falar ou escrever?
+19. Algum detalhe, comodidade, recurso ou diferencial virou assunto sem ser uma frente real? Se sim, corrija.
+20. Todos os blocos permanecem exclusivamente no foco escolhido?
+Se falhar, refaça internamente.
 
 Se needsInput=true, retorne a pergunta e mantenha os blocos de conteúdo vazios.
 
@@ -415,6 +431,9 @@ ${JSON.stringify(plan)}
 Audite e corrija o JSON sem mudar o schema.
 Exija: uma direção central específica; Reels, Stories, Feed e WhatsApp coerentes com a mesma direção e utilizáveis separadamente; execução realmente pronta; quickVersion simples; motivation obrigatória e específica.
 Reprove conteúdo genérico, marketinguês, decisões estratégicas devolvidas à pessoa, operação óbvia de celular, invenções, promessas de resultado, CTAs empilhados e formatos desconectados.
+TESTE DO DESTRAVAMENTO: reprove qualquer instrução que ainda exija que a pessoa descubra o que mostrar, falar ou escrever. "Apresente seu diferencial", "mostre sua experiência" e "fale dos benefícios" são insuficientes sem execução literal.
+Não permita que detalhes, comodidades, recursos ou diferenciais do cadastro virem uma frente ou substituam o foco escolhido. Eles só podem aparecer como evidência contextual quando forem diretamente úteis ao foco.
+O foco selecionado é fronteira rígida: se for curso, audite como conteúdo de curso; não permita migração para o serviço relacionado.
 Tolerância zero: remova fatos não confirmados como link na bio, agenda aberta, disponibilidade, produto pronto hoje, sabores, datas, entrega, promoção, preço, botão/link, estoque ou resultados. Remova placeholders. Se um dado for indispensável, needsInput=true com uma única pergunta factual.
 Condição de execução muda COMO fazer, não deve virar a estratégia inteira. Reprove ângulo óbvio que uma IA comum entregaria quase igual a qualquer pessoa da mesma profissão.
 Reprove causalidade comercial não comprovada ("gera encomendas", "vai vender", "cria desejo instantâneo", "vende por você").
