@@ -61,6 +61,47 @@ export default {
       }
     }
 
+    if (url.pathname === "/api/focus-options" && request.method === "POST") {
+      try {
+        const body=await request.json();
+        const business=body?.business||{};
+        const fallback=String(business.offer||business.activity||business.service||"").trim();
+        if(!fallback) return json({fronts:[]});
+        const prompt=`Leia este cadastro como uma pessoa, não como um separador de palavras.
+Sua tarefa é decidir quais BOTÕES de assunto fazem sentido em "O que vamos movimentar hoje?".
+
+CADASTRO:
+${JSON.stringify(business)}
+
+REGRAS:
+- "Frente" é algo que a pessoa realmente oferece, vende, constrói ou quer divulgar por si só: serviço, produto, curso, projeto, carreira etc.
+- Separe frentes quando exigem comunicação comercial diferente. Ex.: serviço de manicure e curso de manicure são duas frentes.
+- NÃO transforme detalhes em frentes: água, cappuccino, drinks, ambiente, materiais, horários, etapas, ferramentas, mimos e características ficam como contexto.
+- Se houver um diferencial real cadastrado, acrescente UM botão "Meus diferenciais". Não crie um botão para cada evidência do diferencial.
+- "Meus diferenciais" representa a IDEIA CENTRAL do que torna a experiência/trabalho diferente. Detalhes apenas sustentam essa ideia.
+- Não invente nenhuma oferta.
+- Use rótulos curtos, naturais e claros para leigos.
+- Máximo 5 botões.
+Retorne SOMENTE JSON: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
+        let textOut="";
+        if(env.GEMINI_API_KEY){
+          try{
+            const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:500,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}}),signal:AbortSignal.timeout(20000)});
+            const d=await r.json(); if(r.ok) textOut=(d.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+          }catch(_){}
+        }
+        if(!textOut && env.GROQ_API_KEY){
+          try{
+            const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:JSON.stringify({model:"openai/gpt-oss-20b",messages:[{role:"system",content:"Classifique semanticamente. Somente JSON válido."},{role:"user",content:prompt}],temperature:0.1,max_completion_tokens:500,reasoning_effort:"low",response_format:{type:"json_object"}}),signal:AbortSignal.timeout(20000)});
+            const d=await r.json(); if(r.ok) textOut=String(d.choices?.[0]?.message?.content||"").trim();
+          }catch(_){}
+        }
+        let parsed={}; try{parsed=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim())}catch(_){}
+        const fronts=Array.isArray(parsed.fronts)?parsed.fronts.filter(x=>x&&String(x.label||"").trim()).slice(0,5):[];
+        return json({fronts:fronts.length?fronts:[{label:fallback,kind:"offer"}]});
+      } catch(e) { return json({fronts:[],error:String(e?.message||e)},{status:500}); }
+    }
+
     if (url.pathname === "/api/generate" && request.method === "POST") {
       try {
         const clientId = request.headers.get("x-destrave-client");
