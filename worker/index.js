@@ -43,7 +43,11 @@ export default {
         if (!business.name || !(business.activity || business.service) || !business.objective) {
           return json({ok:false,error:"Complete primeiro o cadastro do Destrave."},{status:400});
         }
-        const recent = history.slice(0,8).map(x=>({title:x.title,format:x.format,executionFeedback:x.executionFeedback||"Não informado",executionFeedbackAt:x.executionFeedbackAt||"",text:String(x.text||"").slice(0,1200)}));
+        const activeWorkContext = String(business.workContextId || business.offer || business.activity || business.service || "").trim().toLowerCase().replace(/\s+/g," ");
+        const relevantHistory = activeWorkContext
+          ? history.filter(x => String(x?.workContextId || "").trim().toLowerCase().replace(/\s+/g," ") === activeWorkContext)
+          : [];
+        const recent = relevantHistory.slice(0,8).map(x=>({title:x.title,format:x.format,executionFeedback:x.executionFeedback||"Não informado",executionFeedbackAt:x.executionFeedbackAt||"",text:String(x.text||"").slice(0,1200)}));
         const redo = Boolean(body.redo);
         const factVault = {
           name: business.name || "",
