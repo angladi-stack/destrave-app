@@ -301,15 +301,15 @@ function addWork(root){
   const panel=document.createElement('main');panel.className='premium-page premium-work';
   panel.innerHTML=`<section class="page-title"><small>O QUE O DESTRAVE SABE SOBRE VOCÊ</small><h1>Meu trabalho.</h1><p>Preencha aos poucos. Quanto melhor eu conheço seu trabalho, mais precisa fica sua direção.</p></section><section class="work-progress glass-card"><b>Seu contexto</b><span></span><i><em></em></i></section><section class="work-fields"></section><button class="premium-primary save-work">SALVAR E VOLTAR AO INÍCIO →</button>`;
   const fields=[
-    ['name','Seu nome','Como devo chamar você?','text'],
-    ['offer','O que você oferece ou está construindo?','Produto, serviço, trabalho ou projeto.','text'],
-    ['audience','Para quem?','Quem você quer alcançar.','text'],
-    ['digitalStage','Seu momento no digital','Onde você está agora.','stage'],
-    ['mainGoal','O que quer fazer acontecer agora?','Sua prioridade atual.','goal'],
-    ['difference','O que diferencia seu trabalho?','O que torna sua oferta particular.','text'],
-    ['objections','Dúvidas e objeções','O que costuma fazer seu cliente hesitar.','text'],
-    ['voice','Seu jeito de falar','Como o conteúdo deve soar.','voice'],
-    ['freeContext','Algo mais que eu preciso saber?','Espaço livre para contexto importante.','text']
+    ['name','Como posso chamar você?','Ex.: Rayane, pode me chamar de Ray.','text'],
+    ['offer','O que você faz ou vende?','Ex.: Faço unhas e também dou curso presencial.','text'],
+    ['audience','Para quem é o seu trabalho?','Ex.: mulheres que gostam de unhas naturais e elegantes.','text'],
+    ['digitalStage','Como está sua presença na internet hoje?','Escolha a opção que mais parece com você.','stage'],
+    ['mainGoal','O que você quer conquistar agora?','Pode escolher mais de uma opção.','goal'],
+    ['difference','O que faz seu trabalho ser diferente?','Pode ser seu atendimento, sua forma de trabalhar, sua experiência ou seu ambiente.','text'],
+    ['objections','O que costuma deixar seu cliente em dúvida?','Ex.: preço, durabilidade, confiança, prazo ou resultado.','text'],
+    ['voice','Como você gosta de falar com as pessoas?','Escolha os jeitos que combinam com você.','voice'],
+    ['freeContext','Tem algum detalhe importante que eu ainda não perguntei?','Pode contar algo sobre seu espaço, atendimento, produtos, curso, rotina ou experiência.','text']
   ];
   const options={
     stage:['Ainda não comecei','Estou começando agora','Já publico, mas sem constância','Parei e quero voltar','Já publico e quero melhorar os resultados'],
