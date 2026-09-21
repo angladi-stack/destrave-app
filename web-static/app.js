@@ -202,7 +202,7 @@ function addDaily(root){
       const subject=business.offer||business.activity||business.service||'meu trabalho';
       const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
       const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(),90000);
+      const timeout=setTimeout(()=>controller.abort(),180000);
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat}),signal:controller.signal});
       clearTimeout(timeout);
       const data=await r.json();if(!data.ok)throw new Error(data.error||'generation_failed');
