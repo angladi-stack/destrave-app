@@ -166,7 +166,12 @@ function addHome(root){
   };
   root.appendChild(panel);
 }
-function pendingExecution(){return contents.find(x=>x&&x.plan&&!x.plan.needsInput&&!x.executionFeedback)}
+function normalizeWorkValue(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,' ')}
+function currentWorkContextId(){return normalizeWorkValue(business.workContextId||'')}
+function pendingExecution(){
+  const contextId=currentWorkContextId();
+  return contents.find(x=>x&&x.plan&&!x.plan.needsInput&&!x.executionFeedback&&(!contextId||normalizeWorkValue(x.workContextId)===contextId))
+}
 async function saveExecutionFeedback(item,value){const target=contents.find(x=>String(x.id)===String(item.id))||item;target.executionFeedback=value;target.executionFeedbackAt=new Date().toISOString();await syncToCloud();showToast('Resposta registrada ✦')}
 function executionGate(item,onDone){const page=document.createElement('div');page.className='plan-page movement-page';const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Antes de continuar…</h1><p>O Destrave precisa saber o que aconteceu com seu último movimento.</p></div>';top.querySelector('button').onclick=()=>navigate('home');page.append(top);const body=document.createElement('main');body.className='plan-main movement-main';const card=document.createElement('section');card.className='plan-hero';card.innerHTML='<small>SEU ÚLTIMO MOVIMENTO</small><h2></h2><p>Como foi com esse conteúdo?</p>';card.querySelector('h2').textContent=cleanText(item.title||'Seu conteúdo anterior');body.append(card);[['Fiz','Fiz'],['Fiz uma parte','Fiz uma parte'],['Hoje não consegui','Hoje não consegui']].forEach(([label,value])=>{const b=document.createElement('button');b.type='button';b.className='premium-primary';b.textContent=label;b.onclick=async()=>{await saveExecutionFeedback(item,value);onDone()};body.append(b)});page.append(body);return page}
 function addDaily(root){
@@ -186,7 +191,7 @@ function addDaily(root){
       const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
       const data=await r.json();if(!data.ok)throw new Error('generation_failed');
-      const generated={id:Date.now(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
+      const generated={id:Date.now(),workContextId:currentWorkContextId(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
       contents.unshift(generated);await syncToCloud();stop();showResult(generated);
     }catch(e){stop();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
   };
@@ -274,7 +279,21 @@ function addWork(root){
   });
   const refresh=()=>{const done=fields.filter(([k])=>{const v=business[k];return Array.isArray(v)?v.length:String(v||'').trim()}).length;panel.querySelector('.work-progress span').textContent=done+' de '+fields.length+' preenchidos';panel.querySelector('.work-progress em').style.width=(done/fields.length*100)+'%'};
   panel.querySelectorAll('textarea,.field-option').forEach(x=>x.addEventListener('input',refresh));panel.querySelectorAll('.field-option').forEach(x=>x.addEventListener('click',refresh));refresh();
-  panel.querySelector('.save-work').onclick=async()=>{business.activity=business.offer||business.activity;business.service=business.offer||business.service;business.objective=Array.isArray(business.mainGoal)?business.mainGoal.join(', '):(business.mainGoal||business.objective);await syncToCloud();showToast(first?'Agora eu conheço melhor você ✦':'Informações atualizadas ✦');navigate('home')};
+  panel.querySelector('.save-work').onclick=async()=>{
+    const previousContext=currentWorkContextId();
+    const newContext=normalizeWorkValue(business.offer||business.activity||business.service);
+    business.activity=business.offer||business.activity;
+    business.service=business.offer||business.service;
+    business.objective=Array.isArray(business.mainGoal)?business.mainGoal.join(', '):(business.mainGoal||business.objective);
+    if(newContext && newContext!==previousContext){
+      business.workContextId=newContext;
+      // Conteúdos antigos continuam guardados, mas pertencem ao contexto anterior.
+      // Eles não podem bloquear nem orientar a nova atividade.
+    }else if(newContext && !business.workContextId){
+      business.workContextId=newContext;
+    }
+    await syncToCloud();showToast(first?'Agora eu conheço melhor você ✦':(newContext!==previousContext?'Novo trabalho reconhecido. Começamos um histórico novo ✦':'Informações atualizadas ✦'));navigate('home')
+  };
   root.appendChild(panel);
 }
 function cleanText(v){return String(v||'').replace(/\\*\\*/g,'').replace(/^#+\\s*/gm,'').trim()}
@@ -359,7 +378,7 @@ function showMovementResult(item,p){
   page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
 }
 function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
-async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'gemini'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
+async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),workContextId:currentWorkContextId(),executionFeedback:null,executionFeedbackAt:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
 
 function addProfile(root){
   premiumHeader(root);
