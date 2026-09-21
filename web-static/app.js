@@ -187,10 +187,9 @@ b.addEventListener('click',answer);
 b.addEventListener('touchend',(e)=>{e.preventDefault();answer()},{passive:false});
 body.append(b)});page.append(body);return page}
 function focusChoicesFromProfile(){
-  // Fallback conservador: nunca transforme freeContext/diferenciais em frentes.
-  // A frente principal vem somente do campo explícito de oferta/serviço.
-  const primary=String(business.offer||business.activity||business.service||'').trim();
-  return primary?[primary]:[];
+  // Falha segura: não tenta interpretar cadastro no navegador.
+  // O backend semântico decide as frentes; aqui mostramos apenas um rótulo neutro se ele estiver indisponível.
+  return ['Meu trabalho'];
 }
 async function detectRealFocusChoices(){
   const fallback=focusChoicesFromProfile();
