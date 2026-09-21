@@ -225,9 +225,9 @@ function addDaily(root){
   panel.innerHTML=`<section class="page-title"><small>CONTEÚDO DO DIA</small><h1>Seu próximo movimento.</h1><p>Primeiro escolhemos o foco. Depois o Destrave cria o pacote completo em uma única geração.</p></section>
   <section class="glass-card"><h2>Hoje eu vou considerar</h2><div class="context-pill">◷ ${daily.time||'Seu tempo de hoje'}</div><div class="context-pill">◎ ${daily.appearance||'Como prefere aparecer'}</div><p class="soft">Stories, Reels, Feed e WhatsApp serão gerados juntos. Depois você escolhe o que quer usar, sem gastar uma nova geração.</p></section>
   <button class="premium-primary generate-now">✦ ESCOLHER O FOCO DE HOJE →</button>`;
-  panel.querySelector('.generate-now').onclick=()=>{
+  panel.querySelector('.generate-now').onclick=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer melhor seu trabalho.');navigate('work');return}
-    const picker=focusPicker(async(selectedFocus)=>{
+    const picker=await focusPicker(async(selectedFocus)=>{
       daily.focus=selectedFocus;writeJSON('destrave-daily',daily);
       app.replaceChildren(picker);
       const stop=showGenerating();
