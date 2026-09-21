@@ -254,7 +254,7 @@ RETORNE SOMENTE JSON VÁLIDO:
         // Se a chave estiver ausente, inválida, sem cota ou o serviço falhar, o fluxo segue para a Groq.
         if (env.GEMINI_API_KEY) {
           try {
-            const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent";
+            const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
             const geminiBody=JSON.stringify({
               contents:[{parts:[{text:motherPrompt}]}],
               generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json"}
@@ -263,7 +263,7 @@ RETORNE SOMENTE JSON VÁLIDO:
             const gd=await gr.json();
             if (gr.ok) {
               textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-              if (textOut) modelUsed="gemini-3.8-flash";
+              if (textOut) modelUsed="gemini-2.5-flash";
               else lastError="Gemini respondeu sem conteúdo";
             } else {
               lastError=gd?.error?.message || "Gemini indisponível";
