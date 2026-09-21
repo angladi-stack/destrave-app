@@ -56,9 +56,17 @@ function showToast(text){
 function showGenerating(){
   const old=document.querySelector('.destrave-generating');if(old)old.remove();
   const overlay=document.createElement('div');overlay.className='destrave-generating';
+  overlay.setAttribute('role','status');
+  overlay.setAttribute('aria-live','polite');
+  overlay.setAttribute('aria-label','Criando seu conteúdo');
   overlay.innerHTML='<div class="generating-card"><div class="generating-mark">✦</div><strong>Criando seu conteúdo...</strong><p>O Destrave está preparando seu próximo movimento.</p><div class="generating-progress"><i></i></div></div>';
+  // Inline critical positioning makes the wait state reliable even if an older
+  // stylesheet is briefly cached by the installed PWA/mobile browser.
+  Object.assign(overlay.style,{position:'fixed',top:'0',right:'0',bottom:'0',left:'0',zIndex:'2147483647',display:'flex',alignItems:'center',justifyContent:'center',visibility:'visible',opacity:'1',pointerEvents:'auto'});
   document.body.appendChild(overlay);
-  return ()=>overlay.remove();
+  // Force layout now and yield one paint before the network request begins.
+  void overlay.offsetHeight;
+  return ()=>{if(overlay.isConnected)overlay.remove()};
 }
 
 function button(top,left,width,height,onClick,label=''){
