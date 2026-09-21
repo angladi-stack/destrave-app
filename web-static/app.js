@@ -205,7 +205,7 @@ function addDaily(root){
       const timeout=setTimeout(()=>controller.abort(),180000);
       const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat}),signal:controller.signal});
       clearTimeout(timeout);
-      const data=await r.json();if(!data.ok)throw new Error(data.error||'generation_failed');
+      const data=await r.json();if(!data.ok){try{localStorage.setItem('destrave_last_generation_error',JSON.stringify({at:new Date().toISOString(),status:r.status,code:data.code||'',error:data.error||'',details:data.details||[],model:data.model||'',message:data.message||''}))}catch(_){};throw new Error(data.error||'generation_failed');}
       const generated={id:Date.now(),workContextId:currentWorkContextId(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
       contents.unshift(generated);await syncToCloud();stop();showResult(generated);
     }catch(e){stop();showToast(e?.name==='AbortError'?'A geração demorou além do esperado. Tente novamente. ✦':'Não consegui concluir agora. O Destrave tentou os motores disponíveis. ✦')}
