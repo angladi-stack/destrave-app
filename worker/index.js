@@ -462,6 +462,23 @@ Regras: não invente substitutos; não use placeholders; se o dado for dispensá
           hardViolations=deterministicAudit(plan);
         }
         if(hardViolations.length){
+          // A guarda factual não deve derrubar todo o Conteúdo do Dia por detalhes dispensáveis.
+          // Faz uma última limpeza determinística dos dois casos seguros de remover: placeholders
+          // e instruções que presumem "link". O restante continua protegido.
+          const cleanStrings=(value)=>{
+            if(Array.isArray(value)) return value.map(cleanStrings);
+            if(value && typeof value==="object") return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,cleanStrings(v)]));
+            if(typeof value!=="string") return value;
+            return value
+              .replace(/\[[^\]]+\]|\{\{[^}]+\}\}/g,"")
+              .replace(/(?:acesse|clique|toque|confira|veja|saiba mais)(?:\s+(?:no|pelo|atrav[eé]s do))?\s+link(?:\s+na bio|\s+abaixo)?/gi,"me chame")
+              .replace(/\blink(?:\s+na bio|\s+abaixo)\b/gi,"")
+              .replace(/\s{2,}/g," ").trim();
+          };
+          plan=cleanStrings(plan);
+          hardViolations=deterministicAudit(plan);
+        }
+        if(hardViolations.length){
           return json({ok:false,error:"O Destrave bloqueou uma resposta que usava informação não confirmada. Tente criar outra versão.",code:"FACT_GUARD",details:hardViolations},{status:422});
         }
 
