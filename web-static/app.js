@@ -172,8 +172,16 @@ function pendingExecution(){
   const contextId=currentWorkContextId();
   return contents.find(x=>x&&x.plan&&!x.plan.needsInput&&!x.executionFeedback&&(!contextId||normalizeWorkValue(x.workContextId)===contextId))
 }
-async function saveExecutionFeedback(item,value){const target=contents.find(x=>String(x.id)===String(item.id))||item;target.executionFeedback=value;target.executionFeedbackAt=new Date().toISOString();await syncToCloud();showToast('Resposta registrada ✦')}
-function executionGate(item,onDone){const page=document.createElement('div');page.className='plan-page movement-page';const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Antes de continuar…</h1><p>O Destrave precisa saber o que aconteceu com seu último movimento.</p></div>';top.querySelector('button').onclick=()=>navigate('home');page.append(top);const body=document.createElement('main');body.className='plan-main movement-main';const card=document.createElement('section');card.className='plan-hero';card.innerHTML='<small>SEU ÚLTIMO MOVIMENTO</small><h2></h2><p>Como foi com esse conteúdo?</p>';card.querySelector('h2').textContent=cleanText(item.title||'Seu conteúdo anterior');body.append(card);[['Fiz','Fiz'],['Fiz uma parte','Fiz uma parte'],['Hoje não consegui','Hoje não consegui']].forEach(([label,value])=>{const b=document.createElement('button');b.type='button';b.className='premium-primary';b.textContent=label;b.onclick=async()=>{await saveExecutionFeedback(item,value);onDone()};body.append(b)});page.append(body);return page}
+async function saveExecutionFeedback(item,value){
+  const target=contents.find(x=>String(x.id)===String(item.id))||item;
+  target.executionFeedback=value;
+  target.executionFeedbackAt=new Date().toISOString();
+  // Persist locally first so the gate can never trap the person if cloud sync is slow/fails.
+  writeJSON('destrave-contents',contents);
+  showToast('Resposta registrada ✦');
+  syncToCloud().catch(()=>{});
+}
+function executionGate(item,onDone){const page=document.createElement('div');page.className='plan-page movement-page';const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Antes de continuar…</h1><p>O Destrave precisa saber o que aconteceu com seu último movimento.</p></div>';top.querySelector('button').onclick=()=>navigate('home');page.append(top);const body=document.createElement('main');body.className='plan-main movement-main';const card=document.createElement('section');card.className='plan-hero';card.innerHTML='<small>SEU ÚLTIMO MOVIMENTO</small><h2></h2><p>Como foi com esse conteúdo?</p>';card.querySelector('h2').textContent=cleanText(item.title||'Seu conteúdo anterior');body.append(card);[['Fiz','Fiz'],['Fiz uma parte','Fiz uma parte'],['Hoje não consegui','Hoje não consegui']].forEach(([label,value])=>{const b=document.createElement('button');b.type='button';b.className='premium-primary';b.textContent=label;b.onclick=()=>{saveExecutionFeedback(item,value);onDone()};body.append(b)});page.append(body);return page}
 function addDaily(root){
   const pending=pendingExecution();if(pending){root.appendChild(executionGate(pending,()=>navigate('daily')));return}
   premiumHeader(root);
