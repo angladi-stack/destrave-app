@@ -212,11 +212,17 @@ REGRAS INEGOCIÁVEIS
 - Nada de "mostre seu diferencial", "fale dos benefícios" ou outra ordem abstrata. Diga exatamente o que gravar/mostrar e escreva a fala/texto pronto.
 - Não use "swipe up". Para contato, use linguagem simples como "me chama no direct" somente quando apropriado.
 - Reels, Stories, Feed e WhatsApp compartilham a mesma direção, mas cada um funciona sozinho.
+- STORIES NUNCA é uma tela solta: entregue de 3 a 5 Stories em sequência narrativa completa.
+- Story 1 = COMEÇO: abre curiosidade, dor, desejo, pergunta ou situação concreta e cria motivo para continuar.
+- Story(s) do MEIO = desenvolve a ideia, mostra/explica/prova e pode usar interação quando ela tiver função real.
+- Story final = FIM: fecha o raciocínio e, quando o objetivo for divulgação/venda, conecta RESULTADO → BENEFÍCIO DESSE RESULTADO → CHAMADA PARA AÇÃO.
+- Os Stories devem parecer uma conversa contínua. Cada tela nasce da anterior; não entregue ideias independentes empilhadas.
+- Interação não é enfeite: a resposta da enquete/pergunta deve ajudar a conduzir naturalmente a próxima tela.
 - Se faltam detalhes sobre a oferta, NÃO invente. Se ainda for possível criar algo específico e valioso, faça. Se a falta impedir um conteúdo digno de produto pago, use needsInput=true e faça UMA pergunta factual curta que aumente muito a qualidade (por exemplo, o que a pessoa aprende/recebe nessa oferta). Não faça pergunta de marketing nem pergunte algo que já está no contexto.
 - A entrega precisa ser específica o bastante para valer um produto pago e simples o bastante para uma iniciante executar sem pensar "tá, mas como eu faço isso?".
 
 RETORNE SOMENTE JSON:
-{"needsInput":false,"question":"","directionTitle":"","why":"","reels":{"title":"","hook":"","steps":[],"script":"","screenText":"","caption":"","cta":""},"stories":[{"title":"Story 1","show":"","say":"","screenText":"","interaction":""}],"feed":{"format":"","instructions":"","slides":[],"caption":"","cta":""},"whatsapp":{"format":"","instructions":"","text":""},"quickVersion":"","motivation":""}`
+{"needsInput":false,"question":"","directionTitle":"","why":"","reels":{"title":"","hook":"","steps":[],"script":"","screenText":"","caption":"","cta":""},"stories":[{"title":"Story 1 — Começo","show":"","say":"","screenText":"","interaction":""},{"title":"Story 2 — Meio","show":"","say":"","screenText":"","interaction":""},{"title":"Story 3 — Fim","show":"","say":"","screenText":"","interaction":""}],"feed":{"format":"","instructions":"","slides":[],"caption":"","cta":""},"whatsapp":{"format":"","instructions":"","text":""},"quickVersion":"","motivation":""}`
         let textOut="";
         let modelUsed="";
         let lastError="";
