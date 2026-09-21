@@ -201,11 +201,14 @@ function addDaily(root){
       const goal=(Array.isArray(business.mainGoal)?business.mainGoal.join(', '):business.mainGoal)||business.objective||'Escolha por mim';
       const subject=business.offer||business.activity||business.service||'meu trabalho';
       const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
-      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat})});
-      const data=await r.json();if(!data.ok)throw new Error('generation_failed');
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),90000);
+      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat}),signal:controller.signal});
+      clearTimeout(timeout);
+      const data=await r.json();if(!data.ok)throw new Error(data.error||'generation_failed');
       const generated={id:Date.now(),workContextId:currentWorkContextId(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
       contents.unshift(generated);await syncToCloud();stop();showResult(generated);
-    }catch(e){stop();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦')}
+    }catch(e){stop();showToast(e?.name==='AbortError'?'A geração demorou além do esperado. Tente novamente. ✦':'Não consegui concluir agora. O Destrave tentou os motores disponíveis. ✦')}
   };
   root.appendChild(panel);
 }
