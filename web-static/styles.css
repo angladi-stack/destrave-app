@@ -855,3 +855,20 @@ body{overflow-x:hidden}
   opacity:1 !important;
   font-weight:500 !important;
 }
+
+
+/* Execution feedback — stronger contrast on the temporary mandatory choices */
+.execution-feedback-btn{
+  background:#3b2117!important;
+  color:#fff8ea!important;
+  border:1px solid #5b3828!important;
+  font-size:15px!important;
+  font-weight:800!important;
+  letter-spacing:.25px!important;
+  box-shadow:0 10px 24px rgba(45,24,16,.18)!important;
+}
+.execution-feedback-btn:active{
+  background:#24130d!important;
+  color:#fffdf7!important;
+  transform:translateY(1px);
+}
