@@ -872,3 +872,26 @@ body{overflow-x:hidden}
   color:#fffdf7!important;
   transform:translateY(1px);
 }
+
+
+/* Execution gate — force the three answer buttons to match the dark chocolate card. */
+.plan-page .plan-main .premium-primary.execution-feedback-btn,
+.plan-page .movement-main .premium-primary.execution-feedback-btn{
+  background:#3a261d !important;
+  background-image:none !important;
+  color:#fffaf0 !important;
+  opacity:1 !important;
+  -webkit-text-fill-color:#fffaf0 !important;
+  border:1px solid #4b3024 !important;
+  filter:none !important;
+  box-shadow:0 10px 24px rgba(45,24,16,.22) !important;
+}
+.plan-page .plan-main .premium-primary.execution-feedback-btn:hover,
+.plan-page .plan-main .premium-primary.execution-feedback-btn:focus,
+.plan-page .plan-main .premium-primary.execution-feedback-btn:active{
+  background:#291912 !important;
+  background-image:none !important;
+  color:#ffffff !important;
+  -webkit-text-fill-color:#ffffff !important;
+  opacity:1 !important;
+}
