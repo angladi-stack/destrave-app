@@ -186,33 +186,59 @@ const answer=()=>{b.disabled=true;saveExecutionFeedback(item,value);onDone()};
 b.addEventListener('click',answer);
 b.addEventListener('touchend',(e)=>{e.preventDefault();answer()},{passive:false});
 body.append(b)});page.append(body);return page}
+function focusChoicesFromProfile(){
+  const raw=[business.offer,business.activity,business.service,business.freeContext].filter(Boolean).join('\n');
+  const cleaned=raw.replace(/\b(e|tamb[eé]m|al[eé]m de|trabalho com|fa[cç]o|ofere[cç]o|vendo|presto)\b/gi,',');
+  const parts=cleaned.split(/\n|;|,|\||\/|\s+ou\s+/i).map(x=>x.trim()).filter(x=>x.length>2);
+  const unique=[];
+  for(const part of parts){
+    const key=normalizeWorkValue(part);
+    if(!unique.some(x=>normalizeWorkValue(x)===key)) unique.push(part);
+    if(unique.length>=6) break;
+  }
+  return unique.length?unique:[business.offer||business.activity||business.service||'Meu trabalho'];
+}
+function focusPicker(onSelect){
+  const page=document.createElement('div');page.className='plan-page movement-page';
+  const top=document.createElement('header');top.className='plan-top';
+  top.innerHTML='<button class="plan-back">‹</button><div><h1>O que vamos movimentar hoje?</h1><p>Escolha uma frente do seu trabalho. O conteúdo inteiro vai seguir somente esse foco.</p></div>';
+  top.querySelector('button').onclick=()=>navigate('home');page.append(top);
+  const body=document.createElement('main');body.className='plan-main movement-main';
+  const options=focusChoicesFromProfile();
+  options.forEach((value,index)=>{const b=document.createElement('button');b.type='button';b.className='premium-primary focus-choice-btn';b.textContent=value;const choose=()=>onSelect(value);b.addEventListener('click',choose);b.addEventListener('touchend',(e)=>{e.preventDefault();choose()},{passive:false});body.append(b)});
+  const other=document.createElement('button');other.type='button';other.className='premium-primary focus-choice-btn';other.textContent='Outra coisa';other.onclick=()=>{
+    const card=document.createElement('section');card.className='glass-card';
+    const input=document.createElement('textarea');input.rows=3;input.placeholder='O que você quer divulgar hoje?';
+    const go=document.createElement('button');go.className='premium-primary';go.textContent='CONTINUAR →';go.onclick=()=>{const value=input.value.trim();if(value)onSelect(value);else showToast('Me diga o foco de hoje.')};
+    card.append(input,go);body.replaceChildren(card);input.focus();
+  };body.append(other);page.append(body);return page;
+}
 function addDaily(root){
   const pending=pendingExecution();if(pending){root.appendChild(executionGate(pending,()=>navigate('daily')));return}
   premiumHeader(root);
   const daily=readJSON('destrave-daily',{});
   const panel=document.createElement('main');panel.className='premium-page premium-daily';
-  panel.innerHTML=`<section class="page-title"><small>CONTEÚDO DO DIA</small><h1>Seu próximo movimento.</h1><p>Uma direção central. Várias possibilidades de execução.</p></section>
-  <section class="glass-card"><h2>Hoje eu vou considerar</h2><div class="context-pill">◷ ${daily.time||'Seu tempo de hoje'}</div><div class="context-pill">◎ ${daily.appearance||'Como prefere aparecer'}</div><p class="soft">O Destrave usa seu trabalho, seu momento digital e seu histórico para decidir o que faz sentido agora.</p></section>
-  <button class="premium-primary generate-now">✦ CRIAR MEU CONTEÚDO DO DIA →</button>`;
-  panel.querySelector('.generate-now').onclick=async()=>{
+  panel.innerHTML=`<section class="page-title"><small>CONTEÚDO DO DIA</small><h1>Seu próximo movimento.</h1><p>Primeiro escolhemos o foco. Depois o Destrave cria o pacote completo em uma única geração.</p></section>
+  <section class="glass-card"><h2>Hoje eu vou considerar</h2><div class="context-pill">◷ ${daily.time||'Seu tempo de hoje'}</div><div class="context-pill">◎ ${daily.appearance||'Como prefere aparecer'}</div><p class="soft">Stories, Reels, Feed e WhatsApp serão gerados juntos. Depois você escolhe o que quer usar, sem gastar uma nova geração.</p></section>
+  <button class="premium-primary generate-now">✦ ESCOLHER O FOCO DE HOJE →</button>`;
+  panel.querySelector('.generate-now').onclick=()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer melhor seu trabalho.');navigate('work');return}
-    const stop=showGenerating();
-    try{
-      const goal=(Array.isArray(business.mainGoal)?business.mainGoal.join(', '):business.mainGoal)||business.objective||'Escolha por mim';
-      const subject=business.offer||business.activity||business.service||'meu trabalho';
-      const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
-      const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(),180000);
-      const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:subject,requestedFormat}),signal:controller.signal});
-      clearTimeout(timeout);
-      const data=await r.json();if(!data.ok){
-        stop();
-        showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦');
-        return;
-      }
-      const generated={id:Date.now(),workContextId:currentWorkContextId(),title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
-      contents.unshift(generated);await syncToCloud();stop();showResult(generated);
-    }catch(e){stop();showToast(e?.name==='AbortError'?'A geração demorou além do esperado. Tente novamente. ✦':'Não consegui concluir agora. O Destrave tentou os motores disponíveis. ✦')}
+    const picker=focusPicker(async(selectedFocus)=>{
+      daily.focus=selectedFocus;writeJSON('destrave-daily',daily);
+      app.replaceChildren(picker);
+      const stop=showGenerating();
+      try{
+        const goal=(Array.isArray(business.mainGoal)?business.mainGoal.join(', '):business.mainGoal)||business.objective||'Escolha por mim';
+        const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
+        const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),180000);
+        const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:selectedFocus,focus:selectedFocus,requestedFormat}),signal:controller.signal});
+        clearTimeout(timeout);const data=await r.json();
+        if(!data.ok){stop();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦');return}
+        const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
+        contents.unshift(generated);await syncToCloud();stop();showResult(generated);
+      }catch(e){stop();showToast(e?.name==='AbortError'?'A geração demorou além do esperado. Tente novamente. ✦':'Não consegui concluir agora. O Destrave tentou os motores disponíveis. ✦')}
+    });
+    app.replaceChildren(picker);window.scrollTo(0,0);
   };
   root.appendChild(panel);
 }
