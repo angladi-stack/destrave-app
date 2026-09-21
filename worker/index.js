@@ -487,6 +487,7 @@ Regras: não invente substitutos; não use placeholders; se o dado for dispensá
       return json({ ok: false, error: "Rota não encontrada" }, { status: 404 });
     }
 
-    return env.ASSETS.fetch(request);
+    if (env.ASSETS && typeof env.ASSETS.fetch === "function") return env.ASSETS.fetch(request);
+    return json({ok:false,error:"Assets indisponíveis neste ambiente.",code:"ASSETS_BINDING_MISSING"},{status:503});
   }
 };
