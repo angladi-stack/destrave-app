@@ -29,7 +29,7 @@ export default {
 
     if (url.pathname === "/api/ai-check") {
       const results={};
-      if(env.GEMINI_API_KEY){try{const x=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:"Responda apenas OK"}]}],generationConfig:{maxOutputTokens:20}}),signal:AbortSignal.timeout(12000)});const raw=await x.text();let d={};try{d=JSON.parse(raw)}catch{}results.gemini={ok:x.ok,status:x.status,error:d?.error?.message||null,hasContent:Boolean(d?.candidates?.[0]?.content?.parts?.[0]?.text)}}catch(e){results.gemini={ok:false,error:String(e?.message||e)}}}else results.gemini={ok:false,error:"chave ausente"};
+      if(env.GEMINI_API_KEY){try{const x=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:"Responda apenas OK"}]}],generationConfig:{maxOutputTokens:20}}),signal:AbortSignal.timeout(12000)});const raw=await x.text();let d={};try{d=JSON.parse(raw)}catch{}results.gemini={ok:x.ok,status:x.status,error:d?.error?.message||null,hasContent:Boolean(d?.candidates?.[0]?.content?.parts?.[0]?.text)}}catch(e){results.gemini={ok:false,error:String(e?.message||e)}}}else results.gemini={ok:false,error:"chave ausente"};
       if(env.GROQ_API_KEY){try{const x=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:JSON.stringify({model:"openai/gpt-oss-20b",messages:[{role:"user",content:"Responda apenas OK"}],max_completion_tokens:40,reasoning_effort:"low"}),signal:AbortSignal.timeout(12000)});const raw=await x.text();let d={};try{d=JSON.parse(raw)}catch{}results.groq={ok:x.ok,status:x.status,error:d?.error?.message||null,hasContent:Boolean(d?.choices?.[0]?.message?.content)}}catch(e){results.groq={ok:false,error:String(e?.message||e)}}}else results.groq={ok:false,error:"chave ausente"};
       if(env.AI){try{const x=await Promise.race([env.AI.run("@cf/google/gemma-4-26b-a4b-it",{messages:[{role:"user",content:"Responda apenas OK"}],max_tokens:20}),new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 12s")),12000))]);results.cloudflareAI={ok:Boolean(String(x?.response??x?.choices?.[0]?.message?.content??"").trim()),error:null}}catch(e){results.cloudflareAI={ok:false,error:String(e?.message||e)}}}else results.cloudflareAI={ok:false,error:"binding ausente"};
       return json({ok:Object.values(results).some(x=>x.ok),providers:results});
@@ -266,7 +266,7 @@ RETORNE SOMENTE JSON VÁLIDO:
         // Motor 1: Gemini.
         if (env.GEMINI_API_KEY) {
           try {
-            const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+            const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
             const gr=await fetch(geminiUrl,{
               method:"POST",
               headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
@@ -280,7 +280,7 @@ RETORNE SOMENTE JSON VÁLIDO:
             let gd={}; try{gd=JSON.parse(raw)}catch{}
             if(gr.ok){
               textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-              if(textOut) modelUsed="gemini-2.5-flash";
+              if(textOut) modelUsed="gemini-3.6-flash";
               else rememberError("gemini","resposta vazia");
             }else rememberError("gemini",gd?.error?.message||("HTTP "+gr.status));
           }catch(error){rememberError("gemini",error)}
