@@ -117,10 +117,19 @@ export default {
           /\bvende por voc[eê]\b/i,/\bcria desejo instant[aâ]neo\b/i,/\bgarante (?:vendas|clientes|encomendas)\b/i
         ];
         const placeholderPattern = /\[[^\]]+\]|\{\{[^}]+\}\}/;
+        function collectTextLeaves(value,out=[]){
+          if(Array.isArray(value)){ for(const item of value) collectTextLeaves(item,out); return out; }
+          if(value && typeof value==="object"){ for(const item of Object.values(value)) collectTextLeaves(item,out); return out; }
+          if(typeof value==="string") out.push(value);
+          return out;
+        }
         function deterministicAudit(candidate){
-          const serialized=JSON.stringify(candidate||{});
+          const textLeaves=collectTextLeaves(candidate);
+          const serialized=textLeaves.join("\n");
           const violations=[];
-          if (placeholderPattern.test(serialized)) violations.push("placeholder");
+          // IMPORTANT: audit only actual text values. JSON.stringify(candidate) contains structural
+          // [ ... ] for arrays (e.g. stories), which was falsely detected as a placeholder.
+          if (textLeaves.some(text=>placeholderPattern.test(text))) violations.push("placeholder");
           for (const p of promisePatterns) if (p.test(serialized)) violations.push("promessa de resultado");
           for (const rule of forbiddenAssumptions) {
             if (rule.re.test(serialized) && !rule.allow.test(knownFactText)) violations.push("fato operacional não confirmado: "+String(rule.re));
