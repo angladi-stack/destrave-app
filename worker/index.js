@@ -20,7 +20,7 @@ export default {
     if (url.pathname === "/api/health") {
       try {
         await env.DB.prepare("SELECT 1").first();
-        return json({ ok: true, app: "destrave-app", database: "connected" });
+        return json({ ok: true, app: "destrave-app", database: "connected", providers: { gemini: Boolean(env.GEMINI_API_KEY), groq: Boolean(env.GROQ_API_KEY), cloudflareAI: Boolean(env.AI) } });
       } catch (error) {
         return json({ ok: false, database: "error", message: error.message }, { status: 500 });
       }
@@ -259,7 +259,7 @@ RETORNE SOMENTE JSON VÁLIDO:
               contents:[{parts:[{text:motherPrompt}]}],
               generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json"}
             });
-            const gr=await fetch(geminiUrl,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:geminiBody});
+            const gr=await fetch(geminiUrl,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:geminiBody,signal:AbortSignal.timeout(25000)});
             const gd=await gr.json();
             if (gr.ok) {
               textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
@@ -289,7 +289,8 @@ RETORNE SOMENTE JSON VÁLIDO:
             const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
               method:"POST",
               headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
-              body:groqBody
+              body:groqBody,
+              signal:AbortSignal.timeout(25000)
             });
             const rd=await rr.json();
             if (rr.ok) {
