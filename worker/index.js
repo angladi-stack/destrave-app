@@ -72,6 +72,7 @@ export default {
         const history = row ? JSON.parse(row.contents_json || "[]") : [];
         const body = await request.json();
         const requestToday = String(body.topic || "").trim();
+        const selectedFocus = String(body.focus || body.topic || "").trim();
         const goal = String(body.goal || "Movimentar");
         const requestedFormat = String(body.requestedFormat || "Livre");
         if (!business.name || !(business.activity || business.service) || !business.objective) {
@@ -96,7 +97,8 @@ export default {
           appearance: business.appearance || business.appearancePreference || "",
           freeContext: business.freeContext || "",
           goalToday: goal,
-          requestToday: requestToday || ""
+          requestToday: requestToday || "",
+          selectedFocus: selectedFocus || ""
         };
         const confirmedFactLines = Object.entries(factVault).filter(([,v]) => String(v || "").trim()).map(([k,v]) => "- " + k + ": " + String(v).trim()).join("\n");
         const knownFactText = Object.values(factVault).filter(v=>String(v||"").trim()).join(" ").toLowerCase();
@@ -189,7 +191,7 @@ Se faltar um fato indispensável que somente a pessoa sabe, use needsInput=true 
 
 DIREÇÃO CENTRAL
 Antes de escrever, escolha silenciosamente UMA direção estratégica coerente para hoje.
-Toda a entrega deve nascer dessa mesma direção.
+Toda a entrega deve nascer dessa mesma direção.\nO FOCO ÚNICO DE HOJE tem prioridade sobre outras ofertas/serviços do perfil. Stories, Reels, Feed e WhatsApp devem permanecer nesse mesmo foco.
 Reels, Stories, Feed e Status/WhatsApp NÃO são quatro ideias aleatórias. São quatro maneiras independentes e coerentes de executar a mesma direção.
 Cada peça precisa funcionar sozinha: a pessoa pode fazer apenas Reels, apenas Stories, apenas Feed ou apenas Status.
 Nunca diga que ela precisa fazer tudo.
