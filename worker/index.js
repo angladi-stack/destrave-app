@@ -477,6 +477,19 @@ Regras: não invente substitutos; não use placeholders; se o dado for dispensá
           };
           plan=cleanStrings(plan);
           hardViolations=deterministicAudit(plan);
+          // Um placeholder remanescente pode vir de sintaxe editorial inocente produzida pelo modelo.
+          // Nunca derrube a geração inteira só por isso: remova-o uma segunda vez de forma recursiva.
+          if(hardViolations.length===1 && hardViolations[0]==="placeholder"){
+            plan=cleanStrings(plan);
+            const scrubPlaceholders=(value)=>{
+              if(Array.isArray(value)) return value.map(scrubPlaceholders);
+              if(value && typeof value==="object") return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,scrubPlaceholders(v)]));
+              if(typeof value!=="string") return value;
+              return value.replace(/\[[^\]]*\]|\{\{[^}]*\}\}/g,"").replace(/\s{2,}/g," ").trim();
+            };
+            plan=scrubPlaceholders(plan);
+            hardViolations=deterministicAudit(plan);
+          }
         }
         if(hardViolations.length){
           return json({ok:false,error:"O Destrave bloqueou uma resposta que usava informação não confirmada. Tente criar outra versão.",code:"FACT_GUARD",details:hardViolations},{status:422});
