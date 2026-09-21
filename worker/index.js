@@ -35,6 +35,32 @@ export default {
       return json({ok:Object.values(results).some(x=>x.ok),providers:results});
     }
 
+    if (url.pathname === "/api/generate-check") {
+      try {
+        const clientId=request.headers.get("x-destrave-client");
+        if(!clientId) return json({ok:false,stage:"client",error:"Cliente não identificado"},{status:400});
+        await ensureStateTable(env);
+        const row=await env.DB.prepare("SELECT business_json, contents_json FROM client_state WHERE client_id = ?").bind(clientId).first();
+        const business=row ? JSON.parse(row.business_json||"{}") : {};
+        const history=row ? JSON.parse(row.contents_json||"[]") : [];
+        return json({
+          ok:true,
+          stage:"preflight",
+          client:true,
+          profile:{
+            hasName:Boolean(business.name),
+            hasActivity:Boolean(business.activity||business.service),
+            hasObjective:Boolean(business.objective),
+            keys:Object.keys(business)
+          },
+          historyCount:history.length,
+          providers:{gemini:Boolean(env.GEMINI_API_KEY),groq:Boolean(env.GROQ_API_KEY),cloudflareAI:Boolean(env.AI)}
+        });
+      } catch(e) {
+        return json({ok:false,stage:"preflight",error:String(e?.message||e)},{status:500});
+      }
+    }
+
     if (url.pathname === "/api/generate" && request.method === "POST") {
       try {
         const clientId = request.headers.get("x-destrave-client");
