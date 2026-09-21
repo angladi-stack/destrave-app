@@ -250,81 +250,96 @@ RETORNE SOMENTE JSON VÁLIDO:
         let modelUsed="";
         let lastError="";
 
-        // Motor 1: Gemini. Faz uma única tentativa para não desperdiçar a cota.
-        // Se a chave estiver ausente, inválida, sem cota ou o serviço falhar, o fluxo segue para a Groq.
+        // Cadeia de geração: cada motor falha de forma independente e o próximo assume.
+        // Os detalhes ficam somente no backend/JSON técnico; a interface continua mostrando mensagem amigável.
+        const providerErrors=[];
+        const rememberError=(provider,error)=>providerErrors.push(provider+": "+String(error?.message||error||"erro desconhecido").slice(0,500));
+
+        // Motor 1: Gemini.
         if (env.GEMINI_API_KEY) {
           try {
             const geminiUrl="https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
-            const geminiBody=JSON.stringify({
-              contents:[{parts:[{text:motherPrompt}]}],
-              generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json"}
-            });
-            const gr=await fetch(geminiUrl,{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:geminiBody,signal:AbortSignal.timeout(25000)});
-            const gd=await gr.json();
-            if (gr.ok) {
-              textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-              if (textOut) modelUsed="gemini-2.5-flash";
-              else lastError="Gemini respondeu sem conteúdo";
-            } else {
-              lastError=gd?.error?.message || "Gemini indisponível";
-            }
-          } catch (error) {
-            lastError=error.message || "Gemini indisponível";
-          }
-        }
-
-        // Motor 2: Groq. Só é chamado se o Gemini não entregar conteúdo.
-        if (!textOut && env.GROQ_API_KEY) {
-          try {
-            const groqBody=JSON.stringify({
-              model:"openai/gpt-oss-120b",
-              messages:[
-                {role:"system",content:"Responda somente com JSON válido, sem markdown nem comentários."},
-                {role:"user",content:motherPrompt}
-              ],
-              temperature:0.82,
-              max_completion_tokens:7000,
-              response_format:{type:"json_object"}
-            });
-            const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+            const gr=await fetch(geminiUrl,{
               method:"POST",
-              headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
-              body:groqBody,
-              signal:AbortSignal.timeout(25000)
+              headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
+              body:JSON.stringify({
+                contents:[{parts:[{text:motherPrompt}]}],
+                generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json"}
+              }),
+              signal:AbortSignal.timeout(22000)
             });
-            const rd=await rr.json();
-            if (rr.ok) {
-              textOut=String(rd.choices?.[0]?.message?.content||"").trim();
-              if (textOut) modelUsed="groq/openai-gpt-oss-120b";
-            } else {
-              lastError=rd?.error?.message || "Groq indisponível";
-            }
-          } catch (error) {
-            lastError=error.message || "Groq indisponível";
-          }
-        }
+            const raw=await gr.text();
+            let gd={}; try{gd=JSON.parse(raw)}catch{}
+            if(gr.ok){
+              textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+              if(textOut) modelUsed="gemini-2.5-flash";
+              else rememberError("gemini","resposta vazia");
+            }else rememberError("gemini",gd?.error?.message||("HTTP "+gr.status));
+          }catch(error){rememberError("gemini",error)}
+        } else rememberError("gemini","chave ausente");
 
-        // Motor 3: Cloudflare Workers AI.
+        // Motor 2: Groq. Se o modelo principal falhar, tenta o modelo menor antes de abandonar o provedor.
+        if (!textOut && env.GROQ_API_KEY) {
+          for (const groqModel of ["openai/gpt-oss-120b","openai/gpt-oss-20b"]) {
+            if(textOut) break;
+            try {
+              const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+                method:"POST",
+                headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
+                body:JSON.stringify({
+                  model:groqModel,
+                  messages:[
+                    {role:"system",content:"Responda somente com JSON válido, sem markdown nem comentários."},
+                    {role:"user",content:motherPrompt}
+                  ],
+                  temperature:0.82,
+                  max_completion_tokens:7000,
+                  reasoning_effort:"low",
+                  response_format:{type:"json_object"}
+                }),
+                signal:AbortSignal.timeout(22000)
+              });
+              const raw=await rr.text();
+              let rd={}; try{rd=JSON.parse(raw)}catch{}
+              if(rr.ok){
+                textOut=String(rd.choices?.[0]?.message?.content||"").trim();
+                if(textOut) modelUsed="groq/"+groqModel;
+                else rememberError("groq/"+groqModel,"resposta vazia");
+              }else rememberError("groq/"+groqModel,rd?.error?.message||("HTTP "+rr.status));
+            }catch(error){rememberError("groq/"+groqModel,error)}
+          }
+        } else if(!textOut) rememberError("groq","chave ausente");
+
+        // Motor 3: Cloudflare Workers AI. Continua disponível inclusive no plano Workers Free.
         if (!textOut && env.AI) {
           try {
-            const cr=await env.AI.run("@cf/google/gemma-4-26b-a4b-it",{
-              messages:[
-                {role:"system",content:"Responda somente com JSON valido, sem markdown nem comentarios."},
-                {role:"user",content:motherPrompt}
-              ],
-              chat_template_kwargs:{enable_thinking:false},
-              max_tokens:7000,
-              temperature:0.82
-            });
+            const cr=await Promise.race([
+              env.AI.run("@cf/google/gemma-4-26b-a4b-it",{
+                messages:[
+                  {role:"system",content:"Responda somente com JSON valido, sem markdown nem comentarios."},
+                  {role:"user",content:motherPrompt}
+                ],
+                max_tokens:7000,
+                temperature:0.82
+              }),
+              new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 22s")),22000))
+            ]);
             const cloudflareText=String(cr?.response ?? cr?.choices?.[0]?.message?.content ?? "").trim();
-            if (cloudflareText) { textOut=cloudflareText; modelUsed="cloudflare/gemma-4-26b-a4b-it"; }
-            else lastError="Cloudflare Workers AI sem conteudo";
-          } catch (error) { lastError=error.message || "Cloudflare Workers AI indisponivel"; }
+            if(cloudflareText){textOut=cloudflareText;modelUsed="cloudflare/gemma-4-26b-a4b-it"}
+            else rememberError("cloudflare","resposta vazia");
+          }catch(error){rememberError("cloudflare",error)}
+        } else if(!textOut) rememberError("cloudflare","binding AI ausente");
+
+        if (!textOut) {
+          console.error("DESTRAVE_AI_CHAIN_FAILED",providerErrors);
+          return json({ok:false,error:"Não consegui gerar o conteúdo agora.",code:"AI_CHAIN_FAILED",details:providerErrors},{status:502});
         }
-        if (!textOut) return json({ok:false,error:"Não consegui gerar o conteúdo agora.",details:lastError},{status:502});
         let plan;
         try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
-        catch { return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer."},{status:502}); }
+        catch(error) {
+          console.error("DESTRAVE_AI_INVALID_JSON",{model:modelUsed,error:String(error),preview:textOut.slice(0,500)});
+          return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer.",code:"INVALID_AI_JSON",model:modelUsed},{status:502});
+        }
 
         // FISCAL DO DESTRAVE: segunda etapa independente da criação.
         // Não cria uma nova estratégia. Audita a resposta pronta contra os fatos confirmados
