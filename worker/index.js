@@ -140,7 +140,7 @@ Use somente fatos confirmados no perfil, pedido e histórico.
 GERADO NÃO SIGNIFICA EXECUTADO. Uma geração anterior serve para evitar repetição e melhorar variedade, mas nunca prova que a pessoa publicou ou fez algo.
 Não invente clientes, vendas, resultados, rotina, experiência, sentimentos, opiniões, gostos, recursos ou histórias.
 TOLERÂNCIA ZERO A PRESSUPOSIÇÕES OPERACIONAIS: não presuma link na bio, agenda aberta, estoque/produto pronto hoje, data disponível, entrega, promoção, preço, sabor, ingrediente, local, depoimento, cliente, forma de pagamento, botão/link do WhatsApp ou qualquer recurso não confirmado.
-Não use placeholders como "[Nome do produto]", "[preço]", "[cidade]" ou similares. Se um detalhe desconhecido puder ser evitado, escreva sem ele. Se for indispensável para tornar a execução verdadeira, faça UMA micropergunta factual.
+Não use placeholders como "[Nome do produto]", "[preço]", "[cidade]" ou similares. Se um detalhe desconhecido puder ser evitado, escreva sem ele. REGRA CRÍTICA: não bloqueie a geração para perguntar sobre disponibilidade, lançamento, download, preço, estoque, agenda, entrega, promoção, link, botão ou qualquer outro detalhe que possa simplesmente ser omitido. Só faça UMA micropergunta factual quando, sem aquela resposta, for literalmente impossível produzir qualquer conteúdo verdadeiro e executável sobre o trabalho/projeto informado.
 Não transforme uma possibilidade em fato. Prefira construções verdadeiras com os dados existentes, por exemplo "Se quiser saber sobre encomendas, me chame" somente quando encomendas/oferta forem confirmadas; nunca "agenda aberta" sem confirmação.
 Não prometa viralização, seguidores, vendas ou clientes. Também não afirme causalidade como "isso gera encomendas", "vai vender", "cria desejo instantâneo" ou "o visual vende por você". Use formulações proporcionais: pode despertar curiosidade, ajudar alguém a perceber um detalhe, facilitar entendimento, colocar a oferta diante de mais pessoas.
 Fale COM a pessoa, usando "você". Nunca narre "Daniel vai..." ou equivalente.
@@ -373,7 +373,7 @@ Reprove causalidade comercial não comprovada ("gera encomendas", "vai vender", 
 GERADO NÃO É EXECUTADO: histórico anterior não prova publicação ou ação. Use executionFeedback como fonte explícita: Fiz=executado; Fiz uma parte=parcial; Hoje não consegui=não executado; Não informado=desconhecido.\nA direção deve nascer de pessoa + oferta + público + momento digital + objetivo + histórico de execução + condição atual. Profissão é contexto, não estratégia automática. Preserve a direção contínua: autonomia não significa deixar a pessoa sem próximo movimento.
 Fale diretamente com "você".
 A pessoa recebe todas as possibilidades, mas nunca deve ser tratada como obrigada a executar todas.
-Se faltar um fato indispensável, needsInput=true com UMA pergunta factual e blocos vazios.
+needsInput=true é EXCEÇÃO ABSOLUTA. Só use quando faltar um fato sem o qual seja literalmente impossível produzir qualquer conteúdo verdadeiro e executável. Nunca use needsInput para disponibilidade, lançamento/download, preço, estoque, agenda, entrega, promoção, link, botão, data ou detalhes que possam ser omitidos. Se houver qualquer caminho verdadeiro com os fatos existentes, needsInput=false e entregue o conteúdo completo.
 Retorne somente JSON válido.`
 
             const vb=JSON.stringify({
