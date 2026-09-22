@@ -1,0 +1,31 @@
+{
+  "name": "Destrave by Angladi",
+  "short_name": "Destrave",
+  "description": "Seu próximo movimento no digital.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5efe5",
+  "theme_color": "#17100c",
+  "icons": [
+    {
+      "src": "/destrave-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/destrave-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/destrave-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
