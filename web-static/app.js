@@ -396,7 +396,7 @@ function showResult(item){
   const feed=document.createElement('div');feed.className='plan-format-content';
   if(p.feed){
     const info=document.createElement('div');info.className='plan-detail';info.innerHTML='<strong></strong><p></p>';info.querySelector('strong').textContent=cleanText(p.feed.format||'Feed');info.querySelector('p').textContent=cleanText(p.feed.instructions||'');feed.append(info);
-    if((p.feed.slides||[]).length){const slides=document.createElement('div');slides.className='plan-detail';slides.innerHTML='<strong>Conteúdo</strong>';p.feed.slides.forEach((x,i)=>{const q=document.createElement('p');q.textContent='Slide '+(i+1)+': '+cleanText(x);slides.append(q)});feed.append(slides)}
+    if((p.feed.slides||[]).length){const slides=document.createElement('div');slides.className='plan-detail';slides.innerHTML='<strong>Conteúdo</strong>';p.feed.slides.forEach((x,i)=>{const q=document.createElement('p');const slideText=(x&&typeof x==='object')?[x.title||x.titulo||x.heading||'',x.text||x.texto||x.content||x.conteudo||x.copy||'',x.visual?('Visual: '+x.visual):''].filter(Boolean).join(' — '):x;q.textContent='Slide '+(i+1)+': '+cleanText(slideText);slides.append(q)});feed.append(slides)}
     if(p.feed.caption){const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong>Legenda</strong><p></p>';d.querySelector('p').textContent=cleanText(p.feed.caption);feed.append(d);feed.append(copyBtn('COPIAR LEGENDA',p.feed.caption))}
     if(p.feed.cta){const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong>CTA</strong><p></p>';d.querySelector('p').textContent=cleanText(p.feed.cta);feed.append(d)}
   }
