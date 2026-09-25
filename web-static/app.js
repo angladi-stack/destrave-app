@@ -222,7 +222,7 @@ function addDaily(root){
   const daily=readJSON('destrave-daily',{});
   const panel=document.createElement('main');panel.className='premium-page premium-daily';
   panel.innerHTML=`<section class="page-title"><small>CONTEÚDO DO DIA</small><h1>Seu próximo movimento.</h1><p>Primeiro escolhemos o foco. Depois o Destrave cria o pacote completo em uma única geração.</p></section>
-  <section class="glass-card"><h2>Hoje eu vou considerar</h2><div class="context-pill">◷ ${daily.time||'Seu tempo de hoje'}</div><div class="context-pill">◎ ${daily.appearance||'Como prefere aparecer'}</div><p class="soft">Stories, Reels, Feed e WhatsApp serão gerados juntos. Depois você escolhe o que quer usar, sem gastar uma nova geração.</p></section>
+  <section class="glass-card"><h2>Hoje eu vou considerar</h2><div class="context-pill">◷ ${daily.time||'Seu tempo de hoje'}</div><div class="context-pill">◎ ${daily.appearance||'Como prefere aparecer'}</div><p class="soft">Stories, Reels, Feed e Status do WhatsApp serão gerados juntos. Depois você escolhe o que quer usar, sem gastar uma nova geração.</p></section>
   <button class="premium-primary generate-now">✦ ESCOLHER O FOCO DE HOJE →</button>`;
   panel.querySelector('.generate-now').onclick=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer melhor seu trabalho.');navigate('work');return}
@@ -377,7 +377,7 @@ function showResult(item){
   page.append(hero);
 
   const body=document.createElement('main');body.className='plan-main movement-main';
-  body.innerHTML='<h2>Escolha como você quer se movimentar hoje</h2><p class="plan-intro">Reels, Stories, Feed ou WhatsApp: cada opção funciona sozinha e já está pronta para você executar.</p>';
+  body.innerHTML='<h2>Escolha como você quer se movimentar hoje</h2><p class="plan-intro">Reels, Stories, Feed ou Status do WhatsApp: cada opção funciona sozinha e já está pronta para você executar.</p>';
 
   const reels=document.createElement('div');reels.className='plan-format-content';
   if(p.reels){
@@ -404,10 +404,10 @@ function showResult(item){
 
   const wa=document.createElement('div');wa.className='plan-format-content';
   if(p.whatsapp){
-    const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(p.whatsapp.format||'WhatsApp');d.querySelector('p').textContent=cleanText(p.whatsapp.instructions||'');wa.append(d);
+    const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(p.whatsapp.format||'Status do WhatsApp');d.querySelector('p').textContent=cleanText(p.whatsapp.instructions||'');wa.append(d);
     if(p.whatsapp.text){const t=document.createElement('div');t.className='plan-detail';t.innerHTML='<strong>Texto pronto</strong><p></p>';t.querySelector('p').textContent=cleanText(p.whatsapp.text);wa.append(t);wa.append(copyBtn('COPIAR TEXTO',p.whatsapp.text))}
   }
-  body.append(accordion('4','◉','Status / WhatsApp','PRONTO PARA USAR',wa));
+  body.append(accordion('4','◉','Status do WhatsApp','PRONTO PARA POSTAR',wa));
 
   if(p.quickVersion){const quick=document.createElement('section');quick.className='plan-check movement-extra';quick.innerHTML='<h3>✦ Se hoje estiver corrido</h3><p></p>';quick.querySelector('p').textContent=cleanText(p.quickVersion);body.append(quick)}
   if(p.motivation){const motivation=document.createElement('section');motivation.className='plan-check movement-ready';motivation.innerHTML='<h3>✦ Antes de ir</h3><p></p>';motivation.querySelector('p').textContent=cleanText(p.motivation);body.append(motivation)}
