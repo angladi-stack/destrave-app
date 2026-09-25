@@ -310,7 +310,9 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
               {re:/\b(?:gera|gerar|ver|receber|chegar(?:am|ando)?)\s+leads?\b|\bleads?\s+(?:na tela|chegando)\b/i,label:"leads inventados"},
               {re:/\b(?:j[aá]\s+)?(?:recebi|recebeu|apareceu|surgiu|vieram?)\s+(?:os?\s+)?(?:primeiros?\s+)?(?:coment[aá]rios?|intera[cç][aã]o|feedbacks?)\b/i,label:"resultado/prova inventado"},
               {re:/\bprimeira\s+intera[cç][aã]o\b|\bfeedback\s+real\b/i,label:"resultado/prova inventado"},
-              {re:/\beu\s+tamb[eé]m\s+(?:passei|vivi|sofri|j[aá]\s+estive)\b/i,label:"experiência pessoal inventada"},
+              {re:/\beu\s+tamb[eé]m\b|\beu\s+sei\s+como\s+[eé]\b|\beu\s+(?:j[aá]\s+)?(?:passei|vivi|sofri|estive)\s+(?:por\s+)?isso\b/i,label:"experiência pessoal inventada"},
+              {re:/\bvisualiza[cç][oõ]es?\s+(?:subindo|aumentando|crescendo)\b|\b(?:a[cç][aã]o\s+imediata|isso)\s+traz\s+engajamento\b|\bcliente\s+satisfeit[oa]\b|\bantes\s+e\s+depois\b/i,label:"resultado/prova inventado"},
+              {re:/\bdire[cç][aã]o(?:\s+de\s+conte[uú]do)?\s+perfeita\b/i,label:"superlativo não sustentado"},
               {re:/\bo\s+app\s+faz\s+tudo\b/i,label:"função exagerada do Destrave"},
               {re:/\bp[aá]gina\s+de\s+vendas\b|\bcrm\b|\bcheckout\b|\bpublica(?:r)?\s+automaticamente\b/i,label:"funcionalidade inventada do Destrave"}
             ];
@@ -405,15 +407,16 @@ REGRAS CENTRAIS
 - O foco escolhido é a fronteira do conteúdo. Outras frentes do cadastro são apenas contexto e não podem virar oferta, CTA, prova ou assunto do dia.
 - Não reduza uma oferta específica a conselho genérico de marketing. "Poste simples", "tenha constância", "construa autoridade", "não precisa de estúdio" e frases parecidas só entram se forem realmente o ponto estratégico desta pessoa hoje.
 - Pessoas compram solução, não técnica. Técnica/processo só aparece quando ajuda a compreender ou acreditar na solução.
-- Emoção vem de reconhecimento: situação cotidiana, pensamento, tensão ou desejo plausível. Não dramatize e não invente dor.
-- Use linguagem humana e concreta. Evite marketinguês e abstrações quando puder mostrar a experiência real da pessoa.
+- MOLHO HUMANO: emoção vem de reconhecimento, não de ficção. Use uma situação cotidiana concreta, um pensamento que a pessoa realmente poderia ter, a tensão entre querer avançar e não saber o próximo passo e o alívio/desejo que a solução oferece. Faça a pessoa se reconhecer antes de apresentar a solução.
+- NUNCA crie emoção colocando na boca da dona do negócio uma história que ela não contou. "Eu também passei por isso", "eu sei como é", "eu já fiquei assim" e equivalentes são fatos pessoais e só podem aparecer se estiverem confirmados.
+- Use linguagem humana, falada e concreta. Evite marketinguês, frases de anúncio genéricas e abstrações. O texto deve soar como uma pessoa conversando com outra, não como uma agência descrevendo uma estratégia.
 - Conhecimento geral seguro do segmento pode ajudar no raciocínio, mas nunca vire fato particular deste negócio.
 - Não invente cliente, depoimento, antes/depois, número, prazo, resultado, técnica/material usado pela pessoa, método próprio, preço, promoção, disponibilidade, garantia, arquivo, link ou experiência pessoal não confirmada.
 - Se "durabilidade", "naturalidade", "resistência" ou outro benefício qualitativo estiver confirmado, mantenha-o qualitativo; não invente causa técnica, prazo ou garantia.
 - Se faltar um fato realmente indispensável, needsInput=true com UMA pergunta curta. Se for possível criar algo verdadeiro sem o dado, entregue.
 
 CANAIS
-REELS: entregue um roteiro de fala COMPLETO, normalmente para 45–60 segundos (aprox. 95–160 palavras; nunca um mini roteiro vazio). Estrutura natural: gancho humano → situação reconhecível → tensão/por que isso importa → nova percepção → solução ligada ao foco de hoje → ação. A emoção deve crescer ao longo da fala, não aparecer só no gancho. Entregue também cenas executáveis e texto de tela.
+REELS: entregue um roteiro de fala COMPLETO, normalmente para 45–60 segundos (aprox. 95–160 palavras; nunca um mini roteiro vazio). Estrutura natural: gancho humano → situação reconhecível → tensão/por que isso importa → nova percepção → solução ligada ao foco de hoje → ação. A emoção deve crescer ao longo da fala, não aparecer só no gancho. O roteiro precisa ter cadência de fala real, frases que alguém diria olhando para a câmera e pelo menos um momento de reconhecimento humano específico. Não invente experiência, prova ou resultado para conseguir esse efeito. Entregue também cenas executáveis e texto de tela.
 STORIES: 7 a 10 quando a sequência sustentar o assunto. Faça uma conversa com começo, aprofundamento, percepção, solução/desejo e fechamento. Interação é ponte, nunca desfecho.
 FEED/CARROSSEL: entregue a copy REAL de cada slide. Nunca devolva "Slide 1", "Problema", "Desejo", "Capa" ou rótulos vazios.
 STATUS DO WHATSAPP: por padrão é conteúdo para POSTAR NO STATUS, não mensagem privada. Pode ser um Status único ou uma pequena sequência. Só crie mensagem individual se o pedido de hoje solicitar explicitamente conversa direta/prospecção.
@@ -572,7 +575,9 @@ AUDITE APENAS:
 5. CANAL ERRADO: o campo whatsapp deve ser STATUS DO WHATSAPP por padrão. Não transforme em mensagem privada, lista de transmissão ou prospecção, salvo pedido explícito.
 6. EXECUÇÃO INCOMPLETA: Feed com slides vazios/rótulos, Stories quebrados, campo essencial sem conteúdo, instrução abstrata que devolve criação à pessoa.
 7. PROMESSA FACTUAL NÃO SUSTENTADA: resultado comercial ou técnico apresentado como certeza sem base no PERFIL/COFRE.
-8. FORMATO/SCHEMA: mantenha exatamente o schema esperado.
+8. EXPERIÊNCIA/PROVA DISFARÇADA: remova também equivalentes semânticos de "eu também", "eu sei como é", "eu já passei/vivi isso", além de cenas ou falas que pressupõem visualizações subindo, comentários, interação, feedback, cliente satisfeito, antes/depois ou qualquer resultado que o PERFIL/COFRE não confirmou.
+9. SUPERLATIVO NÃO SUSTENTADO: não chame a direção de "perfeita", nem trate efeito/resultado como garantido. Prefira descrição concreta do que o produto realmente entrega.
+10. FORMATO/SCHEMA: mantenha exatamente o schema esperado.
 
 COMO CORRIGIR
 - Faça a menor mudança possível.
@@ -845,8 +850,10 @@ Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo racioc
               if(value && typeof value==="object") return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,removeInventedPersonalExperience(v)]));
               if(typeof value!=="string") return value;
               return value
-                .replace(/\\b[eE]u\\s+tamb[eé]m\\s+passei\\s+por\\s+isso[,.!?;:]*/gi,"")
-                .replace(/\\b[eE]u\\s+tamb[eé]m\\s+(?:vivi|sofri|j[aá]\\s+estive)[^.!?]*(?:[.!?]|$)/gi,"")
+                .replace(/\b[eE]u\s+tamb[eé]m\s+passei\s+por\s+isso[,.!?;:]*/gi,"")
+                .replace(/\b[eE]u\s+tamb[eé]m\b[,.!?;:]*/gi,"")
+                .replace(/\b[eE]u\s+sei\s+como\s+[eé][^.!?]*(?:[.!?]|$)/gi,"")
+                .replace(/\b[eE]u\s+(?:j[aá]\s+)?(?:passei|vivi|sofri|estive)\s+(?:por\s+)?isso[^.!?]*(?:[.!?]|$)/gi,"")
                 .replace(/\\s{2,}/g," ")
                 .replace(/\\s+([,.!?;:])/g,"$1")
                 .trim();
