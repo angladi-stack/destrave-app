@@ -226,7 +226,9 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
         ];
         const promisePatterns = [
           /\bgera(?:r)? encomendas\b/i,/\bgera(?:r)? vendas\b/i,/\bvai vender\b/i,
-          /\bvende por voc[eê]\b/i,/\bcria desejo instant[aâ]neo\b/i,/\bgarante (?:vendas|clientes|encomendas)\b/i
+          /\bvende por voc[eê]\b/i,/\bcria desejo instant[aâ]neo\b/i,/\bgarante (?:vendas|clientes|encomendas)\b/i,
+          /\bos clientes aparecem\b/i,/\bcome[cç]a a ter resultados reais\b/i,
+          /\bclareza total\b/i,/\batrair os clientes certos\b/i
         ];
         const placeholderPattern = /\[[^\]]+\]|\{\{[^}]+\}\}/;
         const alwaysForbiddenPatterns = [
@@ -254,6 +256,15 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           for (const rule of alwaysForbiddenPatterns) if(rule.re.test(serialized)) violations.push(rule.label);
           for (const p of numericEvidencePatterns) if(p.test(serialized) && !p.test(knownFactText)) violations.push("prova/duração numérica não confirmada");
           for (const p of promisePatterns) if (p.test(serialized)) violations.push("promessa de resultado");
+          const feedSlides=Array.isArray(candidate?.feed?.slides)?candidate.feed.slides:[];
+          if(feedSlides.length){
+            const emptyFeed=feedSlides.some((s,idx)=>{
+              const t=typeof s==="string"?s:JSON.stringify(s||"");
+              const n=normalizeComparable(t);
+              return !n || new RegExp("^slide\\s*"+(idx+1)+"$","i").test(n) || /^(capa|problema|desejo|solu[cç][aã]o|cta|conclus[aã]o)$/i.test(n);
+            });
+            if(emptyFeed) violations.push("feed incompleto");
+          }
           for (const rule of forbiddenAssumptions) {
             if (rule.re.test(serialized) && !rule.allow.test(knownFactText)) violations.push("fato operacional não confirmado: "+String(rule.re));
           }
@@ -327,6 +338,7 @@ REGRA-MÃE: NÃO VENDA O PROCEDIMENTO. COMUNIQUE O QUE O PROCEDIMENTO, PRODUTO, 
 Antes de escrever, traduza silenciosamente: O QUE É → O QUE RESOLVE/PERMITE → POR QUE ISSO IMPORTA PARA ESTA PESSOA → QUAL MOVIMENTO QUEREMOS PROVOCAR HOJE.
 Traduza característica → benefício → impacto percebido na vida/rotina, sem fabricar promessas.
 EMOÇÃO COM VERDADE: emoção não é enfeite nem dramatização. Ela nasce do contraste entre o estado atual e o estado desejado. Faça a pessoa se reconhecer, sentir o peso ou desejo legítimo da situação e enxergar uma mudança possível, sempre sustentada pelo contexto. Evite palavras abstratas como "autoridade", "conexão", "confiança" ou "transformação" quando elas puderem ser substituídas por uma experiência humana concreta.
+EMOÇÃO CONCRETA, NÃO PROMESSA: para aumentar emoção, aprofunde uma situação reconhecível, uma tensão cotidiana, um pensamento real ou um desejo plausível. NUNCA aumente a força emocional prometendo resultado, cliente, venda, crescimento, constância, clareza total ou sucesso. Prefira "pode ajudar", "abre espaço para", "faz a pessoa perceber", "te coloca em movimento" quando o resultado não estiver confirmado.
 
 3. CONTROLE DE EVIDÊNCIA
 REGRA DE LITERALIDADE: toda afirmação particular sobre ESTE negócio precisa estar escrita ou inequivocamente sustentada pelo cadastro/cofre. Se não estiver, NÃO complete por plausibilidade.
@@ -371,6 +383,9 @@ A pessoa que usa o Destrave não é uma equipe. Fale com UMA pessoa, diretamente
 A estratégia fica invisível. Não escreva relatório de agência nem ensine marketing.
 Scripts, textos de tela e legendas devem soar como a própria pessoa falando com o público, respeitando voice.
 Diga exatamente o que mostrar/gravar, o que falar, o que escrever e qual CTA usar. Nada de ordens abstratas como "mostre autoridade" ou "fale dos benefícios".
+O campo "why" aparece para a pessoa no app: escreva-o como orientação humana e útil, nunca como relatório interno ("precisamos mostrar", "a estratégia é", "essa direção demonstra").
+FEED/CARROSSEL PRECISA VIR PRONTO: cada item de feed.slides deve conter o texto real publicável do slide. Nunca devolva apenas "Slide 1", "Slide 2", "Capa", "Problema", "Desejo" ou outro rótulo vazio. instructions descreve COMO montar; slides entrega O QUE ESCREVER.
+Não atribua vivência pessoal não confirmada à usuária: frases como "vejo diariamente", "já ajudei", "meus clientes", "meu método", "na minha experiência" só podem aparecer se isso estiver confirmado no cadastro/contexto.
 Não use "nós" salvo se o cadastro confirmar equipe. Não use "swipe up".
 Não fale de outra frente além de "${selectedFocus}".
 Se o foco escolhido for um SERVIÇO, o conteúdo deve aumentar percepção, confiança, desejo ou decisão de contratar/experimentar esse serviço. Pode educar para gerar percepção, mas NÃO transforme a profissional em professora de faça-você-mesmo, não entregue tutorial doméstico como solução principal e não termine ensinando a pessoa a substituir o serviço em casa. Se ensinar/aprender for a própria oferta escolhida (curso, aula ou mentoria), aí sim isso pode conduzir a direção.
@@ -391,6 +406,9 @@ Antes de responder, confira silenciosamente:
 - O conteúdo vende a solução percebida ou ficou preso explicando técnica/procedimento?
 - Está claro qual pequeno movimento de percepção, emoção ou decisão queremos provocar hoje?
 - Troquei abstrações genéricas por experiências humanas concretas sempre que possível?
+- A emoção veio de reconhecimento e contraste, e NÃO de aumentar promessa de venda, cliente, resultado, crescimento, constância ou clareza?
+- O "why" está escrito para a pessoa, sem linguagem de bastidor/estratégia?
+- Cada slide do Feed/Carrossel contém copy real pronta para publicar, e não rótulos ou placeholders?
 - Usei os diferenciais confirmados somente quando eles fortalecem esta direção, traduzindo-os em valor percebido em vez de apenas citá-los?
 - O histórico representa progressão real ou estou repetindo o mesmo ângulo com palavras diferentes?
 - Cada frase de execução já está pronta para usar, sem "fale sobre", "mostre seu diferencial", "explique os benefícios" ou outra tarefa que devolva a criação à pessoa?
@@ -513,6 +531,10 @@ Exija: uma direção central específica; Reels, Stories, Feed e WhatsApp coeren
 Faça o TESTE DA PRIMEIRA GERAÇÃO: pergunte silenciosamente "Se eu fosse esta pessoa, com este negócio, este público, este momento digital, este objetivo e este histórico, eu conseguiria publicar exatamente isto sem pedir outra geração?" Se não, corrija agora.
 Reprove conteúdo genérico, marketinguês, decisões estratégicas devolvidas à pessoa, operação óbvia de celular, invenções, promessas de resultado, CTAs empilhados e formatos desconectados.
 Reprove também conteúdo tecnicamente correto porém frio, sem identificação, tensão, percepção, desejo ou humanidade quando o contexto permitir emoção verdadeira. Emoção deve nascer dos fatos e da situação do público; nunca invente trauma, dor, urgência ou desejo.
+EMOÇÃO NÃO AUTORIZA PROMESSA: se o texto ficou "mais forte" por afirmar ou sugerir que clientes aparecerão, vendas acontecerão, haverá resultados reais, crescimento, constância, clareza total ou qualquer desfecho não confirmado, reescreva o TRECHO para uma situação humana concreta sem prometer o efeito.
+Não invente autoridade pessoal para dar emoção: "vejo diariamente", "já ajudei", "meus clientes", "meu método", "na minha experiência" e equivalentes exigem confirmação no PERFIL/COFRE.
+COMPLETUDE DO FEED: feed.slides deve trazer a copy final de cada slide. "Slide 1", "Slide 2", "Capa", "Problema", "Desejo", títulos de etapa ou rótulos sozinhos são resposta incompleta e devem ser substituídos por texto publicável.
+O campo why é exibido no app. Remova linguagem de bastidor como "precisamos mostrar", "essa direção demonstra" ou "a estratégia é"; fale diretamente com a pessoa.
 TESTE DE ESPECIFICIDADE: se a direção pudesse ser entregue quase igual a outra pessoa da mesma profissão trocando apenas o nome, reescreva usando os fatos realmente úteis deste cadastro. Diferenciais confirmados devem virar benefício/impacto percebido quando houver relação legítima, não uma lista de características.
 TESTE DE PROGRESSÃO: compare com o histórico relevante. Não aceite o mesmo ângulo, gancho, raciocínio ou CTA apenas parafraseado. O próximo conteúdo deve avançar a comunicação, salvo quando executionFeedback indicar que algo não foi executado e repetir/adaptar for estrategicamente justificável.
 TESTE DE COESÃO: Stories devem formar uma conversa em sequência; se um Story puder ser removido ou trocado de posição sem quebrar o raciocínio, fortaleça a progressão. Reels, Feed e WhatsApp compartilham a direção, mas cada um deve parecer nativo do canal, não cópia.
