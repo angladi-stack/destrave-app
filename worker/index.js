@@ -229,6 +229,15 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           /\bvende por voc[eê]\b/i,/\bcria desejo instant[aâ]neo\b/i,/\bgarante (?:vendas|clientes|encomendas)\b/i
         ];
         const placeholderPattern = /\[[^\]]+\]|\{\{[^}]+\}\}/;
+        const alwaysForbiddenPatterns = [
+          {re:/\bswipe up\b/i,label:"swipe up"},
+          {re:/\b[\w-]+\.(?:mp4|mov|avi|jpg|jpeg|png|webp)\b/i,label:"arquivo de mídia inventado"}
+        ];
+        const numericEvidencePatterns = [
+          /\b(?:h[aá]|por|duram?|dura|at[eé])\s+\d+\s*(?:dias?|semanas?|meses?)\b/i,
+          /\b\d+\s*(?:dias?|semanas?|meses?)\b/i,
+          /\bsem\s+(?:lascar|descasc(?:ar|a)|quebrar)\b/i
+        ];
         function collectTextLeaves(value,out=[]){
           if(Array.isArray(value)){ for(const item of value) collectTextLeaves(item,out); return out; }
           if(value && typeof value==="object"){ for(const item of Object.values(value)) collectTextLeaves(item,out); return out; }
@@ -242,6 +251,8 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           // IMPORTANT: audit only actual text values. JSON.stringify(candidate) contains structural
           // [ ... ] for arrays (e.g. stories), which was falsely detected as a placeholder.
           if (textLeaves.some(text=>placeholderPattern.test(text))) violations.push("placeholder");
+          for (const rule of alwaysForbiddenPatterns) if(rule.re.test(serialized)) violations.push(rule.label);
+          for (const p of numericEvidencePatterns) if(p.test(serialized) && !p.test(knownFactText)) violations.push("prova/duração numérica não confirmada");
           for (const p of promisePatterns) if (p.test(serialized)) violations.push("promessa de resultado");
           for (const rule of forbiddenAssumptions) {
             if (rule.re.test(serialized) && !rule.allow.test(knownFactText)) violations.push("fato operacional não confirmado: "+String(rule.re));
@@ -299,6 +310,12 @@ REGRA-MÃE: NÃO VENDA O PROCEDIMENTO. COMUNIQUE O QUE O PROCEDIMENTO, PRODUTO, 
 Traduza característica → benefício → impacto percebido na vida/rotina, sem fabricar promessas.
 
 3. CONTROLE DE EVIDÊNCIA
+REGRA DE LITERALIDADE: toda afirmação particular sobre ESTE negócio precisa estar escrita ou inequivocamente sustentada pelo cadastro/cofre. Se não estiver, NÃO complete por plausibilidade.
+É PROIBIDO inventar nomes de clientes, depoimentos, antes/depois, quantidade de dias/semanas, duração, resistência mensurável, técnica/material específico, etapas do procedimento, disponibilidade/vagas, arquivos de mídia, preço, promoção, garantia ou resultado.
+Palavras qualitativas confirmadas como "durabilidade", "naturalidade" e "resistência" permanecem qualitativas: NÃO as converta em "20 dias", "3 semanas", "sem lascar", técnica, material ou garantia.
+Se não houver prova confirmada, NÃO simule prova e NÃO crie personagem/cliente. Construa a direção sem prova.
+O foco selecionado é uma FRONTEIRA SEMÂNTICA RÍGIDA. Se o foco for serviço, nenhuma menção ao curso pode aparecer nem em hashtag, CTA, legenda, exemplo ou prova; e vice-versa.
+Nunca invente nomes de arquivos, como video_demo.mp4. Oriente pela cena real que a pessoa pode gravar, sem presumir que um arquivo já existe.
 Use fatos do cadastro + conhecimento profissional geral seguro do segmento.
 Conhecimento geral pode orientar etapas usuais, ferramentas comuns e explicações normais da profissão.
 Ele NÃO pode virar fato particular inventado: técnica exclusiva, preço, prazo, duração numérica, certificação, cliente, depoimento, promoção, garantia ou resultado específico exigem confirmação.
@@ -475,6 +492,12 @@ A resposta final deve parecer escrita para esta pessoa hoje, e não saída de um
 TESTE DO DESTRAVAMENTO: reprove qualquer instrução que ainda exija que a pessoa descubra o que mostrar, falar ou escrever. "Apresente seu diferencial", "mostre sua experiência", "fale dos benefícios", "conte sua história", "mostre o processo" e equivalentes são insuficientes sem execução literal. Para cada trecho, deixe claro o que mostrar, a fala/texto utilizável e a ação seguinte, sem transformar a resposta em tutorial óbvio de celular.
 Não permita que detalhes, comodidades, recursos ou diferenciais do cadastro virem uma frente ou substituam o foco escolhido. Eles só podem aparecer como evidência contextual quando forem diretamente úteis ao foco.
 O foco selecionado é fronteira rígida: se for curso, audite como conteúdo de curso; não permita migração para o serviço relacionado.
+TOLERÂNCIA ZERO DE EVIDÊNCIA: examine CADA frase do JSON e remova ou reescreva qualquer detalhe particular que não esteja literalmente sustentado pelo COFRE/PERFIL. Isso inclui nome/identidade de cliente, depoimento, antes/depois, "há X dias", "até X semanas", "sem lascar", duração, quantidade, técnica, material, preparação, etapa específica, disponibilidade/vagas, urgência, garantia, resultado, preço, promoção, estoque, entrega, link/botão e arquivos de mídia inventados.
+DIFERENCIAL QUALITATIVO NÃO AUTORIZA NÚMERO: "durabilidade", "naturalidade" ou "resistência" jamais permitem deduzir prazo, dias/semanas, ausência de lascas, material ou técnica.
+SEM PROVA = SEM PROVA: se nenhuma evidência real foi cadastrada, retire a prova da arquitetura em vez de fabricar cliente, caso, resultado ou testemunho.
+FRONTEIRA DO FOCO: procure também hashtags, legendas, CTA, WhatsApp e textos de tela. Se o foco é serviço, qualquer curso relacionado deve desaparecer; se o foco é curso, o serviço não pode virar oferta.
+EXECUÇÃO SEM ARQUIVO INVENTADO: remova nomes como video_demo.mp4, foto_cliente.jpg ou qualquer mídia não confirmada. Diga qual cena gravar/mostrar sem pressupor arquivo existente.
+Nunca use "swipe up".
 Tolerância zero: remova fatos não confirmados como link na bio, agenda aberta, disponibilidade, produto pronto hoje, sabores, datas, entrega, promoção, preço, botão/link, estoque ou resultados. Remova placeholders. Se um dado for indispensável, needsInput=true com uma única pergunta factual.
 Condição de execução muda COMO fazer, não deve virar a estratégia inteira. Reprove ângulo óbvio que uma IA comum entregaria quase igual a qualquer pessoa da mesma profissão.
 Reprove causalidade comercial não comprovada ("gera encomendas", "vai vender", "cria desejo instantâneo", "vende por você").
