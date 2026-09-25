@@ -17,6 +17,51 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // LABORATÓRIO INTERNO DO CÉREBRO
+    // Perfis sintéticos usam IDs próprios (lab:*) e nunca leem/escrevem o cadastro de um cliente real.
+    // A rota é deliberadamente inacessível sem LAB_TEST_KEY configurada no Worker.
+    if (url.pathname === "/api/lab/seed" && request.method === "POST") {
+      try {
+        const supplied=request.headers.get("x-destrave-lab-key")||"";
+        if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Rota não encontrada"},{status:404});
+        await ensureStateTable(env);
+        const body=await request.json();
+        const profileKey=String(body?.profileKey||"").toLowerCase().replace(/[^a-z0-9_-]/g,"").slice(0,40);
+        const runKey=String(body?.runKey||"default").toLowerCase().replace(/[^a-z0-9_-]/g,"").slice(0,40);
+        const business=body?.business&&typeof body.business==="object"?body.business:null;
+        const contents=Array.isArray(body?.contents)?body.contents:[];
+        if(!profileKey||!business?.name||!(business.activity||business.service)||!business.objective){
+          return json({ok:false,error:"Perfil de laboratório incompleto"},{status:400});
+        }
+        const clientId="lab:"+profileKey+":"+runKey;
+        await env.DB.prepare(`
+          INSERT INTO client_state (client_id, business_json, contents_json, updated_at)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(client_id) DO UPDATE SET
+            business_json=excluded.business_json,
+            contents_json=excluded.contents_json,
+            updated_at=CURRENT_TIMESTAMP
+        `).bind(clientId,JSON.stringify({...business,isLabProfile:true}),JSON.stringify(contents)).run();
+        return json({ok:true,clientId,historyCount:contents.length});
+      } catch(error) {
+        return json({ok:false,error:"Falha ao preparar perfil de laboratório",message:error.message},{status:500});
+      }
+    }
+
+    if (url.pathname === "/api/lab/state" && request.method === "GET") {
+      try {
+        const supplied=request.headers.get("x-destrave-lab-key")||"";
+        if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Rota não encontrada"},{status:404});
+        const clientId=String(url.searchParams.get("clientId")||"");
+        if(!clientId.startsWith("lab:")) return json({ok:false,error:"Perfil de laboratório inválido"},{status:400});
+        await ensureStateTable(env);
+        const row=await env.DB.prepare("SELECT business_json, contents_json FROM client_state WHERE client_id = ?").bind(clientId).first();
+        return json({ok:true,clientId,business:row?JSON.parse(row.business_json||"{}"):{},contents:row?JSON.parse(row.contents_json||"[]"):[]});
+      } catch(error) {
+        return json({ok:false,error:"Falha ao ler laboratório",message:error.message},{status:500});
+      }
+    }
+
     if (url.pathname === "/api/health") {
       try {
         await env.DB.prepare("SELECT 1").first();
@@ -97,6 +142,10 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
       try {
         const clientId = request.headers.get("x-destrave-client");
         if (!clientId) return json({ok:false,error:"Cliente não identificado"},{status:400});
+        if (clientId.startsWith("lab:")) {
+          const supplied=request.headers.get("x-destrave-lab-key")||"";
+          if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Cliente não identificado"},{status:400});
+        }
         if (!env.GROQ_API_KEY && !env.GEMINI_API_KEY && !env.AI) return json({ok:false,error:"Nenhum motor de IA está configurado."},{status:503});
         await ensureStateTable(env);
         const row = await env.DB.prepare("SELECT business_json, contents_json FROM client_state WHERE client_id = ?").bind(clientId).first();
@@ -511,6 +560,10 @@ Regras: não invente substitutos; não use placeholders; se o dado for dispensá
         await ensureStateTable(env);
         const clientId = request.headers.get("x-destrave-client");
         if (!clientId) return json({ ok:false, error:"Cliente não identificado" }, { status:400 });
+        if (clientId.startsWith("lab:")) {
+          const supplied=request.headers.get("x-destrave-lab-key")||"";
+          if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Cliente não identificado"},{status:400});
+        }
 
         if (request.method === "GET") {
           const row = await env.DB.prepare(
