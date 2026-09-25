@@ -230,7 +230,7 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
         const confirmedFactLines = Object.entries(factVault).filter(([,v]) => String(v || "").trim()).map(([k,v]) => "- " + k + ": " + String(v).trim()).join("\n");
         const knownFactText = Object.values(factVault).filter(v=>String(v||"").trim()).join(" ").toLowerCase();
         const forbiddenAssumptions = [
-          {re:/\blink(?: na bio| abaixo)?\b/i, allow:/\blink\b/i},
+          {re:/\b(?:link na bio|link abaixo|acesse o link|clique no link|toque no link)\b/i, allow:/\b(?:link na bio|link abaixo|acesse o link|clique no link|toque no link)\b/i},
           {re:/\bagenda aberta\b/i, allow:/\bagenda aberta\b/i},
           {re:/\bpront[oa] para entrega\b/i, allow:/\bpront[oa] para entrega\b/i},
           {re:/\brec[eé]m[- ]?feito\b/i, allow:/\brec[eé]m[- ]?feito\b/i},
@@ -748,7 +748,7 @@ Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo racioc
             return value
               .replace(/\[[^\]]+\]|\{\{[^}]+\}\}/g,"")
               .replace(/(?:acesse|clique|toque|confira|veja|saiba mais)(?:\s+(?:no|pelo|atrav[eé]s do))?\s+link(?:\s+na bio|\s+abaixo)?/gi,"me chame")
-              .replace(/\blink(?:\s+na bio|\s+abaixo)\b/gi,"")
+              .replace(/\blink\s+na bio\b|\blink\s+abaixo\b/gi,"me chame")
               .replace(/\s{2,}/g," ").trim();
           };
           plan=cleanStrings(plan);
