@@ -553,7 +553,7 @@ COMO CORRIGIR
 Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrigido.`
             let fiscalApplied=false;
             let fiscalLastError="";
-            for (const fiscalModel of ["openai/gpt-oss-120b"]) {
+            for (const fiscalModel of ["openai/gpt-oss-20b"]) {
               if(fiscalApplied) break;
               try {
                 const vb=JSON.stringify({
@@ -570,7 +570,7 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
                   method:"POST",
                   headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
                   body:vb,
-                  signal:AbortSignal.timeout(18000)
+                  signal:AbortSignal.timeout(25000)
                 });
                 const raw=await vr.text();
                 if(!vr.ok){
@@ -622,7 +622,7 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
                     max_tokens:7000,
                     temperature:0.1
                   }),
-                  new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 18s")),18000))
+                  new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 25s")),25000))
                 ]);
                 const checked=String(cfFiscal?.response ?? cfFiscal?.choices?.[0]?.message?.content ?? "").trim();
                 if(checked){
@@ -639,13 +639,47 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
                 console.error("DESTRAVE_FISCAL_CF_FALLBACK_ERROR",{creator:modelUsed,error:String(error)});
               }
             }
+            if(!fiscalApplied && env.GEMINI_API_KEY){
+              try{
+                const gr=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{
+                  method:"POST",
+                  headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
+                  body:JSON.stringify({
+                    contents:[{parts:[{text:validatorPrompt}]}],
+                    generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}
+                  }),
+                  signal:AbortSignal.timeout(25000)
+                });
+                const raw=await gr.text();
+                let gd={}; try{gd=JSON.parse(raw)}catch{}
+                if(gr.ok){
+                  const checked=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
+                  if(checked){
+                    const checkedPlan=JSON.parse(checked.replace(/^```(?:json)?\s*/i,"").replace(/```$/,"").trim());
+                    if(checkedPlan && typeof checkedPlan==="object" && typeof checkedPlan.needsInput==="boolean" && (checkedPlan.needsInput || (checkedPlan.reels && Array.isArray(checkedPlan.stories) && checkedPlan.feed && checkedPlan.whatsapp))){
+                      plan=checkedPlan;
+                      modelUsed += "+fiscal";
+                      fiscalApplied=true;
+                      console.error("DESTRAVE_FISCAL_GEMINI_FALLBACK_APPLIED",{creator:modelUsed});
+                    }
+                  }
+                }else{
+                  fiscalLastError="gemini fiscal HTTP "+gr.status+": "+String(gd?.error?.message||"");
+                }
+              }catch(error){
+                fiscalLastError="gemini fiscal "+String(error);
+                console.error("DESTRAVE_FISCAL_GEMINI_FALLBACK_ERROR",{creator:modelUsed,error:String(error)});
+              }
+            }
             if(!fiscalApplied){
-              console.error("DESTRAVE_FISCAL_FAILED",{creator:modelUsed,error:fiscalLastError});
-              return json({ok:false,error:"A revisão final do conteúdo não foi concluída. Tente novamente.",code:"FISCAL_FAILED",model:modelUsed},{status:502});
+              // O Criador já concluiu. Uma indisponibilidade do revisor não deve apagar
+              // uma geração inteira. A guarda determinística abaixo continua obrigatória.
+              console.error("DESTRAVE_FISCAL_SKIPPED",{creator:modelUsed,error:fiscalLastError});
+              modelUsed += "+guard";
             }
           } catch (error) {
             console.error("DESTRAVE_FISCAL_FATAL",{creator:modelUsed,error:String(error)});
-            return json({ok:false,error:"A revisão final do conteúdo não foi concluída. Tente novamente.",code:"FISCAL_FAILED",model:modelUsed},{status:502});
+            modelUsed += "+guard";
           }
         }
 
