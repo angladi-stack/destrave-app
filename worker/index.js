@@ -369,6 +369,7 @@ Scripts, textos de tela e legendas devem soar como a própria pessoa falando com
 Diga exatamente o que mostrar/gravar, o que falar, o que escrever e qual CTA usar. Nada de ordens abstratas como "mostre autoridade" ou "fale dos benefícios".
 Não use "nós" salvo se o cadastro confirmar equipe. Não use "swipe up".
 Não fale de outra frente além de "${selectedFocus}".
+Se o foco escolhido for um SERVIÇO, o conteúdo deve aumentar percepção, confiança, desejo ou decisão de contratar/experimentar esse serviço. Pode educar para gerar percepção, mas NÃO transforme a profissional em professora de faça-você-mesmo, não entregue tutorial doméstico como solução principal e não termine ensinando a pessoa a substituir o serviço em casa. Se ensinar/aprender for a própria oferta escolhida (curso, aula ou mentoria), aí sim isso pode conduzir a direção.
 
 QUALIDADE FINAL
 Antes de responder, confira silenciosamente:
@@ -511,6 +512,7 @@ A resposta final deve parecer escrita para esta pessoa hoje, e não saída de um
 TESTE DO DESTRAVAMENTO: reprove qualquer instrução que ainda exija que a pessoa descubra o que mostrar, falar ou escrever. "Apresente seu diferencial", "mostre sua experiência", "fale dos benefícios", "conte sua história", "mostre o processo" e equivalentes são insuficientes sem execução literal. Para cada trecho, deixe claro o que mostrar, a fala/texto utilizável e a ação seguinte, sem transformar a resposta em tutorial óbvio de celular.
 Não permita que detalhes, comodidades, recursos ou diferenciais do cadastro virem uma frente ou substituam o foco escolhido. Eles só podem aparecer como evidência contextual quando forem diretamente úteis ao foco.
 FOCO SELECIONADO NO PEDIDO é a fonte de verdade e uma fronteira rígida. Audite o JSON inteiro contra selectedFocus, inclusive hashtags, CTA, Stories, legenda e WhatsApp. Se selectedFocus indicar serviço, curso/aula/mentoria relacionados não podem ser ofertados, citados como solução, prova ou CTA. Se selectedFocus indicar curso, o serviço relacionado não pode virar a oferta do dia. O fato de outra frente existir no PERFIL não autoriza misturá-la.
+TESTE DE INTENÇÃO DO SERVIÇO: se selectedFocus for serviço, a conclusão natural deve aproximar a pessoa de conhecer, desejar, conversar sobre ou contratar o serviço. Reescreva qualquer direção que vire tutorial DIY, ritual doméstico, passo a passo para fazer em casa, "eu ensino como fazer", "aprenda a fazer" ou equivalente, salvo se ensinar for explicitamente o serviço escolhido. Educação pode criar percepção, mas não substituir a oferta.
 TOLERÂNCIA ZERO DE EVIDÊNCIA: examine CADA frase do JSON e remova ou reescreva qualquer detalhe particular que não esteja literalmente sustentado pelo COFRE/PERFIL. Isso inclui nome/identidade de cliente, depoimento, antes/depois, "há X dias", "até X semanas", "sem lascar", duração, quantidade, técnica, material, preparação, etapa específica, disponibilidade/vagas, urgência, garantia, resultado, preço, promoção, estoque, entrega, link/botão e arquivos de mídia inventados.
 DIFERENCIAL QUALITATIVO NÃO AUTORIZA NÚMERO: "durabilidade", "naturalidade" ou "resistência" jamais permitem deduzir prazo, dias/semanas, ausência de lascas, material ou técnica.
 CONHECIMENTO PROFISSIONAL NÃO É FATO DO NEGÓCIO: permita conhecimento geral seguro do segmento quando ele realmente ajuda, mas remova frases que atribuam à profissional técnica, material, preparação, método, módulo de curso ou procedimento específico não confirmado. Reescreva afirmações técnicas absolutas/controversas em linguagem segura ou retire-as quando não forem necessárias.
@@ -540,7 +542,8 @@ Retorne somente JSON válido.`
             const vr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
               method:"POST",
               headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
-              body:vb
+              body:vb,
+              signal:AbortSignal.timeout(55000)
             });
             const vd=await vr.json();
             if (vr.ok) {
