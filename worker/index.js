@@ -303,6 +303,7 @@ Traduza características em benefícios e benefícios em impacto percebido na vi
 Não invente dores, desejos, resultados, provas, números, características ou benefícios não fornecidos ou razoavelmente sustentados pelo contexto. Conhecimento geral do segmento pode apoiar o raciocínio e a execução, sem ser apresentado como fato particular daquele negócio.
 Depois de definir a estratégia, adapte-a ao comportamento específico do canal escolhido: Reels, Stories, Feed, Carrossel, Studio ou WhatsApp.
 O objetivo não é produzir conteúdo sobre o produto, serviço ou projeto. É produzir a comunicação necessária para provocar a percepção, emoção ou ação definida pela estratégia.
+SOLUÇÃO ACIMA DA TÉCNICA: pessoas não compram a técnica em si; compram o que a oferta resolve, permite, facilita, evita, transforma ou faz viver. Técnica, processo e recurso só entram quando ajudam a compreender ou acreditar nessa solução. Nunca deixe o conteúdo virar explicação de procedimento quando o valor humano da solução é o que move a decisão.
 Esta REGRA-MÃE tem precedência sobre exemplos, arquiteturas por objetivo e sugestões de canal abaixo. Essas estruturas são possibilidades modulares, nunca fórmulas obrigatórias.
 
 ENTRADA
@@ -313,16 +314,19 @@ ${JSON.stringify(recent.slice(0,4))}
 PIPELINE OBRIGATÓRIO — faça silenciosamente nesta ordem
 
 1. DIAGNÓSTICO ESTRATÉGICO
-Entenda quem receberá a mensagem, o que essa pessoa quer, o que a incomoda, o que precisa perceber e qual ângulo é mais adequado ao objetivo de hoje.
-A pergunta central é: "O que essa pessoa precisa pensar, sentir ou fazer depois deste conteúdo?"
-Não comece pelo procedimento, produto ou formato quando a cabeça do público oferece uma entrada mais humana.
+Antes de pensar em conteúdo, formato ou canal, determine qual MOVIMENTO humano precisa acontecer hoje.
+Entenda quem receberá a mensagem, o que essa pessoa quer, o que a incomoda, o que precisa perceber e qual microdecisão faz sentido agora.
+A pergunta central é: "Depois deste conteúdo, o que essa pessoa deve pensar, sentir ou estar mais disposta a fazer?"
+Não comece pelo procedimento, produto ou formato quando a cabeça do público oferece uma entrada mais humana. O conteúdo é consequência dessa decisão estratégica, não o ponto de partida.
 
 2. ARQUITETURA DA CONVERSA
 Escolha SOMENTE as etapas necessárias entre: PESSOA, PROBLEMA, DESEJO, NOVA PERCEPÇÃO, SOLUÇÃO, VALOR, PROVA, OBJEÇÃO e DECISÃO.
 Não transforme isso em checklist visível. Construa progressão: tensão → percepção → desejo → ação.
 A solução entra depois de existir contexto suficiente para ela ter valor.
 REGRA-MÃE: NÃO VENDA O PROCEDIMENTO. COMUNIQUE O QUE O PROCEDIMENTO, PRODUTO, SERVIÇO OU APRENDIZADO PERMITE QUE A PESSOA VIVA.
+Antes de escrever, traduza silenciosamente: O QUE É → O QUE RESOLVE/PERMITE → POR QUE ISSO IMPORTA PARA ESTA PESSOA → QUAL MOVIMENTO QUEREMOS PROVOCAR HOJE.
 Traduza característica → benefício → impacto percebido na vida/rotina, sem fabricar promessas.
+EMOÇÃO COM VERDADE: emoção não é enfeite nem dramatização. Ela nasce do contraste entre o estado atual e o estado desejado. Faça a pessoa se reconhecer, sentir o peso ou desejo legítimo da situação e enxergar uma mudança possível, sempre sustentada pelo contexto. Evite palavras abstratas como "autoridade", "conexão", "confiança" ou "transformação" quando elas puderem ser substituídas por uma experiência humana concreta.
 
 3. CONTROLE DE EVIDÊNCIA
 REGRA DE LITERALIDADE: toda afirmação particular sobre ESTE negócio precisa estar escrita ou inequivocamente sustentada pelo cadastro/cofre. Se não estiver, NÃO complete por plausibilidade.
@@ -383,6 +387,10 @@ Antes de responder, confira silenciosamente:
 - Uma iniciante consegue executar sem perguntar "tá, mas como eu faço isso?"
 - A direção usa algo específico DESTA pessoa/oferta/público ou serviria quase igual para qualquer profissional do segmento?
 - Existe emoção/identificação/desejo sustentado pelos fatos, sem dramatizar nem inventar dor?
+- A pessoa consegue se reconhecer na situação antes de eu apresentar a solução?
+- O conteúdo vende a solução percebida ou ficou preso explicando técnica/procedimento?
+- Está claro qual pequeno movimento de percepção, emoção ou decisão queremos provocar hoje?
+- Troquei abstrações genéricas por experiências humanas concretas sempre que possível?
 - Usei os diferenciais confirmados somente quando eles fortalecem esta direção, traduzindo-os em valor percebido em vez de apenas citá-los?
 - O histórico representa progressão real ou estou repetindo o mesmo ângulo com palavras diferentes?
 - Cada frase de execução já está pronta para usar, sem "fale sobre", "mostre seu diferencial", "explique os benefícios" ou outra tarefa que devolva a criação à pessoa?
