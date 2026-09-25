@@ -194,9 +194,23 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
         const recent = relevantHistory.slice(0,8).map(x=>({title:x.title,format:x.format,executionFeedback:x.executionFeedback||"Não informado",executionFeedbackAt:x.executionFeedbackAt||"",text:String(x.text||"").slice(0,1200)}));
         const redo = Boolean(body.redo);
         const focusNorm = selectedFocus.toLowerCase().replace(/\s+/g," ").trim();
+        const productIdentityText=[business.name,business.offer,business.activity,business.service,selectedFocus].filter(Boolean).join(" ");
+        const isDestraveProduct=/\bdestrave\b/i.test(productIdentityText);
+        const destraveProductVault=isDestraveProduct ? {
+          product:"Destrave by Angladi",
+          promise:"Entender contexto, objetivo e foco e entregar o próximo conteúdo pronto para executar.",
+          rule:"Não entrega apenas ideias; entrega execução.",
+          delivery:"Direção do dia adaptada para Reels, Stories, Feed/Carrossel e Status do WhatsApp.",
+          focus:"O foco escolhido hoje é soberano.",
+          positioning:"Não é curso de marketing, calendário de conteúdo nem ferramenta de publicação automática.",
+          outcome:"Ajuda a sair do 'não sei o que fazer agora' para uma execução clara de comunicação, sem garantir resultado comercial."
+        } : null;
         const factVault = {
           name: business.name || "",
+          offer: business.offer || "",
+          offerDetails: business.offerDetails || "",
           activity: business.activity || business.service || "",
+          service: business.service || "",
           objective: business.objective || "",
           mainGoal: Array.isArray(business.mainGoal) ? business.mainGoal.join(", ") : (business.mainGoal || ""),
           digitalStage: business.digitalStage || business.stage || "",
@@ -208,7 +222,8 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           freeContext: business.freeContext || "",
           goalToday: goal,
           requestToday: requestToday || "",
-          selectedFocus: selectedFocus || ""
+          selectedFocus: selectedFocus || "",
+          productVault: destraveProductVault || ""
         };
         const confirmedFactLines = Object.entries(factVault).filter(([,v]) => String(v || "").trim()).map(([k,v]) => "- " + k + ": " + String(v).trim()).join("\n");
         const knownFactText = Object.values(factVault).filter(v=>String(v||"").trim()).join(" ").toLowerCase();
