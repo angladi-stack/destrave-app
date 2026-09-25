@@ -836,6 +836,30 @@ Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo racioc
           }
         }
         if(hardViolations.length){
+          // Falhas factuais dispensáveis não devem destruir uma geração inteira.
+          // Para experiências pessoais não confirmadas, removemos a alegação em primeira pessoa
+          // e preservamos a situação humana, a emoção e a direção estratégica.
+          if(hardViolations.every(v=>v==="experiência pessoal inventada")){
+            const removeInventedPersonalExperience=(value)=>{
+              if(Array.isArray(value)) return value.map(removeInventedPersonalExperience);
+              if(value && typeof value==="object") return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,removeInventedPersonalExperience(v)]));
+              if(typeof value!=="string") return value;
+              return value
+                .replace(/\\b[eE]u\\s+tamb[eé]m\\s+passei\\s+por\\s+isso[,.!?;:]*/gi,"")
+                .replace(/\\b[eE]u\\s+tamb[eé]m\\s+(?:vivi|sofri|j[aá]\\s+estive)[^.!?]*(?:[.!?]|$)/gi,"")
+                .replace(/\\s{2,}/g," ")
+                .replace(/\\s+([,.!?;:])/g,"$1")
+                .trim();
+            };
+            plan=removeInventedPersonalExperience(plan);
+            hardViolations=deterministicAudit(plan);
+            if(!hardViolations.length){
+              modelUsed += "+safe-repair";
+              console.error("DESTRAVE_FACT_GUARD_SAFE_REPAIR",{type:"personal_experience"});
+            }
+          }
+        }
+        if(hardViolations.length){
           return json({ok:false,error:"O Destrave bloqueou uma resposta que usava informação não confirmada. Tente criar outra versão.",code:"FACT_GUARD",details:hardViolations},{status:422});
         }
 
