@@ -267,7 +267,12 @@ Antes de responder, confira silenciosamente:
 - A voz parece uma pessoa sendo guiada, e não uma agência?
 - Fatos particulares têm suporte e conhecimento geral não foi apresentado como fato exclusivo?
 - Uma iniciante consegue executar sem perguntar "tá, mas como eu faço isso?"
-Se falhar, reescreva antes de responder.
+- A direção usa algo específico DESTA pessoa/oferta/público ou serviria quase igual para qualquer profissional do segmento?
+- Existe emoção/identificação/desejo sustentado pelos fatos, sem dramatizar nem inventar dor?
+- Usei os diferenciais confirmados somente quando eles fortalecem esta direção, traduzindo-os em valor percebido em vez de apenas citá-los?
+- O histórico representa progressão real ou estou repetindo o mesmo ângulo com palavras diferentes?
+- Cada frase de execução já está pronta para usar, sem "fale sobre", "mostre seu diferencial", "explique os benefícios" ou outra tarefa que devolva a criação à pessoa?
+Se qualquer resposta indicar conteúdo genérico, frio, repetitivo, vago ou pouco executável, reescreva silenciosamente ANTES de devolver o JSON. A primeira geração deve sair pronta para publicar; não conte com o botão Refazer para corrigir qualidade.
 
 RETORNE SOMENTE JSON VÁLIDO:
 {"needsInput":false,"question":"","directionTitle":"","why":"","reels":{"title":"","hook":"","steps":[],"script":"","screenText":"","caption":"","cta":""},"stories":[{"title":"Story 1","show":"","say":"","screenText":"","interaction":""},{"title":"Story 2","show":"","say":"","screenText":"","interaction":""},{"title":"Story 3","show":"","say":"","screenText":"","interaction":""},{"title":"Story 4","show":"","say":"","screenText":"","interaction":""},{"title":"Story 5","show":"","say":"","screenText":"","interaction":""},{"title":"Story 6","show":"","say":"","screenText":"","interaction":""},{"title":"Story 7","show":"","say":"","screenText":"","interaction":""}],"feed":{"format":"","instructions":"","slides":[],"caption":"","cta":""},"whatsapp":{"format":"","instructions":"","text":""},"quickVersion":"","motivation":""}`
@@ -381,10 +386,16 @@ ${JSON.stringify({goal, requestedFormat, requestToday})}
 JSON GERADO:
 ${JSON.stringify(plan)}
 
-Audite e corrija o JSON sem mudar o schema.
+Audite e corrija o JSON sem mudar o schema. Sua função não é apenas fiscalizar fatos: é impedir que uma resposta "quase boa" chegue ao usuário.
 Exija: uma direção central específica; Reels, Stories, Feed e WhatsApp coerentes com a mesma direção e utilizáveis separadamente; execução realmente pronta; quickVersion simples; motivation obrigatória e específica.
+Faça o TESTE DA PRIMEIRA GERAÇÃO: pergunte silenciosamente "Se eu fosse esta pessoa, com este negócio, este público, este momento digital, este objetivo e este histórico, eu conseguiria publicar exatamente isto sem pedir outra geração?" Se não, corrija agora.
 Reprove conteúdo genérico, marketinguês, decisões estratégicas devolvidas à pessoa, operação óbvia de celular, invenções, promessas de resultado, CTAs empilhados e formatos desconectados.
-TESTE DO DESTRAVAMENTO: reprove qualquer instrução que ainda exija que a pessoa descubra o que mostrar, falar ou escrever. "Apresente seu diferencial", "mostre sua experiência" e "fale dos benefícios" são insuficientes sem execução literal.
+Reprove também conteúdo tecnicamente correto porém frio, sem identificação, tensão, percepção, desejo ou humanidade quando o contexto permitir emoção verdadeira. Emoção deve nascer dos fatos e da situação do público; nunca invente trauma, dor, urgência ou desejo.
+TESTE DE ESPECIFICIDADE: se a direção pudesse ser entregue quase igual a outra pessoa da mesma profissão trocando apenas o nome, reescreva usando os fatos realmente úteis deste cadastro. Diferenciais confirmados devem virar benefício/impacto percebido quando houver relação legítima, não uma lista de características.
+TESTE DE PROGRESSÃO: compare com o histórico relevante. Não aceite o mesmo ângulo, gancho, raciocínio ou CTA apenas parafraseado. O próximo conteúdo deve avançar a comunicação, salvo quando executionFeedback indicar que algo não foi executado e repetir/adaptar for estrategicamente justificável.
+TESTE DE COESÃO: Stories devem formar uma conversa em sequência; se um Story puder ser removido ou trocado de posição sem quebrar o raciocínio, fortaleça a progressão. Reels, Feed e WhatsApp compartilham a direção, mas cada um deve parecer nativo do canal, não cópia.
+A resposta final deve parecer escrita para esta pessoa hoje, e não saída de um gerador de conteúdo.
+TESTE DO DESTRAVAMENTO: reprove qualquer instrução que ainda exija que a pessoa descubra o que mostrar, falar ou escrever. "Apresente seu diferencial", "mostre sua experiência", "fale dos benefícios", "conte sua história", "mostre o processo" e equivalentes são insuficientes sem execução literal. Para cada trecho, deixe claro o que mostrar, a fala/texto utilizável e a ação seguinte, sem transformar a resposta em tutorial óbvio de celular.
 Não permita que detalhes, comodidades, recursos ou diferenciais do cadastro virem uma frente ou substituam o foco escolhido. Eles só podem aparecer como evidência contextual quando forem diretamente úteis ao foco.
 O foco selecionado é fronteira rígida: se for curso, audite como conteúdo de curso; não permita migração para o serviço relacionado.
 Tolerância zero: remova fatos não confirmados como link na bio, agenda aberta, disponibilidade, produto pronto hoje, sabores, datas, entrega, promoção, preço, botão/link, estoque ou resultados. Remova placeholders. Se um dado for indispensável, needsInput=true com uma única pergunta factual.
