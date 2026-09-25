@@ -529,36 +529,73 @@ A pessoa recebe todas as possibilidades, mas nunca deve ser tratada como obrigad
 needsInput=true é EXCEÇÃO ABSOLUTA. Só use quando faltar um fato sem o qual seja literalmente impossível produzir qualquer conteúdo verdadeiro e executável. Nunca use needsInput para disponibilidade, lançamento/download, preço, estoque, agenda, entrega, promoção, link, botão, data ou detalhes que possam ser omitidos. Se houver qualquer caminho verdadeiro com os fatos existentes, needsInput=false e entregue o conteúdo completo.
 Retorne somente JSON válido.`
 
-            const vb=JSON.stringify({
-              model:"openai/gpt-oss-120b",
-              messages:[
-                {role:"system",content:"Audite com rigor factual. Retorne somente JSON válido."},
-                {role:"user",content:validatorPrompt}
-              ],
-              temperature:0.15,
-              max_completion_tokens:7000,
-              response_format:{type:"json_object"}
-            });
-            const vr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
-              method:"POST",
-              headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
-              body:vb,
-              signal:AbortSignal.timeout(55000)
-            });
-            const vd=await vr.json();
-            if (vr.ok) {
-              const checked=String(vd.choices?.[0]?.message?.content||"").trim();
-              if (checked) {
-                const checkedPlan=JSON.parse(checked.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim());
+            let fiscalApplied=false;
+            let fiscalLastError="";
+            for (const fiscalModel of ["openai/gpt-oss-120b","openai/gpt-oss-20b"]) {
+              if(fiscalApplied) break;
+              try {
+                const vb=JSON.stringify({
+                  model:fiscalModel,
+                  messages:[
+                    {role:"system",content:"Audite com rigor factual. Retorne somente JSON válido."},
+                    {role:"user",content:validatorPrompt}
+                  ],
+                  temperature:0.15,
+                  max_completion_tokens:7000,
+                  response_format:{type:"json_object"}
+                });
+                const vr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+                  method:"POST",
+                  headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
+                  body:vb,
+                  signal:AbortSignal.timeout(55000)
+                });
+                const raw=await vr.text();
+                if(!vr.ok){
+                  fiscalLastError=fiscalModel+" HTTP "+vr.status+": "+raw.slice(0,300);
+                  console.error("DESTRAVE_FISCAL_ATTEMPT_FAILED",{creator:modelUsed,fiscalModel,status:vr.status,preview:raw.slice(0,300)});
+                  continue;
+                }
+                let vd;
+                try { vd=JSON.parse(raw); }
+                catch(error){
+                  fiscalLastError=fiscalModel+" envelope inválido: "+String(error);
+                  console.error("DESTRAVE_FISCAL_ENVELOPE_INVALID",{creator:modelUsed,fiscalModel,error:String(error),preview:raw.slice(0,300)});
+                  continue;
+                }
+                const checked=String(vd.choices?.[0]?.message?.content||"").trim();
+                if(!checked){
+                  fiscalLastError=fiscalModel+" resposta vazia";
+                  console.error("DESTRAVE_FISCAL_EMPTY",{creator:modelUsed,fiscalModel});
+                  continue;
+                }
+                let checkedPlan;
+                try { checkedPlan=JSON.parse(checked.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
+                catch(error){
+                  fiscalLastError=fiscalModel+" JSON inválido: "+String(error);
+                  console.error("DESTRAVE_FISCAL_JSON_INVALID",{creator:modelUsed,fiscalModel,error:String(error),preview:checked.slice(0,500)});
+                  continue;
+                }
                 if (checkedPlan && typeof checkedPlan==="object" && typeof checkedPlan.needsInput==="boolean" && (checkedPlan.needsInput || (checkedPlan.reels && Array.isArray(checkedPlan.stories) && checkedPlan.feed && checkedPlan.whatsapp))) {
                   plan=checkedPlan;
                   modelUsed += "+fiscal";
+                  fiscalApplied=true;
+                } else {
+                  fiscalLastError=fiscalModel+" estrutura incompleta";
+                  console.error("DESTRAVE_FISCAL_SHAPE_INVALID",{creator:modelUsed,fiscalModel});
                 }
+              } catch (error) {
+                fiscalLastError=fiscalModel+" "+String(error);
+                console.error("DESTRAVE_FISCAL_ATTEMPT_ERROR",{creator:modelUsed,fiscalModel,error:String(error)});
               }
             }
-          } catch (_) {
-            // Se o fiscal estiver temporariamente indisponível, preserva a geração válida
-            // em vez de derrubar toda a experiência do usuário.
+            if(!fiscalApplied){
+              console.error("DESTRAVE_FISCAL_FAILED",{creator:modelUsed,error:fiscalLastError});
+              return json({ok:false,error:"A revisão final do conteúdo não foi concluída. Tente novamente.",code:"FISCAL_FAILED",model:modelUsed},{status:502});
+            }
+          } catch (error) {
+            console.error("DESTRAVE_FISCAL_FATAL",{creator:modelUsed,error:String(error)});
+            return json({ok:false,error:"A revisão final do conteúdo não foi concluída. Tente novamente.",code:"FISCAL_FAILED",model:modelUsed},{status:502});
           }
         }
 
