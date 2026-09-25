@@ -64,7 +64,7 @@ export default {
 
     // Painel interno do laboratório: nunca é servido sem a chave secreta na própria URL.
     // A chave fica somente na sessão do navegador e não é gravada no app nem no GitHub.
-    if (url.pathname === "/__destrave_lab") {
+    if (url.pathname === "/api/lab/panel") {
       const supplied=url.searchParams.get("key")||"";
       if(!(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"]) || supplied!==(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"])) return new Response("Not found",{status:404});
       const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Destrave Lab</title><style>
