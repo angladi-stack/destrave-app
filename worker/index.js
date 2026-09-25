@@ -200,12 +200,29 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
         const isDestraveProduct=/\bdestrave\b/i.test(productIdentityText);
         const destraveProductVault=isDestraveProduct ? {
           product:"Destrave by Angladi",
-          promise:"Entender contexto, objetivo e foco e entregar o próximo conteúdo pronto para executar.",
-          rule:"Não entrega apenas ideias; entrega execução.",
-          delivery:"Direção do dia adaptada para Reels, Stories, Feed/Carrossel e Status do WhatsApp.",
-          focus:"O foco escolhido hoje é soberano.",
-          positioning:"Não é curso de marketing, calendário de conteúdo nem ferramenta de publicação automática.",
-          outcome:"Ajuda a sair do 'não sei o que fazer agora' para uma execução clara de comunicação, sem garantir resultado comercial."
+          problem:"A pessoa quer se movimentar na internet, mas trava porque não sabe qual conteúdo fazer agora nem como executar.",
+          input:"A pessoa informa seu contexto, objetivo do dia e, quando quiser, o foco exato do que deseja movimentar.",
+          decision:"O Destrave usa esse contexto para escolher UMA direção estratégica de comunicação para aquele momento.",
+          output:"Entrega o conteúdo pronto para executar, com Reels, Stories, Feed/Carrossel e Status do WhatsApp adaptados à mesma direção.",
+          promise:"Tirar a pessoa do 'não sei o que fazer agora' e entregar o próximo conteúdo que ela consegue executar.",
+          coreRule:"Não entrega apenas ideias; entrega execução.",
+          focusRule:"O foco escolhido hoje é soberano. Se a pessoa disser que hoje só quer falar de uma coisa, todo o conteúdo gira exclusivamente em torno dela.",
+          notThis:[
+            "lista de tarefas ou missões diárias",
+            "curso de marketing",
+            "calendário de conteúdo",
+            "construtor de página de vendas",
+            "gerador ou painel de leads",
+            "CRM",
+            "checkout",
+            "ferramenta de tráfego pago",
+            "publicação automática",
+            "aplicativo que faz tudo pela pessoa"
+          ],
+          access:"O acesso/venda é conduzido por conversa no WhatsApp. Não afirmar download, App Store/Play Store, teste grátis, experimentar grátis ou checkout se isso não estiver confirmado no contexto.",
+          evidence:"Não inventar que Angladi já teve resultado, comentários, interação, clientes, vendas ou qualquer prova usando o Destrave.",
+          language:"Ao falar do Destrave, prefira 'conteúdo do dia', 'direção do conteúdo', 'próximo conteúdo' e 'execução pronta'. Evite chamar isso de tarefa, missão ou checklist.",
+          outcomeBoundary:"O Destrave entrega direção e execução de comunicação; não promete venda, cliente, lead, crescimento ou resultado comercial."
         } : null;
         const factVault = {
           name: business.name || "",
@@ -284,6 +301,20 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           const waText=String(candidate?.whatsapp?.text||"").toLowerCase();
           if(!waFormat.includes("status") || /mensagem direta|envie para|mande para|contatos? próximos?|lista de transmissão/.test(waInstructions+" "+waText)){
             violations.push("whatsapp deve ser status");
+          }
+          if(isDestraveProduct){
+            const destraveInventions=[
+              {re:/\b(?:tarefa|miss[aã]o)\s+(?:do dia|di[aá]ria|di[aá]rio|clara)\b/i,label:"Destrave reduzido a tarefa/missão"},
+              {re:/\b(?:baixe|baixar|download)\b/i,label:"forma de acesso não confirmada"},
+              {re:/\b(?:experimente|teste)\s+gr[aá]tis\b|\bgr[aá]tis\b/i,label:"gratuidade não confirmada"},
+              {re:/\b(?:gera|gerar|ver|receber|chegar(?:am|ando)?)\s+leads?\b|\bleads?\s+(?:na tela|chegando)\b/i,label:"leads inventados"},
+              {re:/\b(?:j[aá]\s+)?(?:recebi|recebeu|apareceu|surgiu|vieram?)\s+(?:os?\s+)?(?:primeiros?\s+)?(?:coment[aá]rios?|intera[cç][aã]o|feedbacks?)\b/i,label:"resultado/prova inventado"},
+              {re:/\bprimeira\s+intera[cç][aã]o\b|\bfeedback\s+real\b/i,label:"resultado/prova inventado"},
+              {re:/\beu\s+tamb[eé]m\s+(?:passei|vivi|sofri|j[aá]\s+estive)\b/i,label:"experiência pessoal inventada"},
+              {re:/\bo\s+app\s+faz\s+tudo\b/i,label:"função exagerada do Destrave"},
+              {re:/\bp[aá]gina\s+de\s+vendas\b|\bcrm\b|\bcheckout\b|\bpublica(?:r)?\s+automaticamente\b/i,label:"funcionalidade inventada do Destrave"}
+            ];
+            for(const x of destraveInventions) if(x.re.test(serialized)) violations.push(x.label);
           }
           const feedSlides=Array.isArray(candidate?.feed?.slides)?candidate.feed.slides:[];
           if(feedSlides.length){
@@ -368,6 +399,9 @@ PENSE NESTA ORDEM, EM SILÊNCIO
 REGRAS CENTRAIS
 - FOCO SOBERANO: se a pessoa disser que hoje quer falar de UMA coisa, TODO o conteúdo nasce dessa coisa. O perfil informa quem ela é; o foco de hoje decide o assunto. Reels, Stories, Feed, Status, legenda, CTA, prova, objeção, benefício e direção não podem puxar outra frente.
 - Se houver COFRE DO PRODUTO no contexto, ele é verdade inviolável sobre o que esse produto faz e não faz. Não complete funcionalidades por plausibilidade.
+- AO FALAR DO DESTRAVE: mostre a verdade operacional na ordem certa: a pessoa informa contexto/objetivo/foco → o Destrave decide uma direção estratégica → entrega o conteúdo pronto por canal → a pessoa executa. Não transforme isso em "tarefa diária", "missão", "checklist", "o app faz tudo" ou qualquer função que não exista.
+- Nunca invente uma demonstração fictícia de resultado para vender o Destrave. Não escreva "eu também passei por isso", "já recebi comentários", "apareceu a primeira interação", "vi leads chegando" ou equivalentes sem fato confirmado.
+- Não use "baixe agora", "experimente grátis", "teste grátis" ou promessa de download/acesso gratuito para o Destrave. Se precisar de CTA e não houver instrução mais específica, use convite para chamar no WhatsApp para conhecer/ter acesso.
 - O foco escolhido é a fronteira do conteúdo. Outras frentes do cadastro são apenas contexto e não podem virar oferta, CTA, prova ou assunto do dia.
 - Não reduza uma oferta específica a conselho genérico de marketing. "Poste simples", "tenha constância", "construa autoridade", "não precisa de estúdio" e frases parecidas só entram se forem realmente o ponto estratégico desta pessoa hoje.
 - Pessoas compram solução, não técnica. Técnica/processo só aparece quando ajuda a compreender ou acreditar na solução.
@@ -533,7 +567,7 @@ Preserve a direção, a voz e o texto do Criador sempre que estiverem válidos. 
 AUDITE APENAS:
 1. FATO INVENTADO: cliente/prova/depoimento, antes/depois, números, prazo, resultado, técnica/material/método particular não confirmado, preço, promoção, disponibilidade, garantia, arquivo/link, experiência pessoal não confirmada.
 2. FOCO SOBERANO: se selectedFocus aponta uma coisa específica, nenhuma outra frente pode aparecer como assunto, oferta, solução, benefício, prova, CTA, hashtag, legenda ou exemplo.
-3. VERDADE DO PRODUTO: quando houver COFRE DO PRODUTO, não aceite função ou promessa que esteja fora dele.
+3. VERDADE DO PRODUTO: quando houver COFRE DO PRODUTO, não aceite função, forma de acesso, prova, resultado ou promessa que esteja fora dele. Para o Destrave, rejeite "tarefa/missão diária", download, teste grátis, leads, comentários/resultados fictícios e qualquer narrativa pessoal não confirmada. Preserve a verdade operacional: contexto/objetivo/foco → direção estratégica → conteúdo pronto por canal → execução pela pessoa.
 4. REELS INCOMPLETO: reels.script deve ser fala completa, normalmente entre 95 e 160 palavras, com gancho, situação/tensão, nova percepção, solução e ação. Mini roteiro curto é erro.
 5. CANAL ERRADO: o campo whatsapp deve ser STATUS DO WHATSAPP por padrão. Não transforme em mensagem privada, lista de transmissão ou prospecção, salvo pedido explícito.
 6. EXECUÇÃO INCOMPLETA: Feed com slides vazios/rótulos, Stories quebrados, campo essencial sem conteúdo, instrução abstrata que devolve criação à pessoa.
