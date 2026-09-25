@@ -604,6 +604,34 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
                 console.error("DESTRAVE_FISCAL_ATTEMPT_ERROR",{creator:modelUsed,fiscalModel,error:String(error)});
               }
             }
+            if(!fiscalApplied && env.AI){
+              try{
+                const cfFiscal=await Promise.race([
+                  env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast",{
+                    messages:[
+                      {role:"system",content:"Audite com rigor factual e retorne somente JSON válido."},
+                      {role:"user",content:validatorPrompt}
+                    ],
+                    max_tokens:7000,
+                    temperature:0.1
+                  }),
+                  new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 55s")),55000))
+                ]);
+                const checked=String(cfFiscal?.response ?? cfFiscal?.choices?.[0]?.message?.content ?? "").trim();
+                if(checked){
+                  const checkedPlan=JSON.parse(checked.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim());
+                  if(checkedPlan && typeof checkedPlan==="object" && typeof checkedPlan.needsInput==="boolean" && (checkedPlan.needsInput || (checkedPlan.reels && Array.isArray(checkedPlan.stories) && checkedPlan.feed && checkedPlan.whatsapp))){
+                    plan=checkedPlan;
+                    modelUsed += "+fiscal";
+                    fiscalApplied=true;
+                    console.error("DESTRAVE_FISCAL_CF_FALLBACK_APPLIED",{creator:modelUsed});
+                  }
+                }
+              }catch(error){
+                fiscalLastError="cloudflare fiscal "+String(error);
+                console.error("DESTRAVE_FISCAL_CF_FALLBACK_ERROR",{creator:modelUsed,error:String(error)});
+              }
+            }
             if(!fiscalApplied){
               console.error("DESTRAVE_FISCAL_FAILED",{creator:modelUsed,error:fiscalLastError});
               return json({ok:false,error:"A revisão final do conteúdo não foi concluída. Tente novamente.",code:"FISCAL_FAILED",model:modelUsed},{status:502});
@@ -618,7 +646,7 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
         // Se ainda restar placeholder, promessa forte ou pressuposição operacional detectável,
         // uma última correção é solicitada. Se ela não puder ser validada, a resposta é bloqueada.
         let hardViolations=deterministicAudit(plan);
-        if (hardViolations.length && env.GROQ_API_KEY) {
+        if (hardViolations.length && (env.GROQ_API_KEY || env.AI)) {
           console.error("DESTRAVE_FACT_GUARD_INITIAL",{creator:modelUsed,violations:hardViolations});
           const repairPrompt=`Corrija SOMENTE as violações objetivas abaixo no JSON do Conteúdo do Dia.
 VIOLAÇÕES: ${hardViolations.join("; ")}
@@ -660,6 +688,43 @@ Regras: preserve foco, direção e voz; corrija apenas o necessário. Não inven
             }
           }
           hardViolations=deterministicAudit(plan);
+          if(hardViolations.length && env.AI){
+            try{
+              const cfRepairPrompt=`Corrija SOMENTE estas violações objetivas no JSON do Conteúdo do Dia: ${hardViolations.join("; ")}.
+FATOS CONFIRMADOS:
+${confirmedFactLines || "- nenhum"}
+COFRE DO PRODUTO:
+${JSON.stringify(destraveProductVault)}
+JSON:
+${JSON.stringify(plan)}
+Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo raciocínio para 45–60 segundos. Se WhatsApp estiver errado, converta para Status do WhatsApp. Complete blocos incompletos sem inventar fatos. Retorne somente JSON válido.`;
+              const cfRepair=await Promise.race([
+                env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast",{
+                  messages:[
+                    {role:"system",content:"Faça apenas correções objetivas. Retorne somente JSON válido."},
+                    {role:"user",content:cfRepairPrompt}
+                  ],
+                  max_tokens:7000,
+                  temperature:0.05
+                }),
+                new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 55s")),55000))
+              ]);
+              const repairedText=String(cfRepair?.response ?? cfRepair?.choices?.[0]?.message?.content ?? "").trim();
+              if(repairedText){
+                const repaired=JSON.parse(repairedText.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim());
+                if(repaired && typeof repaired==="object"){
+                  const after=deterministicAudit(repaired);
+                  if(after.length < hardViolations.length){
+                    plan=repaired;
+                    hardViolations=after;
+                    console.error("DESTRAVE_FACT_REPAIR_CF_RESULT",{remaining:after});
+                  }
+                }
+              }
+            }catch(error){
+              console.error("DESTRAVE_FACT_REPAIR_CF_ERROR",{error:String(error)});
+            }
+          }
         }
         if(hardViolations.length){
           // A guarda factual não deve derrubar todo o Conteúdo do Dia por detalhes dispensáveis.
