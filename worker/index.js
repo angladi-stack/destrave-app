@@ -220,9 +220,10 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
             "aplicativo que faz tudo pela pessoa"
           ],
           access:"O acesso/venda é conduzido por conversa no WhatsApp. Não afirmar download, App Store/Play Store, teste grátis, experimentar grátis ou checkout se isso não estiver confirmado no contexto.",
-          evidence:"Não inventar que Angladi já teve resultado, comentários, interação, clientes, vendas ou qualquer prova usando o Destrave.",
+          evidence:"Experiências pessoais registradas no cadastro/histórico podem ser usadas exatamente dentro do que foi confirmado. Não completar uma experiência verdadeira com sentimento, consequência, tempo, ação posterior ou resultado não informado. Não inventar comentários, DMs, interação, clientes, vendas, engajamento ou qualquer prova usando o Destrave.",
+          interpretation:"Fatos do cadastro são matéria-prima e contexto, não uma ordem para transformá-los literalmente no assunto do conteúdo. Antes de usar um fato, decida se ele fortalece a estratégia de hoje. Um fato verdadeiro pode ser omitido quando não for o melhor ângulo.",
           language:"Ao falar do Destrave, prefira 'conteúdo do dia', 'direção do conteúdo', 'próximo conteúdo' e 'execução pronta'. Evite chamar isso de tarefa, missão ou checklist.",
-          outcomeBoundary:"O Destrave entrega direção e execução de comunicação; não promete venda, cliente, lead, crescimento ou resultado comercial."
+          outcomeBoundary:"O Destrave entrega direção e execução de comunicação; não promete venda, cliente, lead, crescimento ou resultado comercial. Não atribuir velocidade como em segundos/em minutos sem fato confirmado."
         } : null;
         const factVault = {
           name: business.name || "",
@@ -312,6 +313,9 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
               {re:/\bprimeira\s+intera[cç][aã]o\b|\bfeedback\s+real\b/i,label:"resultado/prova inventado"},
               {re:/\beu\s+tamb[eé]m\b|\beu\s+sei\s+como\s+[eé]\b|\beu\s+(?:j[aá]\s+)?(?:passei|vivi|sofri|estive)\s+(?:por\s+)?isso\b/i,label:"experiência pessoal inventada"},
               {re:/\bvisualiza[cç][oõ]es?\s+(?:subindo|aumentando|crescendo)\b|\b(?:a[cç][aã]o\s+imediata|isso)\s+traz\s+engajamento\b|\bcliente\s+satisfeit[oa]\b|\bantes\s+e\s+depois\b/i,label:"resultado/prova inventado"},
+              {re:/\b(?:primeiras?\s+)?dms?\b[^\n.!?]*(?:receb|cheg)|\b(?:recebi|recebeu|recebe)\b[^\n.!?]*\bdms?\b|\bpublica(?:r|que)?\b[^\n.!?]*\brecebe(?:r)?\s+mensagens?\b/i,label:"resultado/prova inventado"},
+              {re:/\b(?:destrave|app|ele)\b[^\n.!?]{0,80}\b(?:em\s+(?:poucos?\s+)?segundos?|em\s+(?:menos\s+de\s+)?\d+\s*minutos?)\b|\b(?:postei|gravei|publiquei|transform(?:ei|ar)|pront[oa])\b[^\n.!?]{0,80}\b(?:em\s+(?:menos\s+de\s+)?\d+\s*minutos?)\b/i,label:"velocidade não confirmada"},
+              {re:/\bsugest[aã]o\s+de\s+m[uú]sica\b|\blegenda\s+curta\s*\+\s*cta\s+para\s+dm\b|\bcaptura\s+de\s+tela\s+simulada\b/i,label:"demonstração/funcionalidade não confirmada"},
               {re:/\bdire[cç][aã]o(?:\s+de\s+conte[uú]do)?\s+perfeita\b/i,label:"superlativo não sustentado"},
               {re:/\bo\s+app\s+faz\s+tudo\b/i,label:"função exagerada do Destrave"},
               {re:/\bp[aá]gina\s+de\s+vendas\b|\bcrm\b|\bcheckout\b|\bpublica(?:r)?\s+automaticamente\b/i,label:"funcionalidade inventada do Destrave"}
@@ -387,7 +391,7 @@ Você domina estratégia de conteúdo, Instagram, posicionamento, storytelling, 
 PRINCÍPIO-MÃE
 CRIATIVIDADE É LIVRE. FATOS NÃO SÃO.
 Você pode criar ângulos, ganchos, narrativas, analogias, estruturas e formas de apresentar uma mensagem. Mas qualquer afirmação sobre esta pessoa, este negócio, este produto, clientes, resultados, números, experiências, processos, preços, disponibilidade, provas ou funcionalidades precisa vir do CONTEXTO REAL, do COFRE DO PRODUTO ou do HISTÓRICO RELEVANTE.
-Uma experiência pessoal registrada no contexto É fato disponível e pode ser usada. Nunca complete essa experiência com sentimentos, consequências, resultados ou detalhes que não foram informados.
+Uma experiência pessoal registrada no contexto É fato disponível e pode ser usada quando for estrategicamente útil. Ela não precisa aparecer só porque existe. Nunca complete essa experiência com sentimentos, consequências, resultados, duração, ações posteriores ou detalhes que não foram informados.
 
 CONTEXTO REAL
 ${JSON.stringify(cleanContext)}
@@ -404,7 +408,7 @@ Antes de escrever, pense em silêncio:
 - O que o público precisa perceber, sentir, entender ou desejar para avançar?
 - Qual ângulo tem mais força neste momento?
 - Qual seria a forma mais humana, interessante e executável de comunicar isso?
-- O histórico mostra algo que deve ser continuado, evitado ou variado?
+- O histórico mostra algo que deve ser continuado, evitado ou variado?\n- Quais fatos são apenas CONTEXTO e quais realmente merecem virar mensagem hoje? Não transforme automaticamente todo fato verdadeiro em assunto.\n- Antes de demonstrar uma função do produto, ela está literalmente confirmada no cofre/contexto? Se não, não a encene.
 
 Não siga uma fórmula fixa. Escolha o melhor caminho para ESTE caso. Você pode começar por desejo, cena, contraste, pergunta, demonstração, curiosidade, objeção, opinião, oportunidade, bastidor verdadeiro, erro comum, nova percepção, história verdadeira ou outro ângulo estratégico. Varie naturalmente. Não transforme "você abre o Instagram e trava" ou qualquer outra construção em molde repetitivo.
 
@@ -418,7 +422,7 @@ VERDADE E FOCO
 
 QUANDO O FOCO FOR O DESTRAVE
 O COFRE DO PRODUTO é a fonte de verdade. Apresente o Destrave pelo que ele realmente faz: recebe contexto/objetivo/foco, decide uma direção estratégica e entrega conteúdo pronto por canal para a pessoa executar.
-Não transforme o Destrave em tarefa/missão/checklist, não invente download, gratuidade, leads, resultados, publicação automática ou funcionalidades.
+Não transforme o Destrave em tarefa/missão/checklist, não invente download, gratuidade, leads, resultados, publicação automática ou funcionalidades. Não invente telas, botões, campos, sugestões específicas, música, DM, legenda ou etapas do app para fazer uma demonstração parecer concreta. Se precisar demonstrar, use somente a operação confirmada no cofre.
 Não reduza a promessa a "dar uma ideia". A essência é direção estratégica + execução pronta.
 Quando o acesso não estiver confirmado de outra forma, o CTA pode convidar a pessoa a chamar no WhatsApp.
 
@@ -463,7 +467,7 @@ Antes de responder, confirme:
 6. O conteúdo tem humanidade sem fabricar autobiografia ou prova?
 7. O Reels está completo e falável?
 8. Stories, Feed e Status estão prontos para executar?
-9. A resposta ficou diferente do que eu daria genericamente a qualquer negócio?
+9. A resposta ficou diferente do que eu daria genericamente a qualquer negócio?\n10. Eu transformei um fato verdadeiro do cadastro em assunto só porque ele estava disponível? Se sim, reavalie o ângulo.\n11. Eu encenei uma tela, sugestão, resultado ou etapa do produto que não está confirmada? Se sim, retire.
 Se algo falhar, corrija antes de responder.
 
 RETORNE SOMENTE JSON VÁLIDO:
@@ -597,9 +601,9 @@ AUDITE APENAS:
 5. CANAL ERRADO: o campo whatsapp deve ser STATUS DO WHATSAPP por padrão. Não transforme em mensagem privada, lista de transmissão ou prospecção, salvo pedido explícito.
 6. EXECUÇÃO INCOMPLETA: Feed com slides vazios/rótulos, Stories quebrados, campo essencial sem conteúdo, instrução abstrata que devolve criação à pessoa.
 7. PROMESSA FACTUAL NÃO SUSTENTADA: resultado comercial ou técnico apresentado como certeza sem base no PERFIL/COFRE.
-8. EXPERIÊNCIA/PROVA DISFARÇADA: remova também equivalentes semânticos de "eu também", "eu sei como é", "eu já passei/vivi isso", além de cenas ou falas que pressupõem visualizações subindo, comentários, interação, feedback, cliente satisfeito, antes/depois ou qualquer resultado que o PERFIL/COFRE não confirmou.
-9. SUPERLATIVO NÃO SUSTENTADO: não chame a direção de "perfeita", nem trate efeito/resultado como garantido. Prefira descrição concreta do que o produto realmente entrega.
-10. FORMATO/SCHEMA: mantenha exatamente o schema esperado.
+8. EXPERIÊNCIA/PROVA DISFARÇADA: experiência pessoal é permitida quando estiver realmente no PERFIL/HISTÓRICO, mas preserve SOMENTE o que foi confirmado. Não acrescente sentimento, duração, ação posterior ou resultado. Remova cenas/falas que pressuponham visualizações subindo, DMs, comentários, interação, feedback, cliente satisfeito, antes/depois ou qualquer resultado não confirmado.
+9. SUPERLATIVO/VELOCIDADE NÃO SUSTENTADOS: não chame a direção de "perfeita", nem trate efeito/resultado como garantido. Para o Destrave, remova "em segundos", "em minutos", "5 minutos", "resultado em minutos" e equivalentes quando o tempo não estiver confirmado.\n10. DEMONSTRAÇÃO INVENTADA DO PRODUTO: não aceite tela simulada, sugestão de música, CTA para DM, legenda específica, botão, campo, etapa ou sugestão que o COFRE não confirme. Uma demonstração deve usar apenas a operação real confirmada.\n11. QUICKVERSION: deve ser uma única opção mínima executável, não exigir todos os canais nem inventar tempo de execução.
+12. FORMATO/SCHEMA: mantenha exatamente o schema esperado.
 
 COMO CORRIGIR
 - Faça a menor mudança possível.
