@@ -235,11 +235,31 @@ function addDaily(root){
         const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
         const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),180000);
         const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:selectedFocus,focus:selectedFocus,requestedFormat}),signal:controller.signal});
-        clearTimeout(timeout);const data=await r.json();
-        if(!data.ok){stop();showToast('Não consegui concluir agora. Tente novamente em alguns instantes. ✦');return}
+        clearTimeout(timeout);
+        const raw=await r.text();
+        let data={};
+        try{data=JSON.parse(raw)}catch{
+          stop();
+          showToast('HTTP '+r.status+' · resposta inválida do servidor');
+          console.error('DESTRAVE_GENERATE_NON_JSON',{status:r.status,preview:raw.slice(0,500)});
+          return;
+        }
+        if(!data.ok){
+          stop();
+          const code=data.code||('HTTP_'+r.status);
+          const detail=Array.isArray(data.details)?data.details.join(' · '):(data.message||data.error||'Falha desconhecida');
+          showToast(code+' · '+detail);
+          console.error('DESTRAVE_GENERATE_FAILED',data);
+          return;
+        }
         const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
         contents.unshift(generated);await syncToCloud();stop();showResult(generated);
-      }catch(e){stop();showToast(e?.name==='AbortError'?'A geração demorou além do esperado. Tente novamente. ✦':'Não consegui concluir agora. O Destrave tentou os motores disponíveis. ✦')}
+      }catch(e){
+        stop();
+        const msg=e?.name==='AbortError'?'FRONTEND_TIMEOUT · passou de 180 segundos':('FRONTEND_ERROR · '+(e?.message||String(e)));
+        showToast(msg);
+        console.error('DESTRAVE_GENERATE_EXCEPTION',e);
+      }
     });
     app.replaceChildren(picker);window.scrollTo(0,0);
   };
