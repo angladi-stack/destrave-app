@@ -184,6 +184,8 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
         const selectedFocus = String(body.focus || body.topic || "").trim();
         const goal = String(body.goal || "Movimentar");
         const requestedFormat = String(body.requestedFormat || "Livre");
+        const generationStartedAt=Date.now();
+        const generationBudgetExceeded=()=>Date.now()-generationStartedAt>105000;
         if (!business.name || !(business.activity || business.service) || !business.objective) {
           return json({ok:false,error:"Complete primeiro o cadastro do Destrave."},{status:400});
         }
@@ -427,7 +429,7 @@ RETORNE SOMENTE JSON VÁLIDO:
                 contents:[{parts:[{text:motherPrompt}]}],
                 generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}
               }),
-              signal:AbortSignal.timeout(55000)
+              signal:AbortSignal.timeout(18000)
             });
             const raw=await gr.text();
             let gd={}; try{gd=JSON.parse(raw)}catch{}
@@ -458,7 +460,7 @@ RETORNE SOMENTE JSON VÁLIDO:
                   reasoning_effort:"low",
                   response_format:{type:"json_object"}
                 }),
-                signal:AbortSignal.timeout(55000)
+                signal:AbortSignal.timeout(18000)
               });
               const raw=await rr.text();
               let rd={}; try{rd=JSON.parse(raw)}catch{}
@@ -483,7 +485,7 @@ RETORNE SOMENTE JSON VÁLIDO:
                 max_tokens:7000,
                 temperature:0.82
               }),
-              new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 55s")),55000))
+              new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 18s")),18000))
             ]);
             const cloudflareText=String(cr?.response ?? cr?.choices?.[0]?.message?.content ?? "").trim();
             if(cloudflareText){textOut=cloudflareText;modelUsed="cloudflare/llama-3.3-70b-instruct-fp8-fast"}
@@ -500,6 +502,11 @@ RETORNE SOMENTE JSON VÁLIDO:
         catch(error) {
           console.error("DESTRAVE_AI_INVALID_JSON",{model:modelUsed,error:String(error),preview:textOut.slice(0,500)});
           return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer.",code:"INVALID_AI_JSON",model:modelUsed},{status:502});
+        }
+
+        if(generationBudgetExceeded()){
+          console.error("DESTRAVE_GENERATION_BUDGET_EXCEEDED",{stage:"before_fiscal",model:modelUsed});
+          return json({ok:false,error:"A geração demorou além do esperado. Tente novamente.",code:"GENERATION_TIMEOUT",model:modelUsed},{status:504});
         }
 
         // FISCAL DO DESTRAVE: segunda etapa independente da criação.
@@ -546,7 +553,7 @@ COMO CORRIGIR
 Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrigido.`
             let fiscalApplied=false;
             let fiscalLastError="";
-            for (const fiscalModel of ["openai/gpt-oss-120b","openai/gpt-oss-20b"]) {
+            for (const fiscalModel of ["openai/gpt-oss-120b"]) {
               if(fiscalApplied) break;
               try {
                 const vb=JSON.stringify({
@@ -563,7 +570,7 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
                   method:"POST",
                   headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
                   body:vb,
-                  signal:AbortSignal.timeout(55000)
+                  signal:AbortSignal.timeout(18000)
                 });
                 const raw=await vr.text();
                 if(!vr.ok){
@@ -615,7 +622,7 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
                     max_tokens:7000,
                     temperature:0.1
                   }),
-                  new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 55s")),55000))
+                  new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 18s")),18000))
                 ]);
                 const checked=String(cfFiscal?.response ?? cfFiscal?.choices?.[0]?.message?.content ?? "").trim();
                 if(checked){
@@ -646,6 +653,10 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
         // Se ainda restar placeholder, promessa forte ou pressuposição operacional detectável,
         // uma última correção é solicitada. Se ela não puder ser validada, a resposta é bloqueada.
         let hardViolations=deterministicAudit(plan);
+        if(hardViolations.length && generationBudgetExceeded()){
+          console.error("DESTRAVE_GENERATION_BUDGET_EXCEEDED",{stage:"before_repair",model:modelUsed,violations:hardViolations});
+          return json({ok:false,error:"A geração demorou além do esperado. Tente novamente.",code:"GENERATION_TIMEOUT",model:modelUsed},{status:504});
+        }
         if (hardViolations.length && (env.GROQ_API_KEY || env.AI)) {
           console.error("DESTRAVE_FACT_GUARD_INITIAL",{creator:modelUsed,violations:hardViolations});
           const repairPrompt=`Corrija SOMENTE as violações objetivas abaixo no JSON do Conteúdo do Dia.
@@ -656,7 +667,7 @@ JSON:
 ${JSON.stringify(plan)}
 Regras: preserve foco, direção e voz; corrija apenas o necessário. Não invente substitutos. Se a violação for Reels curto, expanda o mesmo raciocínio para 45–60 segundos com emoção concreta. Se for Status, converta para conteúdo postável no Status do WhatsApp. Se for bloco incompleto, complete-o sem mudar a estratégia. Se um dado factual for dispensável, remova-o; se for indispensável, needsInput=true com uma única pergunta factual. Preserve o schema. Retorne somente JSON válido.`;
           let repairedOk=false;
-          for(const repairModel of ["openai/gpt-oss-120b","openai/gpt-oss-20b"]){
+          for(const repairModel of ["openai/gpt-oss-120b"]){
             if(repairedOk) break;
             try{
               const rb=JSON.stringify({
@@ -664,7 +675,7 @@ Regras: preserve foco, direção e voz; corrija apenas o necessário. Não inven
                 messages:[{role:"system",content:"Correção factual estrita. Somente JSON válido."},{role:"user",content:repairPrompt}],
                 temperature:0.05,max_completion_tokens:7000,response_format:{type:"json_object"}
               });
-              const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:rb,signal:AbortSignal.timeout(55000)});
+              const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:rb,signal:AbortSignal.timeout(18000)});
               const raw=await rr.text();
               if(!rr.ok){
                 console.error("DESTRAVE_FACT_REPAIR_FAILED",{repairModel,status:rr.status,preview:raw.slice(0,300)});
@@ -707,7 +718,7 @@ Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo racioc
                   max_tokens:7000,
                   temperature:0.05
                 }),
-                new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 55s")),55000))
+                new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 18s")),18000))
               ]);
               const repairedText=String(cfRepair?.response ?? cfRepair?.choices?.[0]?.message?.content ?? "").trim();
               if(repairedText){
