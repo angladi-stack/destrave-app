@@ -23,7 +23,7 @@ export default {
     if (url.pathname === "/api/lab/seed" && request.method === "POST") {
       try {
         const supplied=request.headers.get("x-destrave-lab-key")||"";
-        if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Rota não encontrada"},{status:404});
+        if(!(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"]) || supplied!==(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"])) return json({ok:false,error:"Rota não encontrada"},{status:404});
         await ensureStateTable(env);
         const body=await request.json();
         const profileKey=String(body?.profileKey||"").toLowerCase().replace(/[^a-z0-9_-]/g,"").slice(0,40);
@@ -51,7 +51,7 @@ export default {
     if (url.pathname === "/api/lab/state" && request.method === "GET") {
       try {
         const supplied=request.headers.get("x-destrave-lab-key")||"";
-        if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Rota não encontrada"},{status:404});
+        if(!(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"]) || supplied!==(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"])) return json({ok:false,error:"Rota não encontrada"},{status:404});
         const clientId=String(url.searchParams.get("clientId")||"");
         if(!clientId.startsWith("lab:")) return json({ok:false,error:"Perfil de laboratório inválido"},{status:400});
         await ensureStateTable(env);
@@ -66,7 +66,7 @@ export default {
     // A chave fica somente na sessão do navegador e não é gravada no app nem no GitHub.
     if (url.pathname === "/__destrave_lab") {
       const supplied=url.searchParams.get("key")||"";
-      if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return new Response("Not found",{status:404});
+      if(!(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"]) || supplied!==(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"])) return new Response("Not found",{status:404});
       const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Destrave Lab</title><style>
       body{font-family:system-ui;background:#17120f;color:#f7f1e8;margin:0;padding:24px}main{max-width:760px;margin:auto}.card{background:#241b16;border:1px solid #6d533e;border-radius:18px;padding:20px;margin:16px 0}h1{color:#d6b27a}label{display:block;margin:12px 0 5px}input,textarea,select,button{box-sizing:border-box;width:100%;padding:12px;border-radius:10px;border:1px solid #765d48;background:#fffaf2;color:#241b16}textarea{min-height:90px}button{margin-top:14px;background:#d6b27a;font-weight:700;cursor:pointer}.muted{opacity:.72;font-size:13px}pre{white-space:pre-wrap;word-break:break-word;background:#0f0c0a;padding:14px;border-radius:12px;max-height:55vh;overflow:auto}</style></head><body><main>
       <h1>Destrave · Laboratório do cérebro</h1><p class="muted">Ambiente isolado. IDs lab:* não entram no cadastro normal dos clientes.</p>
@@ -172,7 +172,7 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
         if (!clientId) return json({ok:false,error:"Cliente não identificado"},{status:400});
         if (clientId.startsWith("lab:")) {
           const supplied=request.headers.get("x-destrave-lab-key")||"";
-          if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Cliente não identificado"},{status:400});
+          if(!(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"]) || supplied!==(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"])) return json({ok:false,error:"Cliente não identificado"},{status:400});
         }
         if (!env.GROQ_API_KEY && !env.GEMINI_API_KEY && !env.AI) return json({ok:false,error:"Nenhum motor de IA está configurado."},{status:503});
         await ensureStateTable(env);
@@ -590,7 +590,7 @@ Regras: não invente substitutos; não use placeholders; se o dado for dispensá
         if (!clientId) return json({ ok:false, error:"Cliente não identificado" }, { status:400 });
         if (clientId.startsWith("lab:")) {
           const supplied=request.headers.get("x-destrave-lab-key")||"";
-          if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return json({ok:false,error:"Cliente não identificado"},{status:400});
+          if(!(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"]) || supplied!==(env.LAB_TEST_KEY||env["CHAVE_DE_TESTES_DE_LABORATÓRIO"]||env["CHAVE_DE_TESTES_DE_LABORATORIO"])) return json({ok:false,error:"Cliente não identificado"},{status:400});
         }
 
         if (request.method === "GET") {
