@@ -50,7 +50,7 @@ async function syncToCloud(){
 
 function showToast(text){
   toast.textContent=text; toast.classList.add('show');
-  clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200);
+  clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>toast.classList.remove('show'),9000);
 }
 
 function showGenerating(){
