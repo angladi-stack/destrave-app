@@ -271,6 +271,18 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           for (const rule of alwaysForbiddenPatterns) if(rule.re.test(serialized)) violations.push(rule.label);
           for (const p of numericEvidencePatterns) if(p.test(serialized) && !p.test(knownFactText)) violations.push("prova/duração numérica não confirmada");
           for (const p of promisePatterns) if (p.test(serialized)) violations.push("promessa de resultado");
+          const reelScript=String(candidate?.reels?.script||"").trim();
+          const reelWordCount=reelScript ? reelScript.split(/\s+/).filter(Boolean).length : 0;
+          if(reelWordCount<90) violations.push("reels curto/incompleto");
+          if(reelWordCount>190) violations.push("reels longo demais");
+          const stories=Array.isArray(candidate?.stories)?candidate.stories:[];
+          if(stories.length<7 || stories.some(s=>!String(s?.say||"").trim())) violations.push("stories incompletos");
+          const waFormat=String(candidate?.whatsapp?.format||"").toLowerCase();
+          const waInstructions=String(candidate?.whatsapp?.instructions||"").toLowerCase();
+          const waText=String(candidate?.whatsapp?.text||"").toLowerCase();
+          if(!waFormat.includes("status") || /mensagem direta|envie para|mande para|contatos? próximos?|lista de transmissão/.test(waInstructions+" "+waText)){
+            violations.push("whatsapp deve ser status");
+          }
           const feedSlides=Array.isArray(candidate?.feed?.slides)?candidate.feed.slides:[];
           if(feedSlides.length){
             const emptyFeed=feedSlides.some((s,idx)=>{
@@ -499,6 +511,8 @@ RETORNE SOMENTE JSON VÁLIDO:
 
 COFRE DE FATOS:
 ${confirmedFactLines || "- Nenhum fato adicional confirmado."}
+COFRE DO PRODUTO (quando aplicável):
+${JSON.stringify(destraveProductVault)}
 PERFIL:
 ${JSON.stringify(business)}
 PEDIDO:
@@ -511,11 +525,13 @@ Preserve a direção, a voz e o texto do Criador sempre que estiverem válidos. 
 
 AUDITE APENAS:
 1. FATO INVENTADO: cliente/prova/depoimento, antes/depois, números, prazo, resultado, técnica/material/método particular não confirmado, preço, promoção, disponibilidade, garantia, arquivo/link, experiência pessoal não confirmada.
-2. MISTURA DE FOCO: outra oferta/frente entrou no conteúdo, CTA, hashtag ou solução.
-3. CANAL ERRADO: o campo whatsapp deve ser STATUS DO WHATSAPP por padrão. Não transforme em mensagem privada, lista de transmissão ou prospecção, salvo pedido explícito.
-4. EXECUÇÃO INCOMPLETA: Feed com slides vazios/rótulos, Stories quebrados, campo essencial sem conteúdo, instrução abstrata que devolve criação à pessoa.
-5. PROMESSA FACTUAL NÃO SUSTENTADA: resultado comercial ou técnico apresentado como certeza sem base no PERFIL/COFRE.
-6. FORMATO/SCHEMA: mantenha exatamente o schema esperado.
+2. FOCO SOBERANO: se selectedFocus aponta uma coisa específica, nenhuma outra frente pode aparecer como assunto, oferta, solução, benefício, prova, CTA, hashtag, legenda ou exemplo.
+3. VERDADE DO PRODUTO: quando houver COFRE DO PRODUTO, não aceite função ou promessa que esteja fora dele.
+4. REELS INCOMPLETO: reels.script deve ser fala completa, normalmente entre 95 e 160 palavras, com gancho, situação/tensão, nova percepção, solução e ação. Mini roteiro curto é erro.
+5. CANAL ERRADO: o campo whatsapp deve ser STATUS DO WHATSAPP por padrão. Não transforme em mensagem privada, lista de transmissão ou prospecção, salvo pedido explícito.
+6. EXECUÇÃO INCOMPLETA: Feed com slides vazios/rótulos, Stories quebrados, campo essencial sem conteúdo, instrução abstrata que devolve criação à pessoa.
+7. PROMESSA FACTUAL NÃO SUSTENTADA: resultado comercial ou técnico apresentado como certeza sem base no PERFIL/COFRE.
+8. FORMATO/SCHEMA: mantenha exatamente o schema esperado.
 
 COMO CORRIGIR
 - Faça a menor mudança possível.
@@ -604,13 +620,13 @@ Retorne SOMENTE o JSON completo, preservando tudo o que não precisou ser corrig
         let hardViolations=deterministicAudit(plan);
         if (hardViolations.length && env.GROQ_API_KEY) {
           console.error("DESTRAVE_FACT_GUARD_INITIAL",{creator:modelUsed,violations:hardViolations});
-          const repairPrompt=`Corrija SOMENTE as violações factuais abaixo no JSON do Conteúdo do Dia.
+          const repairPrompt=`Corrija SOMENTE as violações objetivas abaixo no JSON do Conteúdo do Dia.
 VIOLAÇÕES: ${hardViolations.join("; ")}
 FATOS CONFIRMADOS:
 ${confirmedFactLines || "- nenhum"}
 JSON:
 ${JSON.stringify(plan)}
-Regras: não invente substitutos; não use placeholders; se o dado for dispensável, reescreva sem ele; se for indispensável, needsInput=true e faça uma única pergunta factual. Preserve o schema e a direção quando possível. Retorne somente JSON válido.`;
+Regras: preserve foco, direção e voz; corrija apenas o necessário. Não invente substitutos. Se a violação for Reels curto, expanda o mesmo raciocínio para 45–60 segundos com emoção concreta. Se for Status, converta para conteúdo postável no Status do WhatsApp. Se for bloco incompleto, complete-o sem mudar a estratégia. Se um dado factual for dispensável, remova-o; se for indispensável, needsInput=true com uma única pergunta factual. Preserve o schema. Retorne somente JSON válido.`;
           let repairedOk=false;
           for(const repairModel of ["openai/gpt-oss-120b","openai/gpt-oss-20b"]){
             if(repairedOk) break;
