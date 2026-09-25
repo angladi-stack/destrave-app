@@ -266,6 +266,21 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           for(const other of possibleOther){
             if(other.length>=4 && serialized.toLowerCase().includes(other.toLowerCase())) violations.push("mistura de foco: "+other);
           }
+          // Fronteiras explícitas para frentes comerciais comuns: se o perfil contém outra frente
+          // mas o foco do dia não a contém, ela não pode reaparecer como oferta/CTA/hashtag.
+          const profileCommercialText=[business.offer,business.activity,business.service].filter(Boolean).join(" ").toLowerCase();
+          const focusText=String(selectedFocus||"").toLowerCase();
+          const crossFrontTerms=[
+            {term:"curso",re:/\bcurso(?:s)?\b|#curso\w*/i},
+            {term:"mentoria",re:/\bmentoria(?:s)?\b|#mentoria\w*/i},
+            {term:"aula",re:/\baula(?:s)?\b|#aula\w*/i},
+            {term:"treinamento",re:/\btreinamento(?:s)?\b|#treinamento\w*/i}
+          ];
+          for(const x of crossFrontTerms){
+            if(profileCommercialText.includes(x.term) && !focusText.includes(x.term) && x.re.test(serialized)){
+              violations.push("mistura de foco: "+x.term);
+            }
+          }
           return [...new Set(violations)];
         }
         function normalizeComparable(v){return String(v||"").toLowerCase().replace(/[^a-z0-9áàâãéèêíïóôõöúçñ ]/gi," ").replace(/\s+/g," ").trim()}
@@ -317,8 +332,12 @@ Se não houver prova confirmada, NÃO simule prova e NÃO crie personagem/client
 O foco selecionado é uma FRONTEIRA SEMÂNTICA RÍGIDA. Se o foco for serviço, nenhuma menção ao curso pode aparecer nem em hashtag, CTA, legenda, exemplo ou prova; e vice-versa.
 Nunca invente nomes de arquivos, como video_demo.mp4. Oriente pela cena real que a pessoa pode gravar, sem presumir que um arquivo já existe.
 Use fatos do cadastro + conhecimento profissional geral seguro do segmento.
-Conhecimento geral pode orientar etapas usuais, ferramentas comuns e explicações normais da profissão.
-Ele NÃO pode virar fato particular inventado: técnica exclusiva, preço, prazo, duração numérica, certificação, cliente, depoimento, promoção, garantia ou resultado específico exigem confirmação.
+Conhecimento geral do segmento PODE enriquecer o raciocínio e evitar respostas rasas. Não obrigue a pessoa a cadastrar conhecimentos universais da própria profissão.
+Mas separe três camadas:
+A) CONHECIMENTO GERAL SEGURO: pode orientar a estratégia e explicações amplas.
+B) AFIRMAÇÃO TÉCNICA ESPECÍFICA: só use como afirmação quando for segura e necessária; não transforme hipótese, controvérsia ou detalhe técnico em verdade absoluta.
+C) FATO DESTE NEGÓCIO: método próprio, técnica usada por ela, material, etapa do atendimento, cliente, prova, resultado, prazo, duração, curso/módulo, preço, promoção, disponibilidade ou garantia só existe se estiver confirmado no cadastro/cofre.
+Nunca escreva conhecimento geral como se fosse prática, método, promessa ou prova particular desta profissional.
 Objeções cadastradas são temas legítimos. Podem ser explicadas; não viram automaticamente promessa.
 Se prova real não existe no contexto, use demonstração/evidência disponível ou omita prova. Nunca invente.
 Se faltar UM fato indispensável para produzir algo realmente valioso, needsInput=true e faça uma pergunta factual curta.
@@ -476,7 +495,7 @@ ${confirmedFactLines || "- Nenhum fato adicional confirmado."}
 PERFIL:
 ${JSON.stringify(business)}
 PEDIDO:
-${JSON.stringify({goal, requestedFormat, requestToday})}
+${JSON.stringify({goal, requestedFormat, requestToday, selectedFocus})}
 JSON GERADO:
 ${JSON.stringify(plan)}
 
@@ -491,9 +510,10 @@ TESTE DE COESÃO: Stories devem formar uma conversa em sequência; se um Story p
 A resposta final deve parecer escrita para esta pessoa hoje, e não saída de um gerador de conteúdo.
 TESTE DO DESTRAVAMENTO: reprove qualquer instrução que ainda exija que a pessoa descubra o que mostrar, falar ou escrever. "Apresente seu diferencial", "mostre sua experiência", "fale dos benefícios", "conte sua história", "mostre o processo" e equivalentes são insuficientes sem execução literal. Para cada trecho, deixe claro o que mostrar, a fala/texto utilizável e a ação seguinte, sem transformar a resposta em tutorial óbvio de celular.
 Não permita que detalhes, comodidades, recursos ou diferenciais do cadastro virem uma frente ou substituam o foco escolhido. Eles só podem aparecer como evidência contextual quando forem diretamente úteis ao foco.
-O foco selecionado é fronteira rígida: se for curso, audite como conteúdo de curso; não permita migração para o serviço relacionado.
+FOCO SELECIONADO NO PEDIDO é a fonte de verdade e uma fronteira rígida. Audite o JSON inteiro contra selectedFocus, inclusive hashtags, CTA, Stories, legenda e WhatsApp. Se selectedFocus indicar serviço, curso/aula/mentoria relacionados não podem ser ofertados, citados como solução, prova ou CTA. Se selectedFocus indicar curso, o serviço relacionado não pode virar a oferta do dia. O fato de outra frente existir no PERFIL não autoriza misturá-la.
 TOLERÂNCIA ZERO DE EVIDÊNCIA: examine CADA frase do JSON e remova ou reescreva qualquer detalhe particular que não esteja literalmente sustentado pelo COFRE/PERFIL. Isso inclui nome/identidade de cliente, depoimento, antes/depois, "há X dias", "até X semanas", "sem lascar", duração, quantidade, técnica, material, preparação, etapa específica, disponibilidade/vagas, urgência, garantia, resultado, preço, promoção, estoque, entrega, link/botão e arquivos de mídia inventados.
 DIFERENCIAL QUALITATIVO NÃO AUTORIZA NÚMERO: "durabilidade", "naturalidade" ou "resistência" jamais permitem deduzir prazo, dias/semanas, ausência de lascas, material ou técnica.
+CONHECIMENTO PROFISSIONAL NÃO É FATO DO NEGÓCIO: permita conhecimento geral seguro do segmento quando ele realmente ajuda, mas remova frases que atribuam à profissional técnica, material, preparação, método, módulo de curso ou procedimento específico não confirmado. Reescreva afirmações técnicas absolutas/controversas em linguagem segura ou retire-as quando não forem necessárias.
 SEM PROVA = SEM PROVA: se nenhuma evidência real foi cadastrada, retire a prova da arquitetura em vez de fabricar cliente, caso, resultado ou testemunho.
 FRONTEIRA DO FOCO: procure também hashtags, legendas, CTA, WhatsApp e textos de tela. Se o foco é serviço, qualquer curso relacionado deve desaparecer; se o foco é curso, o serviço não pode virar oferta.
 EXECUÇÃO SEM ARQUIVO INVENTADO: remova nomes como video_demo.mp4, foto_cliente.jpg ou qualquer mídia não confirmada. Diga qual cena gravar/mostrar sem pressupor arquivo existente.
