@@ -62,6 +62,34 @@ export default {
       }
     }
 
+    // Painel interno do laboratório: nunca é servido sem a chave secreta na própria URL.
+    // A chave fica somente na sessão do navegador e não é gravada no app nem no GitHub.
+    if (url.pathname === "/__destrave_lab") {
+      const supplied=url.searchParams.get("key")||"";
+      if(!env.LAB_TEST_KEY || supplied!==env.LAB_TEST_KEY) return new Response("Not found",{status:404});
+      const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Destrave Lab</title><style>
+      body{font-family:system-ui;background:#17120f;color:#f7f1e8;margin:0;padding:24px}main{max-width:760px;margin:auto}.card{background:#241b16;border:1px solid #6d533e;border-radius:18px;padding:20px;margin:16px 0}h1{color:#d6b27a}label{display:block;margin:12px 0 5px}input,textarea,select,button{box-sizing:border-box;width:100%;padding:12px;border-radius:10px;border:1px solid #765d48;background:#fffaf2;color:#241b16}textarea{min-height:90px}button{margin-top:14px;background:#d6b27a;font-weight:700;cursor:pointer}.muted{opacity:.72;font-size:13px}pre{white-space:pre-wrap;word-break:break-word;background:#0f0c0a;padding:14px;border-radius:12px;max-height:55vh;overflow:auto}</style></head><body><main>
+      <h1>Destrave · Laboratório do cérebro</h1><p class="muted">Ambiente isolado. IDs lab:* não entram no cadastro normal dos clientes.</p>
+      <div class="card"><label>Perfil</label><select id="profile"><option value="manicure">Manicure — serviço + curso</option><option value="cantora">Cantora — começando do zero</option><option value="confeiteira">Confeiteira — encomendas</option><option value="loja">Loja de cosméticos</option><option value="autonomo">Autônomo — serviço</option></select>
+      <label>Rodada isolada</label><input id="run" value="teste-1"><button id="seed">Preparar perfil</button><div id="seedStatus" class="muted"></div></div>
+      <div class="card"><label>Objetivo de hoje</label><select id="goal"><option>Movimentar</option><option>Vender</option><option>Autoridade</option><option>Conexão</option></select><label>Foco de hoje (opcional)</label><input id="focus" placeholder="Ex.: serviço de manicure"><button id="generate">Gerar conteúdo do dia</button><div id="genStatus" class="muted"></div></div>
+      <div class="card"><strong>Resultado real do cérebro</strong><pre id="out">Nenhum teste executado ainda.</pre></div>
+      <script>
+      const key=new URLSearchParams(location.search).get("key");let clientId="";
+      const profiles={
+       manicure:{name:"Marina",activity:"Nail designer com atendimento individual e também curso de manicure",offer:"Alongamento e manutenção de unhas; curso de manicure",objective:"Divulgar meu trabalho e gerar vendas",audience:"Mulheres que valorizam unhas naturais, bonitas e resistentes; iniciantes interessadas em aprender manicure",difference:"Atendimento exclusivo, uma cliente por vez, ambiente acolhedor, foco em durabilidade, naturalidade e resistência",digitalStage:"Já divulga nas redes sociais",voice:["natural","simples","elegante"],workContextId:"manicure-servico-curso"},
+       cantora:{name:"Lia",activity:"Cantora começando a construir presença na internet",offer:"Meu trabalho como cantora",objective:"Começar a aparecer e construir público",audience:"Pessoas que podem se identificar com minha música",difference:"",digitalStage:"Nunca publicou conteúdo profissionalmente",voice:["natural","emocional"],workContextId:"cantora-inicio"},
+       confeiteira:{name:"Clara",activity:"Confeiteira",offer:"Bolos e doces por encomenda",objective:"Divulgar meu trabalho e gerar pedidos",audience:"Pessoas procurando doces e bolos para comemorações",difference:"Produção artesanal",digitalStage:"Já posta às vezes",voice:["natural","simples"],workContextId:"confeitaria"},
+       loja:{name:"Bella Cosméticos",activity:"Loja de cosméticos",offer:"Cosméticos e produtos de beleza",objective:"Divulgar produtos e aumentar vendas",audience:"Pessoas interessadas em beleza e autocuidado",difference:"Variedade de produtos",digitalStage:"Já vende e divulga online",voice:["simples","descontraído"],workContextId:"loja-cosmeticos"},
+       autonomo:{name:"Carlos",activity:"Prestador de serviços autônomo",offer:"Serviço profissional sob contratação",objective:"Conseguir mais clientes",audience:"Pessoas que precisam do serviço",difference:"Atendimento direto com o próprio profissional",digitalStage:"Posta pouco",voice:["simples","firme"],workContextId:"autonomo"}
+      };
+      async function api(path,opts={}){opts.headers={...(opts.headers||{}),"x-destrave-lab-key":key};const r=await fetch(path,opts);const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||d.message||("HTTP "+r.status));return d}
+      seed.onclick=async()=>{try{seedStatus.textContent="Preparando...";const p=profile.value;const d=await api("/api/lab/seed",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({profileKey:p,runKey:run.value,business:profiles[p],contents:[]})});clientId=d.clientId;seedStatus.textContent="Pronto: "+clientId}catch(e){seedStatus.textContent="Erro: "+e.message}}
+      generate.onclick=async()=>{try{if(!clientId)throw new Error("Prepare o perfil primeiro.");genStatus.textContent="Gerando com as IAs reais...";out.textContent="Aguarde...";const d=await api("/api/generate",{method:"POST",headers:{"content-type":"application/json","x-destrave-client":clientId},body:JSON.stringify({goal:goal.value,focus:focus.value,requestedFormat:"Livre"})});out.textContent=JSON.stringify(d.plan||d,null,2);genStatus.textContent="Geração concluída · "+(d.model||"modelo não informado")}catch(e){genStatus.textContent="Erro: "+e.message;out.textContent=e.stack||e.message}}
+      </script></main></body></html>`;
+      return new Response(html,{headers:{"content-type":"text/html; charset=utf-8","cache-control":"no-store","referrer-policy":"no-referrer"}});
+    }
+
     if (url.pathname === "/api/health") {
       try {
         await env.DB.prepare("SELECT 1").first();
