@@ -604,26 +604,46 @@ Retorne somente JSON válido.`
         // uma última correção é solicitada. Se ela não puder ser validada, a resposta é bloqueada.
         let hardViolations=deterministicAudit(plan);
         if (hardViolations.length && env.GROQ_API_KEY) {
-          try {
-            const repairPrompt=`Corrija SOMENTE as violações factuais abaixo no JSON do Conteúdo do Dia.
+          console.error("DESTRAVE_FACT_GUARD_INITIAL",{creator:modelUsed,violations:hardViolations});
+          const repairPrompt=`Corrija SOMENTE as violações factuais abaixo no JSON do Conteúdo do Dia.
 VIOLAÇÕES: ${hardViolations.join("; ")}
 FATOS CONFIRMADOS:
 ${confirmedFactLines || "- nenhum"}
 JSON:
 ${JSON.stringify(plan)}
 Regras: não invente substitutos; não use placeholders; se o dado for dispensável, reescreva sem ele; se for indispensável, needsInput=true e faça uma única pergunta factual. Preserve o schema e a direção quando possível. Retorne somente JSON válido.`;
-            const rb=JSON.stringify({
-              model:"openai/gpt-oss-120b",
-              messages:[{role:"system",content:"Correção factual estrita. Somente JSON válido."},{role:"user",content:repairPrompt}],
-              temperature:0.05,max_completion_tokens:7000,response_format:{type:"json_object"}
-            });
-            const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:rb});
-            const rd=await rr.json();
-            if(rr.ok){
+          let repairedOk=false;
+          for(const repairModel of ["openai/gpt-oss-120b","openai/gpt-oss-20b"]){
+            if(repairedOk) break;
+            try{
+              const rb=JSON.stringify({
+                model:repairModel,
+                messages:[{role:"system",content:"Correção factual estrita. Somente JSON válido."},{role:"user",content:repairPrompt}],
+                temperature:0.05,max_completion_tokens:7000,response_format:{type:"json_object"}
+              });
+              const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:rb,signal:AbortSignal.timeout(55000)});
+              const raw=await rr.text();
+              if(!rr.ok){
+                console.error("DESTRAVE_FACT_REPAIR_FAILED",{repairModel,status:rr.status,preview:raw.slice(0,300)});
+                continue;
+              }
+              const rd=JSON.parse(raw);
               const repaired=JSON.parse(String(rd.choices?.[0]?.message?.content||"").replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim());
-              if(repaired && typeof repaired==="object") plan=repaired;
+              if(repaired && typeof repaired==="object"){
+                const after=deterministicAudit(repaired);
+                if(after.length < hardViolations.length){
+                  plan=repaired;
+                  hardViolations=after;
+                  repairedOk=after.length===0;
+                  console.error("DESTRAVE_FACT_REPAIR_RESULT",{repairModel,remaining:after});
+                } else {
+                  console.error("DESTRAVE_FACT_REPAIR_NO_IMPROVEMENT",{repairModel,before:hardViolations,after});
+                }
+              }
+            }catch(error){
+              console.error("DESTRAVE_FACT_REPAIR_ERROR",{repairModel,error:String(error)});
             }
-          } catch(_){}
+          }
           hardViolations=deterministicAudit(plan);
         }
         if(hardViolations.length){
