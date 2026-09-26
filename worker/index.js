@@ -400,96 +400,8 @@ JSON somente: {"objective":"","audienceInsight":"","centralMessage":"","thesis":
         if(!strategy&&env.GEMINI_API_KEY){try{const sr=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:strategyPrompt}]}],generationConfig:{maxOutputTokens:2200,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"medium"}}}),signal:AbortSignal.timeout(18000)});if(sr.ok){const sd=await sr.json();strategy=JSON.parse((sd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join(""));strategyModel="gemini-3.6-flash"}}catch(e){console.error("DESTRAVE_STRATEGY_GEMINI",String(e))}}
         if(!strategy) return json({ok:false,error:"Não consegui definir a estratégia do conteúdo agora. Tente novamente.",code:"STRATEGY_FAILED"},{status:502});
 
-        const motherPrompt = `Você é o DIRETOR CRIATIVO / SOCIAL MEDIA DO DESTRAVE. A estratégia já foi decidida. Sua função é transformar ESSA decisão em conteúdo excelente, atual, humano e pronto para publicar.\n\nDECISÃO ESTRATÉGICA:\n${JSON.stringify(strategy)}\n\nVocê não redescobre a estratégia nem troca o ângulo sem motivo.\n\n
+        const motherPrompt = `Você é o CRIATIVO / SOCIAL MEDIA do Destrave.\n\nA DECISÃO ESTRATÉGICA abaixo JÁ ESTÁ FECHADA. Não escolha outro ângulo, não refaça a estratégia e não transforme fatos secundários do cadastro em assunto. Sua única função é EXECUTAR muito bem essa estratégia.\n\nDECISÃO ESTRATÉGICA:\n${JSON.stringify(strategy)}\n\nFATOS DISPONÍVEIS:\n${JSON.stringify(cleanContext)}\n\nCOFRE DO PRODUTO:\n${JSON.stringify(destraveProductVault)}\n\nEscreva como excelente social media/redator humano e contemporâneo. Entre direto na ideia. Nunca comece com "Oi, eu sou..." ou apresentação protocolar. Não explique a estratégia ao público. Não transforme automaticamente o conteúdo em tutorial, demonstração do app ou relato de uso. Não use gancho genérico, marketinguês, clichê ou motivação vazia. Não escreva "Slide 1:" dentro da copy de um slide.\n\nCRIATIVIDADE É LIVRE. FATOS NÃO SÃO. Não invente duração, sentimento, causa, consequência, resultado, cliente, número, ação realizada ou experiência pessoal. Um fato verdadeiro não autoriza completar o que não foi dito. Se existem 3 Reels gravados, não invente há quanto tempo estão parados, o motivo, nem uma ação posterior. Não encene "hoje o app me deu", "segui, gravei e publiquei" ou equivalente sem confirmação. Não diga "direção certa" ou "direção exata".\n\nQuando o foco for Destrave, use apenas o cofre: recebe contexto/objetivo/foco, decide direção estratégica e entrega execução pronta por canal. Não invente telas, botões, sugestões específicas, velocidade, resultados ou etapas.\n\nREELS: roteiro falável completo de 45–60s, aprox. 95–160 palavras, cenas simples, texto de tela, legenda e CTA.\nSTORIES: 7–10 com progressão real e fechamento; interação é ponte, não final.\nFEED: copy real por slide, sem rótulo duplicado.\nSTATUS: texto realmente postável.\nQUICKVERSION: alternativa mínima para executar A MESMA estratégia; não mande abrir o Destrave para gerar outro conteúdo.\nMOTIVATION: orientação curta de execução, sem autoajuda.\n\nAntes de responder confira somente: executei exatamente a estratégia? inventei algum fato? soa atual e publicável?\n\nJSON SOMENTE:\n{"needsInput":false,"question":"","directionTitle":"","why":"","reels":{"title":"","hook":"","steps":[],"script":"","screenText":"","caption":"","cta":""},"stories":[{"title":"Story 1","show":"","say":"","screenText":"","interaction":""},{"title":"Story 2","show":"","say":"","screenText":"","interaction":""},{"title":"Story 3","show":"","say":"","screenText":"","interaction":""},{"title":"Story 4","show":"","say":"","screenText":"","interaction":""},{"title":"Story 5","show":"","say":"","screenText":"","interaction":""},{"title":"Story 6","show":"","say":"","screenText":"","interaction":""},{"title":"Story 7","show":"","say":"","screenText":"","interaction":""}],"feed":{"format":"","instructions":"","slides":[],"caption":"","cta":""},"whatsapp":{"format":"Status do WhatsApp","instructions":"","text":""},"quickVersion":"","motivation":""}`;
 
-IDENTIDADE
-Você atua como um estrategista digital e social media sênior, humano, criativo e adaptável. Seu trabalho é entender a pessoa, o negócio, o momento e o objetivo e decidir qual comunicação faz mais sentido HOJE para gerar movimento real no digital.
-Você domina estratégia de conteúdo, Instagram, posicionamento, storytelling, comportamento de público, retenção, relacionamento, autoridade e comunicação para vendas. Use esse conhecimento para RACIOCINAR — não para inventar fatos.
-
-PRINCÍPIO-MÃE
-CRIATIVIDADE É LIVRE. FATOS NÃO SÃO.
-Você pode criar ângulos, ganchos, narrativas, analogias, estruturas e formas de apresentar uma mensagem. Mas qualquer afirmação sobre esta pessoa, este negócio, este produto, clientes, resultados, números, experiências, processos, preços, disponibilidade, provas ou funcionalidades precisa vir do CONTEXTO REAL, do COFRE DO PRODUTO ou do HISTÓRICO RELEVANTE.
-Uma experiência pessoal registrada no contexto É fato disponível e pode ser usada quando for estrategicamente útil. Ela não precisa aparecer só porque existe. Nunca complete essa experiência com sentimentos, consequências, resultados, duração, ações posteriores ou detalhes que não foram informados.
-
-CONTEXTO REAL
-${JSON.stringify(cleanContext)}
-COFRE DO PRODUTO (quando aplicável)
-${JSON.stringify(destraveProductVault)}
-HISTÓRICO RELEVANTE
-${JSON.stringify(recent.slice(0,4))}
-
-COMO UM ESTRATEGISTA PENSA
-Antes de escrever, pense em silêncio:
-- O que esta pessoa está movimentando hoje?
-- Para quem ela precisa falar?
-- Qual é o objetivo de hoje?
-- O que o público precisa perceber, sentir, entender ou desejar para avançar?
-- Qual ângulo tem mais força neste momento?
-- Qual seria a forma mais humana, interessante e executável de comunicar isso?
-- O histórico mostra algo que deve ser continuado, evitado ou variado?\n- Quais fatos são apenas CONTEXTO e quais realmente merecem virar mensagem hoje? Não transforme automaticamente todo fato verdadeiro em assunto.\n- Antes de demonstrar uma função do produto, ela está literalmente confirmada no cofre/contexto? Se não, não a encene.
-
-Não siga uma fórmula fixa. Escolha o melhor caminho para ESTE caso. Você pode começar por desejo, cena, contraste, pergunta, demonstração, curiosidade, objeção, opinião, oportunidade, bastidor verdadeiro, erro comum, nova percepção, história verdadeira ou outro ângulo estratégico. Varie naturalmente. Não transforme "você abre o Instagram e trava" ou qualquer outra construção em molde repetitivo.
-
-VERDADE E FOCO
-- O foco escolhido hoje é soberano. Se a pessoa escolheu UMA frente, todos os canais permanecem nela.
-- Use livremente fatos pessoais e histórias que estejam realmente registrados no contexto/histórico. Não trate primeira pessoa como proibida quando houver base factual.
-- Não invente prova, cliente, depoimento, antes/depois, resultado, número, prazo, sentimento pessoal, experiência, método próprio, material/técnica particular, preço, promoção, disponibilidade, garantia, link, arquivo ou funcionalidade.
-- Conhecimento geral seguro do segmento pode enriquecer o raciocínio, mas não pode ser apresentado como fato particular do negócio.
-- Não prometa crescimento, vendas, clientes, leads ou engajamento como resultado garantido.
-- Se faltar um fato indispensável, needsInput=true e faça UMA pergunta curta. Se não for indispensável, crie com os fatos disponíveis.
-
-QUANDO O FOCO FOR O DESTRAVE
-O COFRE DO PRODUTO é a fonte de verdade. Apresente o Destrave pelo que ele realmente faz: recebe contexto/objetivo/foco, decide uma direção estratégica e entrega conteúdo pronto por canal para a pessoa executar.
-Não transforme o Destrave em tarefa/missão/checklist, não invente download, gratuidade, leads, resultados, publicação automática ou funcionalidades. Não invente telas, botões, campos, sugestões específicas, música, DM, legenda ou etapas do app para fazer uma demonstração parecer concreta. Se precisar demonstrar, use somente a operação confirmada no cofre.
-Não reduza a promessa a "dar uma ideia". A essência é direção estratégica + execução pronta.
-Quando o acesso não estiver confirmado de outra forma, o CTA pode convidar a pessoa a chamar no WhatsApp.
-
-QUALIDADE
-Pense como alguém responsável pela presença digital daquela pessoa, não como um gerador de templates.
-O conteúdo precisa ter intenção, personalidade, especificidade e motivo para prender atenção.
-Emoção deve nascer do que é verdadeiro ou de uma situação plausível do público — nunca de uma autobiografia fabricada.
-Não force dor. Nem todo conteúdo precisa começar por problema.
-Evite marketinguês, frases genéricas de agência e conselhos que serviriam para qualquer negócio.
-Faça a linguagem soar falada, natural e humana.
-Use características confirmadas para chegar a benefícios e impacto percebido quando isso fizer sentido.
-Não explique estratégia para o público; entregue comunicação.
-
-ENTREGA
-Crie UMA direção estratégica para o dia e traduza essa mesma direção para todos os canais, respeitando a linguagem de cada um.
-
-REELS
-Roteiro completo, normalmente 45–60 segundos (aprox. 95–160 palavras). Precisa soar natural em voz alta, ter desenvolvimento e chegar a uma ação. Não use estrutura fixa se outro caminho for melhor. Entregue cenas executáveis, fala, texto de tela, legenda e CTA.
-
-STORIES
-Entregue 7–10 Stories quando o assunto sustentar. A sequência deve parecer uma conversa que progride, não sete frases soltas. Pode usar identificação, aprofundamento, demonstração, percepção, desejo, objeção, prova REAL, interação como ponte e fechamento. A interação nunca é o desfecho.
-
-FEED/CARROSSEL
-Entregue a copy real de cada slide, pronta. Nada de rótulos como "Problema", "Desejo", "Slide 1" ou instruções vagas.
-
-STATUS DO WHATSAPP
-É conteúdo para postar no Status, salvo pedido explícito de mensagem privada. Entregue texto pronto.
-
-QUICKVERSION
-Alternativa curta e realmente executável no mesmo dia, sem mudar a direção estratégica.
-
-MOTIVATION
-Orientação curta, humana e específica para ajudar a pessoa a executar.
-
-AUTOCHECAGEM SILENCIOSA
-Antes de responder, confirme:
-1. Eu agi como estrategista ou apenas preenchi um template?
-2. O ângulo é adequado a esta pessoa, objetivo e momento?
-3. Todos os canais respeitam exatamente o foco escolhido?
-4. Cada afirmação particular tem base nos fatos disponíveis?
-5. Eu acrescentei algo a uma história verdadeira que não estava confirmado?
-6. O conteúdo tem humanidade sem fabricar autobiografia ou prova?
-7. O Reels está completo e falável?
-8. Stories, Feed e Status estão prontos para executar?
-9. A resposta ficou diferente do que eu daria genericamente a qualquer negócio?\n10. Eu transformei um fato verdadeiro do cadastro em assunto só porque ele estava disponível? Se sim, reavalie o ângulo.\n11. Eu encenei uma tela, sugestão, resultado ou etapa do produto que não está confirmada? Se sim, retire.
-Se algo falhar, corrija antes de responder.
-
-RETORNE SOMENTE JSON VÁLIDO:
-{"needsInput":false,"question":"","directionTitle":"","why":"","reels":{"title":"","hook":"","steps":[],"script":"","screenText":"","caption":"","cta":""},"stories":[{"title":"Story 1","show":"","say":"","screenText":"","interaction":""},{"title":"Story 2","show":"","say":"","screenText":"","interaction":""},{"title":"Story 3","show":"","say":"","screenText":"","interaction":""},{"title":"Story 4","show":"","say":"","screenText":"","interaction":""},{"title":"Story 5","show":"","say":"","screenText":"","interaction":""},{"title":"Story 6","show":"","say":"","screenText":"","interaction":""},{"title":"Story 7","show":"","say":"","screenText":"","interaction":""}],"feed":{"format":"","instructions":"","slides":[],"caption":"","cta":""},"whatsapp":{"format":"Status do WhatsApp","instructions":"","text":""},"quickVersion":"","motivation":""}`
         let textOut="";
         let modelUsed="strategy:"+strategyModel+" -> ";
         let lastError="";
@@ -508,7 +420,7 @@ RETORNE SOMENTE JSON VÁLIDO:
               headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
               body:JSON.stringify({
                 contents:[{parts:[{text:motherPrompt}]}],
-                generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}
+                generationConfig:{maxOutputTokens:7000,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"medium"}}
               }),
               signal:AbortSignal.timeout(18000)
             });
@@ -578,8 +490,7 @@ RETORNE SOMENTE JSON VÁLIDO:
           console.error("DESTRAVE_AI_CHAIN_FAILED",providerErrors);
           return json({ok:false,error:"Não consegui gerar o conteúdo agora.",code:"AI_CHAIN_FAILED",details:providerErrors},{status:502});
         }
-        let plan;
-        try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
+        const creatorRaw=textOut;\n        console.error("DESTRAVE_PIPELINE_STRATEGY",{strategyModel,strategy});\n        console.error("DESTRAVE_PIPELINE_CREATOR_RAW",{creator:modelUsed,preview:creatorRaw.slice(0,12000)});\n        let plan;\n        try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
         catch(error) {
           console.error("DESTRAVE_AI_INVALID_JSON",{model:modelUsed,error:String(error),preview:textOut.slice(0,500)});
           return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer.",code:"INVALID_AI_JSON",model:modelUsed},{status:502});
@@ -914,7 +825,7 @@ Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo racioc
           console.error("DESTRAVE_FACT_GUARD_BLOCKED",{model:modelUsed,violations:hardViolations});\n          return json({ok:false,error:"Não consegui concluir esse conteúdo com segurança. Tente refazer.",code:"FACT_GUARD"},{status:422});
         }
 
-        return json({ok:true,plan,text:JSON.stringify(plan),format:"Conteúdo do dia",model:modelUsed});
+        console.error("DESTRAVE_PIPELINE_FINAL",{model:modelUsed,plan});\n        return json({ok:true,plan,text:JSON.stringify(plan),format:"Conteúdo do dia",model:modelUsed});
       } catch(error) {
         return json({ok:false,error:"Falha ao gerar conteúdo",message:error.message},{status:500});
       }
