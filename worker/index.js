@@ -311,7 +311,7 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
               {re:/\b(?:gera|gerar|ver|receber|chegar(?:am|ando)?)\s+leads?\b|\bleads?\s+(?:na tela|chegando)\b/i,label:"leads inventados"},
               {re:/\b(?:j[aá]\s+)?(?:recebi|recebeu|apareceu|surgiu|vieram?)\s+(?:os?\s+)?(?:primeiros?\s+)?(?:coment[aá]rios?|intera[cç][aã]o|feedbacks?)\b/i,label:"resultado/prova inventado"},
               {re:/\bprimeira\s+intera[cç][aã]o\b|\bfeedback\s+real\b/i,label:"resultado/prova inventado"},
-              {re:/\beu\s+tamb[eé]m\b|\beu\s+sei\s+como\s+[eé]\b|\beu\s+(?:j[aá]\s+)?(?:passei|vivi|sofri|estive)\s+(?:por\s+)?isso\b/i,label:"experiência pessoal inventada"},
+              {re:/\beu\s+tamb[eé]m\b|\beu\s+sei\s+como\s+[eé]\b|\beu\s+(?:j[aá]\s+)?(?:passei|vivi|sofri|estive)\s+(?:por\s+)?isso\b/i,allow:/\beu\s+tamb[eé]m\b|\beu\s+sei\s+como\s+[eé]\b|\beu\s+(?:j[aá]\s+)?(?:passei|vivi|sofri|estive)\s+(?:por\s+)?isso\b/i,label:"experiência pessoal não confirmada"},
               {re:/\bvisualiza[cç][oõ]es?\s+(?:subindo|aumentando|crescendo)\b|\b(?:a[cç][aã]o\s+imediata|isso)\s+traz\s+engajamento\b|\bcliente\s+satisfeit[oa]\b|\bantes\s+e\s+depois\b/i,label:"resultado/prova inventado"},
               {re:/\b(?:primeiras?\s+)?dms?\b[^\n.!?]*(?:receb|cheg)|\b(?:recebi|recebeu|recebe)\b[^\n.!?]*\bdms?\b|\bpublica(?:r|que)?\b[^\n.!?]*\brecebe(?:r)?\s+mensagens?\b/i,label:"resultado/prova inventado"},
               {re:/\b(?:destrave|app|ele)\b[^\n.!?]{0,80}\b(?:em\s+(?:poucos?\s+)?segundos?|em\s+(?:menos\s+de\s+)?\d+\s*minutos?)\b|\b(?:postei|gravei|publiquei|transform(?:ei|ar)|pront[oa])\b[^\n.!?]{0,80}\b(?:em\s+(?:menos\s+de\s+)?\d+\s*minutos?)\b/i,label:"velocidade não confirmada"},
@@ -320,7 +320,14 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
               {re:/\bo\s+app\s+faz\s+tudo\b/i,label:"função exagerada do Destrave"},
               {re:/\bp[aá]gina\s+de\s+vendas\b|\bcrm\b|\bcheckout\b|\bpublica(?:r)?\s+automaticamente\b/i,label:"funcionalidade inventada do Destrave"}
             ];
-            for(const x of destraveInventions) if(x.re.test(serialized)) violations.push(x.label);
+            for(const x of destraveInventions) {
+              if(!x.re.test(serialized)) continue;
+              // Regras factuais com "allow" só bloqueiam quando a mesma afirmação
+              // não existe no cofre de fatos. Assim, uma experiência REAL do cadastro
+              // pode ser usada sem o guard tratá-la automaticamente como invenção.
+              if(x.allow && x.allow.test(knownFactText)) continue;
+              violations.push(x.label);
+            }
           }
           const feedSlides=Array.isArray(candidate?.feed?.slides)?candidate.feed.slides:[];
           if(feedSlides.length){
@@ -893,7 +900,7 @@ Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo racioc
           }
         }
         if(hardViolations.length){
-          return json({ok:false,error:"O Destrave bloqueou uma resposta que usava informação não confirmada. Tente criar outra versão.",code:"FACT_GUARD",details:hardViolations},{status:422});
+          console.error("DESTRAVE_FACT_GUARD_BLOCKED",{model:modelUsed,violations:hardViolations});\n          return json({ok:false,error:"Não consegui concluir esse conteúdo com segurança. Tente refazer.",code:"FACT_GUARD"},{status:422});
         }
 
         return json({ok:true,plan,text:JSON.stringify(plan),format:"Conteúdo do dia",model:modelUsed});
