@@ -389,7 +389,18 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
             ? {difference:business.difference||"",evidence:business.freeContext||""}
             : {selectedFocus:selectedFocus||"",details:business.offerDetails||""}
         };
-        const motherPrompt = `Você é o ESTRATEGISTA DIGITAL DO DESTRAVE.
+        const strategyPrompt = `Você é o DIRETOR DE ESTRATÉGIA DIGITAL do Destrave. NÃO escreva conteúdo final. Tome UMA decisão estratégica forte antes da criação.
+CONTEXTO: ${JSON.stringify(cleanContext)}
+COFRE: ${JSON.stringify(destraveProductVault)}
+HISTÓRICO: ${JSON.stringify(recent.slice(0,4))}
+Criatividade estratégica é livre; fatos não são. Decida: objetivo real, percepção que precisa nascer/mudar, mensagem central, tese, melhor ângulo, papel da oferta, tom e quais fatos realmente merecem entrar. Não transforme todo fato do cadastro em assunto. Evite apresentação institucional, tutorial óbvio e fórmula repetida. Não invente fatos.
+JSON somente: {"objective":"","audienceInsight":"","centralMessage":"","thesis":"","angle":"","desiredPerception":"","narrativeLogic":"","offerRole":"","tone":"","useFacts":[],"avoid":[]}`;
+        let strategy=null, strategyModel="";
+        if(env.GROQ_API_KEY){try{const sr=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},body:JSON.stringify({model:"openai/gpt-oss-120b",messages:[{role:"system",content:"Você é diretor de estratégia digital. Retorne somente JSON."},{role:"user",content:strategyPrompt}],temperature:.75,max_completion_tokens:2200,reasoning_effort:"medium",response_format:{type:"json_object"}}),signal:AbortSignal.timeout(18000)});if(sr.ok){const sd=await sr.json();strategy=JSON.parse(String(sd.choices?.[0]?.message?.content||"{}"));strategyModel="groq/openai/gpt-oss-120b"}}catch(e){console.error("DESTRAVE_STRATEGY_GROQ",String(e))}}
+        if(!strategy&&env.GEMINI_API_KEY){try{const sr=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{method:"POST",headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},body:JSON.stringify({contents:[{parts:[{text:strategyPrompt}]}],generationConfig:{maxOutputTokens:2200,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"medium"}}}),signal:AbortSignal.timeout(18000)});if(sr.ok){const sd=await sr.json();strategy=JSON.parse((sd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join(""));strategyModel="gemini-3.6-flash"}}catch(e){console.error("DESTRAVE_STRATEGY_GEMINI",String(e))}}
+        if(!strategy) return json({ok:false,error:"Não consegui definir a estratégia do conteúdo agora. Tente novamente.",code:"STRATEGY_FAILED"},{status:502});
+
+        const motherPrompt = `Você é o DIRETOR CRIATIVO / SOCIAL MEDIA DO DESTRAVE. A estratégia já foi decidida. Sua função é transformar ESSA decisão em conteúdo excelente, atual, humano e pronto para publicar.\n\nDECISÃO ESTRATÉGICA:\n${JSON.stringify(strategy)}\n\nVocê não redescobre a estratégia nem troca o ângulo sem motivo.\n\n
 
 IDENTIDADE
 Você atua como um estrategista digital e social media sênior, humano, criativo e adaptável. Seu trabalho é entender a pessoa, o negócio, o momento e o objetivo e decidir qual comunicação faz mais sentido HOJE para gerar movimento real no digital.
@@ -480,7 +491,7 @@ Se algo falhar, corrija antes de responder.
 RETORNE SOMENTE JSON VÁLIDO:
 {"needsInput":false,"question":"","directionTitle":"","why":"","reels":{"title":"","hook":"","steps":[],"script":"","screenText":"","caption":"","cta":""},"stories":[{"title":"Story 1","show":"","say":"","screenText":"","interaction":""},{"title":"Story 2","show":"","say":"","screenText":"","interaction":""},{"title":"Story 3","show":"","say":"","screenText":"","interaction":""},{"title":"Story 4","show":"","say":"","screenText":"","interaction":""},{"title":"Story 5","show":"","say":"","screenText":"","interaction":""},{"title":"Story 6","show":"","say":"","screenText":"","interaction":""},{"title":"Story 7","show":"","say":"","screenText":"","interaction":""}],"feed":{"format":"","instructions":"","slides":[],"caption":"","cta":""},"whatsapp":{"format":"Status do WhatsApp","instructions":"","text":""},"quickVersion":"","motivation":""}`
         let textOut="";
-        let modelUsed="";
+        let modelUsed="strategy:"+strategyModel+" -> ";
         let lastError="";
 
         // Cadeia de geração: cada motor falha de forma independente e o próximo assume.
@@ -505,7 +516,7 @@ RETORNE SOMENTE JSON VÁLIDO:
             let gd={}; try{gd=JSON.parse(raw)}catch{}
             if(gr.ok){
               textOut=(gd.candidates?.[0]?.content?.parts||[]).map(p=>p.text||"").join("").trim();
-              if(textOut) modelUsed="gemini-3.6-flash";
+              if(textOut) modelUsed+="gemini-3.6-flash";
               else rememberError("gemini","resposta vazia");
             }else rememberError("gemini",gd?.error?.message||("HTTP "+gr.status));
           }catch(error){rememberError("gemini",error)}
@@ -536,7 +547,7 @@ RETORNE SOMENTE JSON VÁLIDO:
               let rd={}; try{rd=JSON.parse(raw)}catch{}
               if(rr.ok){
                 textOut=String(rd.choices?.[0]?.message?.content||"").trim();
-                if(textOut) modelUsed="groq/"+groqModel;
+                if(textOut) modelUsed+="groq/"+groqModel;
                 else rememberError("groq/"+groqModel,"resposta vazia");
               }else rememberError("groq/"+groqModel,rd?.error?.message||("HTTP "+rr.status));
             }catch(error){rememberError("groq/"+groqModel,error)}
@@ -558,7 +569,7 @@ RETORNE SOMENTE JSON VÁLIDO:
               new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 18s")),18000))
             ]);
             const cloudflareText=String(cr?.response ?? cr?.choices?.[0]?.message?.content ?? "").trim();
-            if(cloudflareText){textOut=cloudflareText;modelUsed="cloudflare/llama-3.3-70b-instruct-fp8-fast"}
+            if(cloudflareText){textOut=cloudflareText;modelUsed+="cloudflare/llama-3.3-70b-instruct-fp8-fast"}
             else rememberError("cloudflare","resposta vazia");
           }catch(error){rememberError("cloudflare",error)}
         } else if(!textOut) rememberError("cloudflare","binding AI ausente");
