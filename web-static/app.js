@@ -120,49 +120,38 @@ function addHome(root){
   premiumHeader(root);
   const day=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/86400000);
   const messages=[
-    'Você não precisa resolver tudo hoje. Precisa colocar uma coisa importante em movimento.',
-    'Seu trabalho não precisa aparecer perfeito. Precisa aparecer com clareza.',
-    'O próximo movimento certo vale mais do que dez ideias guardadas.',
-    'Hoje, faça o que cabe no seu dia sem abandonar o que você quer construir.',
-    'Recomeçar também conta. O importante é não deixar seu trabalho desaparecer.',
-    'Você não precisa saber o caminho inteiro. Só precisa saber qual é o próximo movimento.',
-    'A internet só consegue responder ao que você coloca em movimento.'
+    'Você não precisa decidir o que postar. O Destrave decide o próximo movimento com você.',
+    'Um movimento bem escolhido vale mais do que quatro conteúdos feitos por obrigação.',
+    'Hoje a estratégia vem antes do formato.',
+    'Seu próximo movimento precisa ter um motivo, não apenas preencher o feed.',
+    'Consistência também é saber o que não precisa ser feito hoje.',
+    'O Destrave olha o caminho e escolhe o próximo passo.',
+    'Menos conteúdo por obrigação. Mais movimento com intenção.'
   ];
   const first=(business.name||'Imparável').trim().split(/\s+/)[0];
   const daily=readJSON('destrave-daily',{});
   const panel=document.createElement('main');panel.className='premium-page premium-home';
   panel.innerHTML=`
-    <section class="home-intro"><p>Olá, <strong>${first}</strong>.</p><h1>Você não precisa saber o caminho inteiro. Só precisa saber qual é o próximo movimento.</h1></section>
-    <section class="glass-card daily-message"><small>MENSAGEM DE HOJE</small><p>${messages[day%messages.length]}</p></section>
-    <section class="next-movement"><small>SEU PRÓXIMO MOVIMENTO</small><h2>Como está seu dia hoje?</h2><p>Escolha o que cabe no seu dia. Você não precisa fazer tudo.</p>
+    <section class="home-intro"><p>Olá, <strong>${first}</strong>.</p><h1>Você não precisa decidir o que postar hoje.</h1><p>O Destrave analisa seu momento e escolhe o movimento por você.</p></section>
+    <section class="glass-card daily-message"><small>DIREÇÃO DE HOJE</small><p>${messages[day%messages.length]}</p></section>
+    <section class="next-movement"><small>ANTES DE DECIDIR</small><h2>Como está seu dia hoje?</h2><p>Isso não escolhe o conteúdo. Só ajuda o estrategista a escolher algo que você consiga executar.</p>
       <div class="daily-label">TEMPO</div><div class="premium-choice-grid">
-        <button data-group="time" data-value="Sem tempo"><b>◷</b><span>Sem tempo<small>Quero algo direto</small></span></button>
-        <button data-group="time" data-value="Tenho tempo"><b>✦</b><span>Tenho tempo<small>Posso fazer com calma</small></span></button>
+        <button data-group="time" data-value="Sem tempo"><b>◷</b><span>Sem tempo<small>Preciso de algo mais enxuto</small></span></button>
+        <button data-group="time" data-value="Tenho tempo"><b>✦</b><span>Tenho tempo<small>Posso executar algo maior</small></span></button>
       </div>
       <div class="daily-label">APARECER</div><div class="premium-choice-grid">
         <button data-group="appearance" data-value="Posso aparecer"><b>◎</b><span>Posso aparecer<small>Estou disponível hoje</small></span></button>
-        <button data-group="appearance" data-value="Prefiro não aparecer"><b>◇</b><span>Prefiro não aparecer<small>Quero outra forma</small></span></button>
+        <button data-group="appearance" data-value="Prefiro não aparecer"><b>◇</b><span>Prefiro não aparecer<small>Escolha outra execução</small></span></button>
       </div>
-      <button class="premium-primary home-generate">VER MEU CONTEÚDO DO DIA →</button>
+      <button class="premium-primary home-generate">DESCOBRIR MEU MOVIMENTO DE HOJE →</button>
     </section>`;
   panel.querySelectorAll('[data-group]').forEach(b=>{
     if(daily[b.dataset.group]===b.dataset.value)b.classList.add('selected');
-    b.onclick=()=>{
-      daily[b.dataset.group]=b.dataset.value;
-      writeJSON('destrave-daily',daily);
-      panel.querySelectorAll('[data-group="'+b.dataset.group+'"]').forEach(x=>x.classList.remove('selected'));
-      b.classList.add('selected');
-    };
+    b.onclick=()=>{daily[b.dataset.group]=b.dataset.value;writeJSON('destrave-daily',daily);panel.querySelectorAll('[data-group="'+b.dataset.group+'"]').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};
   });
   panel.querySelector('.home-generate').onclick=()=>{
-    // Re-read the current selections from the buttons immediately before
-    // opening the summary. This prevents stale/default values from appearing.
-    const latest={};
-    panel.querySelectorAll('[data-group].selected').forEach(b=>{latest[b.dataset.group]=b.dataset.value;});
-    if(latest.time) daily.time=latest.time;
-    if(latest.appearance) daily.appearance=latest.appearance;
-    writeJSON('destrave-daily',daily);
-    navigate('daily');
+    const latest={};panel.querySelectorAll('[data-group].selected').forEach(b=>{latest[b.dataset.group]=b.dataset.value;});
+    if(latest.time)daily.time=latest.time;if(latest.appearance)daily.appearance=latest.appearance;writeJSON('destrave-daily',daily);navigate('daily');
   };
   root.appendChild(panel);
 }
@@ -204,14 +193,14 @@ async function detectRealFocusChoices(){
 async function focusPicker(onSelect){
   const page=document.createElement('div');page.className='plan-page movement-page';
   const top=document.createElement('header');top.className='plan-top';
-  top.innerHTML='<button class="plan-back">‹</button><div><h1>O que vamos movimentar hoje?</h1><p>Escolha uma frente do seu trabalho. O conteúdo inteiro vai seguir somente esse foco.</p></div>';
+  top.innerHTML='<button class="plan-back">‹</button><div><h1>O que você quer destravar hoje?</h1><p>Escolha uma frente ou explique exatamente o foco de hoje. O Destrave não vai misturar outros assuntos.</p></div>';
   top.querySelector('button').onclick=()=>navigate('home');page.append(top);
   const body=document.createElement('main');body.className='plan-main movement-main';
   const options=await detectRealFocusChoices();
   options.forEach((value,index)=>{const b=document.createElement('button');b.type='button';b.className='premium-primary focus-choice-btn';b.textContent=value;const choose=()=>onSelect(value);b.addEventListener('click',choose);b.addEventListener('touchend',(e)=>{e.preventDefault();choose()},{passive:false});body.append(b)});
   const other=document.createElement('button');other.type='button';other.className='premium-primary focus-choice-btn';other.textContent='Outra coisa';other.onclick=()=>{
     const card=document.createElement('section');card.className='glass-card';
-    const input=document.createElement('textarea');input.rows=3;input.placeholder='O que você quer divulgar hoje?';
+    const input=document.createElement('textarea');input.rows=3;input.placeholder='Ex.: hoje quero falar só do meu curso; ou só quero atrair clientes de manicure.';
     const go=document.createElement('button');go.className='premium-primary';go.textContent='CONTINUAR →';go.onclick=()=>{const value=input.value.trim();if(value)onSelect(value);else showToast('Me diga o foco de hoje.')};
     card.append(input,go);body.replaceChildren(card);input.focus();
   };body.append(other);page.append(body);return page;
@@ -232,7 +221,7 @@ function addDaily(root){
       const stop=showGenerating();
       try{
         const goal=(Array.isArray(business.mainGoal)?business.mainGoal.join(', '):business.mainGoal)||business.objective||'Escolha por mim';
-        const requestedFormat=[daily.time,daily.appearance].filter(Boolean).join(' + ')||'Escolha por mim';
+        const requestedFormat='O Destrave escolhe o canal. Contexto: '+([daily.time,daily.appearance].filter(Boolean).join(' + ')||'livre');
         const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),180000);
         const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:selectedFocus,focus:selectedFocus,requestedFormat}),signal:controller.signal});
         clearTimeout(timeout);
@@ -440,11 +429,13 @@ function showResult(item){
 }
 function showMovementResult(item,p){
   const page=document.createElement('div');page.className='plan-page movement-page';
-  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu movimento de hoje está pronto.</h1><p>É só seguir. O Destrave já pensou por você.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
-  const hero=document.createElement('section');hero.className='plan-hero';hero.innerHTML='<small>SEU MOVIMENTO DE HOJE ✦</small><h2></h2><p></p>';hero.querySelector('h2').textContent=cleanText(p.movementTitle||'Seu próximo movimento');hero.querySelector('p').textContent=cleanText(p.why||'');page.append(hero);
+  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu movimento de hoje está pronto.</h1><p>O Destrave escolheu o canal e preparou uma execução completa.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
+  const hero=document.createElement('section');hero.className='plan-hero';hero.innerHTML='<small>SEU MOVIMENTO DE HOJE ✦</small><h2></h2><p></p><div class="plan-choice-note"></div>';hero.querySelector('h2').textContent=cleanText((p.channel?String(p.channel).toUpperCase()+' — ':'')+(p.movementTitle||'Seu próximo movimento'));hero.querySelector('p').textContent=cleanText(p.why||'');hero.querySelector('.plan-choice-note').textContent=cleanText(p.strategicGoal?'Objetivo: '+p.strategicGoal:'');page.append(hero);
   const body=document.createElement('main');body.className='plan-main movement-main';body.innerHTML='<h2>Faça assim</h2>';
   (p.steps||[]).forEach((x,i)=>{const d=document.createElement('div');d.className='plan-detail movement-step';d.innerHTML='<b class="movement-step-num"></b><h3></h3><p></p>';d.querySelector('b').textContent=String(i+1);d.querySelector('h3').textContent=cleanText(x.title||'Passo '+(i+1));d.querySelector('p').textContent=cleanText(x.instruction||'');body.append(d)});
-  (p.readyToUse||[]).forEach(x=>{const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(x.label||'Texto');d.querySelector('p').textContent=cleanText(x.text||'');body.append(d)});
+  (p.readyToUse||[]).forEach(x=>{const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(x.label||'Pronto para usar');d.querySelector('p').textContent=cleanText(x.text||'');body.append(d);if(x.text)d.append(copyBtn('COPIAR',x.text))});
+  if(p.crossPost&&p.crossPost.text){const d=document.createElement('section');d.className='plan-check movement-extra';d.innerHTML='<h3>✦ Aproveite também</h3><p></p>';d.querySelector('p').textContent=cleanText(p.crossPost.text);body.append(d)}
+  const feedback=document.createElement('section');feedback.className='plan-check movement-ready';feedback.innerHTML='<h3>✦ Como foi hoje?</h3><p>Isso ajuda o Destrave a decidir o próximo movimento.</p><div class="execution-feedback"></div>';const box=feedback.querySelector('.execution-feedback');[['Fiz','Fiz'],['Fiz uma parte','Fiz uma parte'],['Hoje não consegui','Hoje não consegui']].forEach(([label,value])=>{const b=document.createElement('button');b.type='button';b.className='plan-copy'+(item.executionFeedback===value?' selected':'');b.textContent=label;b.onclick=async()=>{await saveExecutionFeedback(item,value);box.querySelectorAll('button').forEach(x=>x.classList.remove('selected'));b.classList.add('selected')};box.append(b)});body.append(feedback);
   page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
 }
 function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
