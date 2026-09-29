@@ -210,9 +210,9 @@ function addDaily(root){
   premiumHeader(root);
   const daily=readJSON('destrave-daily',{});
   const panel=document.createElement('main');panel.className='premium-page premium-daily';
-  panel.innerHTML=`<section class="page-title"><small>CONTEÚDO DO DIA</small><h1>Seu próximo movimento.</h1><p>Primeiro escolhemos o foco. Depois o Destrave cria o pacote completo em uma única geração.</p></section>
-  <section class="glass-card"><h2>Hoje eu vou considerar</h2><div class="context-pill">◷ ${daily.time||'Seu tempo de hoje'}</div><div class="context-pill">◎ ${daily.appearance||'Como prefere aparecer'}</div><p class="soft">Stories, Reels, Feed e Status do WhatsApp serão gerados juntos. Depois você escolhe o que quer usar, sem gastar uma nova geração.</p></section>
-  <button class="premium-primary generate-now">✦ ESCOLHER O FOCO DE HOJE →</button>`;
+  panel.innerHTML=`<section class="page-title"><small>MOVIMENTO DO DIA</small><h1>O Destrave escolhe o próximo passo.</h1><p>Você diz o que quer destravar hoje. O estrategista decide qual formato faz mais sentido.</p></section>
+  <section class="glass-card"><h2>Contexto de hoje</h2><div class="context-pill">◷ ${daily.time||'Tempo não informado'}</div><div class="context-pill">◎ ${daily.appearance||'Aparição não informada'}</div><p class="soft">Reels, Stories, Feed ou WhatsApp: você não escolhe o formato. O Destrave escolhe um único movimento e entrega a execução completa.</p></section>
+  <button class="premium-primary generate-now">✦ O QUE EU QUERO DESTRAVAR HOJE? →</button>`;
   panel.querySelector('.generate-now').onclick=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer melhor seu trabalho.');navigate('work');return}
     const picker=await focusPicker(async(selectedFocus)=>{
@@ -241,7 +241,7 @@ function addDaily(root){
           console.error('DESTRAVE_GENERATE_FAILED',data);
           return;
         }
-        const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&data.plan.directionTitle)||'Conteúdo do dia',format:data.format||'Conteúdo do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
+        const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&(data.plan.movementTitle||data.plan.directionTitle))||'Movimento do dia',format:data.format||(data.plan&&data.plan.channel)||'Movimento do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
         contents.unshift(generated);await syncToCloud();stop();showResult(generated);
       }catch(e){
         stop();
