@@ -485,13 +485,30 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           console.error("DESTRAVE_AI_CHAIN_FAILED",providerErrors);
           return json({ok:false,error:"Não consegui gerar o conteúdo agora.",code:"AI_CHAIN_FAILED",details:providerErrors},{status:502});
         }
-        const creatorRaw=textOut;\n        console.error("DESTRAVE_PIPELINE_STRATEGY",{strategyModel,strategy});\n        console.error("DESTRAVE_PIPELINE_CREATOR_RAW",{creator:modelUsed,preview:creatorRaw.slice(0,12000)});\n        let plan;\n        try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
+        const creatorRaw=textOut;
+        console.error("DESTRAVE_PIPELINE_STRATEGY",{strategyModel,strategy});
+        console.error("DESTRAVE_PIPELINE_CREATOR_RAW",{creator:modelUsed,preview:creatorRaw.slice(0,12000)});
+        let plan;
+        try { plan=JSON.parse(textOut.replace(/^\`\`\`(?:json)?\\s*/i,"").replace(/\`\`\`$/,"").trim()); }
         catch(error) {
           console.error("DESTRAVE_AI_INVALID_JSON",{model:modelUsed,error:String(error),preview:textOut.slice(0,500)});
           return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer.",code:"INVALID_AI_JSON",model:modelUsed},{status:502});
         }
 
-        // Novo Destrave: um único movimento escolhido pelo estrategista.\n        if(plan && plan.movementTitle){\n          const allowedChannels=["REELS","STORIES","FEED","WHATSAPP"];\n          const channel=String(plan.channel||strategy?.channel||"").toUpperCase();\n          if(!allowedChannels.includes(channel)) return json({ok:false,error:"Não consegui decidir o movimento de hoje. Tente novamente.",code:"MOVEMENT_CHANNEL_INVALID"},{status:422});\n          plan.channel=channel;\n          const serialized=JSON.stringify(plan);\n          if(/\\b(?:oi[,! ]+eu sou|hoje eu vim falar|eu queria (?:te )?falar)\\b/i.test(serialized) && channel==="REELS") return json({ok:false,error:"O Reel não passou na revisão de abertura. Tente refazer.",code:"REEL_HOOK_INVALID"},{status:422});\n          if(channel==="STORIES"){const storyCount=(plan.steps||[]).filter(x=>x&&String(x.instruction||"").trim()).length;if(storyCount<5)return json({ok:false,error:"A sequência de Stories veio incompleta. Tente refazer.",code:"STORIES_INCOMPLETE"},{status:422});}\n          console.error("DESTRAVE_PIPELINE_FINAL",{model:modelUsed,plan,strategy});\n          return json({ok:true,plan,text:JSON.stringify(plan),format:channel,model:modelUsed});\n        }\n\n        if(generationBudgetExceeded()){
+        // Novo Destrave: um único movimento escolhido pelo estrategista.
+        if(plan && plan.movementTitle){
+          const allowedChannels=["REELS","STORIES","FEED","WHATSAPP"];
+          const channel=String(plan.channel||strategy?.channel||"").toUpperCase();
+          if(!allowedChannels.includes(channel)) return json({ok:false,error:"Não consegui decidir o movimento de hoje. Tente novamente.",code:"MOVEMENT_CHANNEL_INVALID"},{status:422});
+          plan.channel=channel;
+          const serialized=JSON.stringify(plan);
+          if(/\\b(?:oi[,! ]+eu sou|hoje eu vim falar|eu queria (?:te )?falar)\\b/i.test(serialized) && channel==="REELS") return json({ok:false,error:"O Reel não passou na revisão de abertura. Tente refazer.",code:"REEL_HOOK_INVALID"},{status:422});
+          if(channel==="STORIES"){const storyCount=(plan.steps||[]).filter(x=>x&&String(x.instruction||"").trim()).length;if(storyCount<5)return json({ok:false,error:"A sequência de Stories veio incompleta. Tente refazer.",code:"STORIES_INCOMPLETE"},{status:422});}
+          console.error("DESTRAVE_PIPELINE_FINAL",{model:modelUsed,plan,strategy});
+          return json({ok:true,plan,text:JSON.stringify(plan),format:channel,model:modelUsed});
+        }
+
+        if(generationBudgetExceeded()){
           console.error("DESTRAVE_GENERATION_BUDGET_EXCEEDED",{stage:"before_fiscal",model:modelUsed});
           return json({ok:false,error:"A geração demorou além do esperado. Tente novamente.",code:"GENERATION_TIMEOUT",model:modelUsed},{status:504});
         }
@@ -817,10 +834,12 @@ Preserve foco, direção e voz. Se o Reels estiver curto, expanda o mesmo racioc
           }
         }
         if(hardViolations.length){
-          console.error("DESTRAVE_FACT_GUARD_BLOCKED",{model:modelUsed,violations:hardViolations});\n          return json({ok:false,error:"Não consegui concluir esse conteúdo com segurança. Tente refazer.",code:"FACT_GUARD"},{status:422});
+          console.error("DESTRAVE_FACT_GUARD_BLOCKED",{model:modelUsed,violations:hardViolations});
+          return json({ok:false,error:"Não consegui concluir esse conteúdo com segurança. Tente refazer.",code:"FACT_GUARD"},{status:422});
         }
 
-        console.error("DESTRAVE_PIPELINE_FINAL",{model:modelUsed,plan});\n        return json({ok:true,plan,text:JSON.stringify(plan),format:"Conteúdo do dia",model:modelUsed});
+        console.error("DESTRAVE_PIPELINE_FINAL",{model:modelUsed,plan});
+        return json({ok:true,plan,text:JSON.stringify(plan),format:"Conteúdo do dia",model:modelUsed});
       } catch(error) {
         return json({ok:false,error:"Falha ao gerar conteúdo",message:error.message},{status:500});
       }
