@@ -223,7 +223,8 @@ function addDaily(root){
         const goal=(Array.isArray(business.mainGoal)?business.mainGoal.join(', '):business.mainGoal)||business.objective||'Escolha por mim';
         const requestedFormat='O Destrave escolhe o canal. Contexto: '+([daily.time,daily.appearance].filter(Boolean).join(' + ')||'livre');
         const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),180000);
-        const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:selectedFocus,focus:selectedFocus,requestedFormat}),signal:controller.signal});
+        const todayTime=daily.time||'';const todayAppearance=daily.appearance||'';
+        const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:selectedFocus,focus:selectedFocus,requestedFormat,todayTime,todayAppearance}),signal:controller.signal});
         clearTimeout(timeout);
         const raw=await r.text();
         let data={};
@@ -241,7 +242,7 @@ function addDaily(root){
           console.error('DESTRAVE_GENERATE_FAILED',data);
           return;
         }
-        const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&(data.plan.movementTitle||data.plan.directionTitle))||'Movimento do dia',format:data.format||(data.plan&&data.plan.channel)||'Movimento do dia',requestedFormat,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
+        const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&(data.plan.movementTitle||data.plan.directionTitle))||'Movimento do dia',format:data.format||(data.plan&&data.plan.channel)||'Movimento do dia',requestedFormat,todayTime,todayAppearance,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
         contents.unshift(generated);await syncToCloud();stop();showResult(generated);
       }catch(e){
         stop();
@@ -439,7 +440,7 @@ function showMovementResult(item,p){
   page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
 }
 function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
-async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),workContextId:currentWorkContextId(),executionFeedback:null,executionFeedbackAt:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
+async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',todayTime:item.todayTime||'',todayAppearance:item.todayAppearance||'',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),workContextId:currentWorkContextId(),executionFeedback:null,executionFeedbackAt:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
 
 function addProfile(root){
   premiumHeader(root);
