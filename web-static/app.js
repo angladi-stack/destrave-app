@@ -193,15 +193,26 @@ async function detectRealFocusChoices(){
 async function focusPicker(onSelect){
   const page=document.createElement('div');page.className='plan-page movement-page';
   const top=document.createElement('header');top.className='plan-top';
-  top.innerHTML='<button class="plan-back">‹</button><div><h1>O que você quer destravar hoje?</h1><p>Escolha uma frente ou explique exatamente o foco de hoje. O Destrave não vai misturar outros assuntos.</p></div>';
+  top.innerHTML='<button class="plan-back">‹</button><div><h1>Qual é o foco de hoje?</h1><p>Escolha o assunto. O Destrave decide o melhor formato para sua publicação.</p></div>';
   top.querySelector('button').onclick=()=>navigate('home');page.append(top);
   const body=document.createElement('main');body.className='plan-main movement-main';
   const options=await detectRealFocusChoices();
-  options.forEach((value,index)=>{const b=document.createElement('button');b.type='button';b.className='premium-primary focus-choice-btn';b.textContent=value;const choose=()=>onSelect(value);b.addEventListener('click',choose);b.addEventListener('touchend',(e)=>{e.preventDefault();choose()},{passive:false});body.append(b)});
+  const chooseFocus=(focus)=>{
+    const card=document.createElement('section');card.className='glass-card';
+    const title=document.createElement('h2');title.textContent=focus;
+    const label=document.createElement('label');label.textContent='O que você quer mostrar ou apresentar hoje?';
+    const hint=document.createElement('p');hint.className='soft';hint.textContent='Pode escrever uma frase ou deixar em branco para o Destrave escolher a melhor abordagem dentro desse foco.';
+    const input=document.createElement('textarea');input.rows=3;input.maxLength=1200;input.placeholder='Ex.: quero apresentar meu novo serviço de manicure.';
+    const go=document.createElement('button');go.type='button';go.className='premium-primary';go.textContent='CRIAR MINHA PUBLICAÇÃO DO DIA →';
+    go.onclick=()=>onSelect(focus,input.value.trim());
+    card.append(title,label,input,hint,go);body.replaceChildren(card);input.focus();
+  };
+  options.forEach(value=>{const b=document.createElement('button');b.type='button';b.className='premium-primary focus-choice-btn';b.textContent=value;const choose=()=>chooseFocus(value);b.addEventListener('click',choose);b.addEventListener('touchend',(e)=>{e.preventDefault();choose()},{passive:false});body.append(b)});
   const other=document.createElement('button');other.type='button';other.className='premium-primary focus-choice-btn';other.textContent='Outra coisa';other.onclick=()=>{
     const card=document.createElement('section');card.className='glass-card';
-    const input=document.createElement('textarea');input.rows=3;input.placeholder='Ex.: hoje quero falar só do meu curso; ou só quero atrair clientes de manicure.';
-    const go=document.createElement('button');go.className='premium-primary';go.textContent='CONTINUAR →';go.onclick=()=>{const value=input.value.trim();if(value)onSelect(value);else showToast('Me diga o foco de hoje.')};
+    const input=document.createElement('textarea');input.rows=3;input.maxLength=1200;input.placeholder='Ex.: meu curso de manicure';
+    const go=document.createElement('button');go.type='button';go.className='premium-primary';go.textContent='CONTINUAR →';
+    go.onclick=()=>{const value=input.value.trim();if(value)chooseFocus(value);else showToast('Me diga qual é o foco de hoje.')};
     card.append(input,go);body.replaceChildren(card);input.focus();
   };body.append(other);page.append(body);return page;
 }
@@ -210,13 +221,13 @@ function addDaily(root){
   premiumHeader(root);
   const daily=readJSON('destrave-daily',{});
   const panel=document.createElement('main');panel.className='premium-page premium-daily';
-  panel.innerHTML=`<section class="page-title"><small>MOVIMENTO DO DIA</small><h1>O Destrave escolhe o próximo passo.</h1><p>Você diz o que quer destravar hoje. O estrategista decide qual formato faz mais sentido.</p></section>
+  panel.innerHTML=`<section class="page-title"><small>PUBLICAÇÃO DO DIA</small><h1>O Destrave escolhe como publicar.</h1><p>Você informa o foco e o que quer mostrar. O estrategista escolhe o formato e prepara uma publicação completa.</p></section>
   <section class="glass-card"><h2>Contexto de hoje</h2><div class="context-pill">◷ ${daily.time||'Tempo não informado'}</div><div class="context-pill">◎ ${daily.appearance||'Aparição não informada'}</div><p class="soft">Reels, Stories, Feed ou WhatsApp: você não escolhe o formato. O Destrave escolhe um único movimento e entrega a execução completa.</p></section>
   <button class="premium-primary generate-now">✦ O QUE EU QUERO DESTRAVAR HOJE? →</button>`;
   panel.querySelector('.generate-now').onclick=async()=>{
     if(!isConfigured()){showToast('Primeiro preciso conhecer melhor seu trabalho.');navigate('work');return}
-    const picker=await focusPicker(async(selectedFocus)=>{
-      daily.focus=selectedFocus;writeJSON('destrave-daily',daily);
+    const picker=await focusPicker(async(selectedFocus,todayProposal)=>{
+      daily.focus=selectedFocus;daily.proposal=todayProposal;writeJSON('destrave-daily',daily);
       app.replaceChildren(picker);
       const stop=showGenerating();
       try{
@@ -224,7 +235,7 @@ function addDaily(root){
         const requestedFormat='O Destrave escolhe o canal. Contexto: '+([daily.time,daily.appearance].filter(Boolean).join(' + ')||'livre');
         const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),180000);
         const todayTime=daily.time||'';const todayAppearance=daily.appearance||'';
-        const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:selectedFocus,focus:selectedFocus,requestedFormat,todayTime,todayAppearance}),signal:controller.signal});
+        const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal,topic:selectedFocus,focus:selectedFocus,requestedFormat,todayTime,todayAppearance,todayProposal}),signal:controller.signal});
         clearTimeout(timeout);
         const raw=await r.text();
         let data={};
@@ -242,7 +253,7 @@ function addDaily(root){
           console.error('DESTRAVE_GENERATE_FAILED',data);
           return;
         }
-        const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&(data.plan.movementTitle||data.plan.directionTitle))||'Movimento do dia',format:data.format||(data.plan&&data.plan.channel)||'Movimento do dia',requestedFormat,todayTime,todayAppearance,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
+        const generated={id:Date.now(),workContextId:normalizeWorkValue(selectedFocus),focus:selectedFocus,title:(data.plan&&(data.plan.movementTitle||data.plan.directionTitle))||'Movimento do dia',format:data.format||(data.plan&&data.plan.channel)||'Movimento do dia',requestedFormat,todayTime,todayAppearance,todayProposal,status:'salvo',executionFeedback:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};
         contents.unshift(generated);await syncToCloud();stop();showResult(generated);
       }catch(e){
         stop();
@@ -430,9 +441,9 @@ function showResult(item){
 }
 function showMovementResult(item,p){
   const page=document.createElement('div');page.className='plan-page movement-page';
-  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Seu movimento de hoje está pronto.</h1><p>O Destrave escolheu o canal e preparou uma execução completa.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
-  const hero=document.createElement('section');hero.className='plan-hero';hero.innerHTML='<small>SEU MOVIMENTO DE HOJE ✦</small><h2></h2><p></p><div class="plan-choice-note"></div>';hero.querySelector('h2').textContent=cleanText((p.channel?String(p.channel).toUpperCase()+' — ':'')+(p.movementTitle||'Seu próximo movimento'));hero.querySelector('p').textContent=cleanText(p.why||'');hero.querySelector('.plan-choice-note').textContent=cleanText(p.strategicGoal?'Objetivo: '+p.strategicGoal:'');page.append(hero);
-  const body=document.createElement('main');body.className='plan-main movement-main';body.innerHTML='<h2>Faça assim</h2>';
+  const top=document.createElement('header');top.className='plan-top';top.innerHTML='<button class="plan-back">‹</button><div><h1>Sua publicação de hoje está pronta.</h1><p>O Destrave escolheu o formato e preparou o conteúdo para você publicar.</p></div>';top.querySelector('button').onclick=()=>render();page.append(top);
+  const hero=document.createElement('section');hero.className='plan-hero';hero.innerHTML='<small>PUBLICAÇÃO DO DIA ✦</small><h2></h2><p></p><div class="plan-choice-note"></div>';hero.querySelector('h2').textContent=cleanText((p.channel?String(p.channel).toUpperCase()+' — ':'')+(p.movementTitle||'Seu próximo movimento'));hero.querySelector('p').textContent=cleanText(p.why||'');hero.querySelector('.plan-choice-note').textContent=cleanText(p.strategicGoal?'Objetivo: '+p.strategicGoal:'');page.append(hero);
+  const body=document.createElement('main');body.className='plan-main movement-main';body.innerHTML='<h2>Publique assim</h2>';
   (p.steps||[]).forEach((x,i)=>{const d=document.createElement('div');d.className='plan-detail movement-step';d.innerHTML='<b class="movement-step-num"></b><h3></h3><p></p>';d.querySelector('b').textContent=String(i+1);d.querySelector('h3').textContent=cleanText(x.title||'Passo '+(i+1));d.querySelector('p').textContent=cleanText(x.instruction||'');body.append(d)});
   (p.readyToUse||[]).forEach(x=>{const d=document.createElement('div');d.className='plan-detail';d.innerHTML='<strong></strong><p></p>';d.querySelector('strong').textContent=cleanText(x.label||'Pronto para usar');d.querySelector('p').textContent=cleanText(x.text||'');body.append(d);if(x.text)d.append(copyBtn('COPIAR',x.text))});
   if(p.crossPost&&p.crossPost.text){const d=document.createElement('section');d.className='plan-check movement-extra';d.innerHTML='<h3>✦ Aproveite também</h3><p></p>';d.querySelector('p').textContent=cleanText(p.crossPost.text);body.append(d)}
@@ -440,7 +451,7 @@ function showMovementResult(item,p){
   page.append(body);app.replaceChildren(page);window.scrollTo(0,0);
 }
 function showLegacyResult(item){const page=document.createElement('div');page.className='result-page';page.innerHTML='<div class="result-header"><button class="result-back">‹</button><div><strong>Conteúdo anterior</strong><span>Gerado antes do novo formato.</span></div></div><div class="result-body"><div class="result-full-text"></div></div>';page.querySelector('.result-full-text').textContent=cleanText(item.text);page.querySelector('.result-back').onclick=()=>render();app.replaceChildren(page)}
-async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',todayTime:item.todayTime||'',todayAppearance:item.todayAppearance||'',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),workContextId:currentWorkContextId(),executionFeedback:null,executionFeedbackAt:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
+async function regenerate(item){const stopGenerating=showGenerating();try{const r=await fetch('/api/generate',{method:'POST',headers:{'content-type':'application/json','x-destrave-client':clientId},body:JSON.stringify({goal:(item.title||'').split(':')[0]||'Movimentar',topic:(item.title||'').split(':').slice(1).join(':').trim()||business.objective,requestedFormat:item.requestedFormat||'Livre',todayTime:item.todayTime||'',todayAppearance:item.todayAppearance||'',todayProposal:item.todayProposal||'',redo:true})});const data=await r.json();if(!data.ok)throw new Error('generation_failed');const fresh={...item,id:Date.now(),workContextId:currentWorkContextId(),executionFeedback:null,executionFeedbackAt:null,created:new Date().toLocaleDateString('pt-BR'),text:data.text,plan:data.plan||null,model:data.model||'ai'};contents.unshift(fresh);await syncToCloud();stopGenerating();showResult(fresh)}catch(e){stopGenerating();showToast('Não consegui criar outra versão agora. Tente novamente em alguns instantes. ✦')}}
 
 function addProfile(root){
   premiumHeader(root);
