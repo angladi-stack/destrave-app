@@ -550,6 +550,8 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           const acceptMovementReview=(raw,reviewer)=>{
             const checked=parseMovementJson(raw);
             if(!checked || String(checked.channel||"").toUpperCase()!==channel) return false;
+            checked.channel=channel;
+            delete checked.crossPost;
             const issues=movementIssues(checked);
             if(issues.length){console.error("DESTRAVE_MOVEMENT_REVIEW_INVALID",{reviewer,issues});return false}
             plan=checked;
