@@ -527,8 +527,10 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
             if(channel==="STORIES" && (!Array.isArray(candidate.steps) || candidate.steps.length<5 || candidate.steps.length>7)) issues.push("sequência de Stories fora do tamanho definido");
             const leaves=collectTextLeaves(candidate);
             const content=leaves.join("\n");
+            if(channel==="REELS" && /\b(?:oi[,! ]+eu sou|hoje eu vim falar|eu queria (?:te )?falar)\b/i.test(content)) issues.push("abertura de Reel proibida");
             if(leaves.some(value=>/\[[^\]]+\]|\{\{[^}]+\}\}/.test(value))) issues.push("placeholder");
-            if(/\b\d+\s*(?:%|dias?|semanas?|meses?)\b/i.test(content) && !/\b\d+\s*(?:%|dias?|semanas?|meses?)\b/i.test(knownFactText)) issues.push("número ou prazo sem confirmação");
+            const numericClaims=content.match(/\b\d+\s*(?:%|dias?|semanas?|meses?)\b/gi)||[];
+            if(numericClaims.some(claim=>!knownFactText.toLowerCase().includes(claim.toLowerCase()))) issues.push("número ou prazo sem confirmação");
             if(/\b(?:garante|garantir|vai vender|vai gerar vendas|gera vendas|resultado certo|clientes garantidos)\b/i.test(content)) issues.push("promessa de resultado");
             if(isDestraveProduct && /\b(?:baixe|baixar|download|teste grátis|grátis|leads?|publicar automaticamente|página de vendas|checkout|crm)\b/i.test(content)) issues.push("funcionalidade do Destrave não confirmada");
             return [...new Set(issues)];
@@ -539,6 +541,7 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           const reviewPrompt=[
             "Você é o revisor de qualidade do Destrave. Audite esta única publicação pronta.",
             "Confira foco soberano, pedido de hoje, fatos confirmados, promessas, execução completa e adequação ao canal.",
+            "Para REELS, a fala precisa começar pelo gancho, sem apresentação, e manter 95–160 palavras. Nunca use aberturas como Oi, eu sou, Hoje eu vim falar ou Eu queria falar.",
             "Não invente detalhes nem troque a estratégia ou o canal. Corrija somente problemas objetivos, preservando o texto válido.",
             "Mantenha exatamente o schema de movimento: needsInput, question, channel, movementTitle, strategicGoal, why, steps e readyToUse.",
             "Se uma informação for indispensável e não estiver confirmada, use needsInput=true e faça uma única pergunta curta.",
