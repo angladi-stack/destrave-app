@@ -503,16 +503,101 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
           return json({ok:false,error:"A IA respondeu fora da estrutura do Destrave. Tente refazer.",code:"INVALID_AI_JSON",model:modelUsed},{status:502});
         }
 
-        // Novo Destrave: um único movimento escolhido pelo estrategista.
+        // Novo Destrave: valida e revisa a publicação única antes de entregá-la.
         if(plan && plan.movementTitle){
           const allowedChannels=["REELS","STORIES","FEED","WHATSAPP"];
           const channel=String(plan.channel||strategy?.channel||"").toUpperCase();
           if(!allowedChannels.includes(channel)) return json({ok:false,error:"Não consegui decidir o movimento de hoje. Tente novamente.",code:"MOVEMENT_CHANNEL_INVALID"},{status:422});
           delete plan.crossPost;
           plan.channel=channel;
-          const serialized=JSON.stringify(plan);
-          if(/\\b(?:oi[,! ]+eu sou|hoje eu vim falar|eu queria (?:te )?falar)\\b/i.test(serialized) && channel==="REELS") return json({ok:false,error:"O Reel não passou na revisão de abertura. Tente refazer.",code:"REEL_HOOK_INVALID"},{status:422});
-          if(channel==="STORIES"){const storyCount=(plan.steps||[]).filter(x=>x&&String(x.instruction||"").trim()).length;if(storyCount<5)return json({ok:false,error:"A sequência de Stories veio incompleta. Tente refazer.",code:"STORIES_INCOMPLETE"},{status:422});}
+
+          const movementIssues=(candidate)=>{
+            const issues=[];
+            if(!candidate || typeof candidate!=="object" || Array.isArray(candidate)) return ["estrutura inválida"];
+            if(candidate.needsInput===true){
+              if(!String(candidate.question||"").trim()) issues.push("pergunta necessária ausente");
+              return issues;
+            }
+            if(!String(candidate.movementTitle||"").trim()) issues.push("título do movimento ausente");
+            if(!String(candidate.strategicGoal||"").trim()) issues.push("objetivo estratégico ausente");
+            if(!String(candidate.why||"").trim()) issues.push("justificativa ausente");
+            if(!Array.isArray(candidate.steps) || !candidate.steps.length) issues.push("instrução de execução ausente");
+            else if(candidate.steps.some(step=>!String(step?.instruction||"").trim())) issues.push("instrução incompleta");
+            if(!Array.isArray(candidate.readyToUse) || !candidate.readyToUse.length || candidate.readyToUse.some(item=>!String(item?.text||"").trim())) issues.push("texto pronto para publicar ausente");
+            if(channel==="STORIES" && (!Array.isArray(candidate.steps) || candidate.steps.length<5 || candidate.steps.length>7)) issues.push("sequência de Stories fora do tamanho definido");
+            const leaves=collectTextLeaves(candidate);
+            const content=leaves.join("\n");
+            if(leaves.some(value=>/\[[^\]]+\]|\{\{[^}]+\}\}/.test(value))) issues.push("placeholder");
+            if(/\b\d+\s*(?:%|dias?|semanas?|meses?)\b/i.test(content) && !/\b\d+\s*(?:%|dias?|semanas?|meses?)\b/i.test(knownFactText)) issues.push("número ou prazo sem confirmação");
+            if(/\b(?:garante|garantir|vai vender|vai gerar vendas|gera vendas|resultado certo|clientes garantidos)\b/i.test(content)) issues.push("promessa de resultado");
+            if(isDestraveProduct && /\b(?:baixe|baixar|download|teste grátis|grátis|leads?|publicar automaticamente|página de vendas|checkout|crm)\b/i.test(content)) issues.push("funcionalidade do Destrave não confirmada");
+            return [...new Set(issues)];
+          };
+          const parseMovementJson=(value)=>{
+            try{return JSON.parse(String(value||"").replace(/^\x60\x60\x60(?:json)?\s*/i,"").replace(/\x60\x60\x60$/,"").trim())}catch{return null}
+          };
+          const reviewPrompt=[
+            "Você é o revisor de qualidade do Destrave. Audite esta única publicação pronta.",
+            "Confira foco soberano, pedido de hoje, fatos confirmados, promessas, execução completa e adequação ao canal.",
+            "Não invente detalhes nem troque a estratégia ou o canal. Corrija somente problemas objetivos, preservando o texto válido.",
+            "Mantenha exatamente o schema de movimento: needsInput, question, channel, movementTitle, strategicGoal, why, steps e readyToUse.",
+            "Se uma informação for indispensável e não estiver confirmada, use needsInput=true e faça uma única pergunta curta.",
+            "Retorne somente o JSON completo.",
+            "CONTEXTO: "+JSON.stringify({business:cleanContext,focus:selectedFocus,goal,todayProposal,history:recent.slice(0,6),strategy}),
+            "PUBLICAÇÃO: "+JSON.stringify(plan)
+          ].join("\n");
+          let fiscalApplied=false;
+          const acceptMovementReview=(raw,reviewer)=>{
+            const checked=parseMovementJson(raw);
+            if(!checked || String(checked.channel||"").toUpperCase()!==channel) return false;
+            const issues=movementIssues(checked);
+            if(issues.length){console.error("DESTRAVE_MOVEMENT_REVIEW_INVALID",{reviewer,issues});return false}
+            plan=checked;
+            modelUsed+="+"+reviewer;
+            fiscalApplied=true;
+            return true;
+          };
+
+          if(env.GROQ_API_KEY){
+            try{
+              const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+                method:"POST",
+                headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
+                body:JSON.stringify({model:"openai/gpt-oss-20b",messages:[{role:"system",content:"Audite com rigor factual e retorne somente JSON válido."},{role:"user",content:reviewPrompt}],temperature:0.1,max_completion_tokens:3500,response_format:{type:"json_object"}}),
+                signal:AbortSignal.timeout(14000)
+              });
+              if(rr.ok){const d=await rr.json();acceptMovementReview(d.choices?.[0]?.message?.content,"fiscal-groq")}
+              else console.error("DESTRAVE_MOVEMENT_REVIEW_GROQ_HTTP",rr.status);
+            }catch(error){console.error("DESTRAVE_MOVEMENT_REVIEW_GROQ_ERROR",String(error))}
+          }
+          if(!fiscalApplied && env.AI){
+            try{
+              const result=await Promise.race([
+                env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast",{messages:[{role:"system",content:"Audite com rigor factual e retorne somente JSON válido."},{role:"user",content:reviewPrompt}],max_tokens:3500,temperature:0.1}),
+                new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 14s")),14000))
+              ]);
+              acceptMovementReview(result?.response??result?.choices?.[0]?.message?.content,"fiscal-cloudflare");
+            }catch(error){console.error("DESTRAVE_MOVEMENT_REVIEW_CF_ERROR",String(error))}
+          }
+          if(!fiscalApplied && env.GEMINI_API_KEY){
+            try{
+              const rr=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{
+                method:"POST",
+                headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
+                body:JSON.stringify({contents:[{parts:[{text:reviewPrompt}]}],generationConfig:{maxOutputTokens:3500,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}}),
+                signal:AbortSignal.timeout(14000)
+              });
+              if(rr.ok){const d=await rr.json();acceptMovementReview((d.candidates?.[0]?.content?.parts||[]).map(part=>part.text||"").join(""),"fiscal-gemini")}
+              else console.error("DESTRAVE_MOVEMENT_REVIEW_GEMINI_HTTP",rr.status);
+            }catch(error){console.error("DESTRAVE_MOVEMENT_REVIEW_GEMINI_ERROR",String(error))}
+          }
+
+          const finalMovementIssues=movementIssues(plan);
+          if(finalMovementIssues.length){
+            console.error("DESTRAVE_MOVEMENT_GUARD_BLOCKED",{model:modelUsed,issues:finalMovementIssues});
+            return json({ok:false,error:"A publicação não passou na revisão de qualidade. Tente gerar novamente.",code:"MOVEMENT_QUALITY_GUARD"},{status:422});
+          }
+          if(!fiscalApplied) modelUsed+="+guard";
           console.error("DESTRAVE_PIPELINE_FINAL",{model:modelUsed,plan,strategy});
           return json({ok:true,plan,text:JSON.stringify(plan),format:channel,model:modelUsed});
         }
