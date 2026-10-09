@@ -550,6 +550,7 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
             "PUBLICAÇÃO: "+JSON.stringify(plan)
           ].join("\n");
           let fiscalApplied=false;
+          const reviewerRemainingMs=()=>Math.max(0,105000-(Date.now()-generationStartedAt)-1000);
           const acceptMovementReview=(raw,reviewer)=>{
             const checked=parseMovementJson(raw);
             if(!checked || String(checked.channel||"").toUpperCase()!==channel) return false;
@@ -563,34 +564,34 @@ JSON obrigatório: {"fronts":[{"label":"...","kind":"offer|differential"}]}`;
             return true;
           };
 
-          if(env.GROQ_API_KEY){
+          if(env.GROQ_API_KEY && reviewerRemainingMs()>0){
             try{
               const rr=await fetch("https://api.groq.com/openai/v1/chat/completions",{
                 method:"POST",
                 headers:{"content-type":"application/json","authorization":"Bearer "+env.GROQ_API_KEY},
                 body:JSON.stringify({model:"openai/gpt-oss-20b",messages:[{role:"system",content:"Audite com rigor factual e retorne somente JSON válido."},{role:"user",content:reviewPrompt}],temperature:0.1,max_completion_tokens:3500,response_format:{type:"json_object"}}),
-                signal:AbortSignal.timeout(14000)
+                signal:AbortSignal.timeout(Math.min(14000,reviewerRemainingMs()))
               });
               if(rr.ok){const d=await rr.json();acceptMovementReview(d.choices?.[0]?.message?.content,"fiscal-groq")}
               else console.error("DESTRAVE_MOVEMENT_REVIEW_GROQ_HTTP",rr.status);
             }catch(error){console.error("DESTRAVE_MOVEMENT_REVIEW_GROQ_ERROR",String(error))}
           }
-          if(!fiscalApplied && env.AI){
+          if(!fiscalApplied && env.AI && reviewerRemainingMs()>0){
             try{
               const result=await Promise.race([
                 env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast",{messages:[{role:"system",content:"Audite com rigor factual e retorne somente JSON válido."},{role:"user",content:reviewPrompt}],max_tokens:3500,temperature:0.1}),
-                new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout após 14s")),14000))
+                new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout da revisão")),Math.min(14000,reviewerRemainingMs())))
               ]);
               acceptMovementReview(result?.response??result?.choices?.[0]?.message?.content,"fiscal-cloudflare");
             }catch(error){console.error("DESTRAVE_MOVEMENT_REVIEW_CF_ERROR",String(error))}
           }
-          if(!fiscalApplied && env.GEMINI_API_KEY){
+          if(!fiscalApplied && env.GEMINI_API_KEY && reviewerRemainingMs()>0){
             try{
               const rr=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",{
                 method:"POST",
                 headers:{"content-type":"application/json","x-goog-api-key":env.GEMINI_API_KEY},
                 body:JSON.stringify({contents:[{parts:[{text:reviewPrompt}]}],generationConfig:{maxOutputTokens:3500,responseMimeType:"application/json",thinkingConfig:{thinkingLevel:"low"}}}),
-                signal:AbortSignal.timeout(14000)
+                signal:AbortSignal.timeout(Math.min(14000,reviewerRemainingMs()))
               });
               if(rr.ok){const d=await rr.json();acceptMovementReview((d.candidates?.[0]?.content?.parts||[]).map(part=>part.text||"").join(""),"fiscal-gemini")}
               else console.error("DESTRAVE_MOVEMENT_REVIEW_GEMINI_HTTP",rr.status);
